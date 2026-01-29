@@ -41,3 +41,8 @@ docker-compose.override.yml
 
 # Cursor
 .cursor/
+
+# Editor backups
+*.save
+*.save.*
+*~
