@@ -9,9 +9,7 @@ import json
 router = APIRouter()
 
 @router.get("", response_model=List[CourseListItem])
-def get_courses(db: Session = Depends(get_db)):
-    """Get all courses"""
-    courses = db.query(Course).order_by(Course.order).all()
+def get_courses(db: Session = De.all()
     
     result = []
     for course in courses:
@@ -49,7 +47,4 @@ def get_class(course_slug: str, class_slug: str, db: Session = Depends(get_db)):
     
     # Parse quiz questions if exists
     if class_.quiz:
-        for question in class_.quiz.questions:
-            question.options = json.loads(question.options)
-    
-    return class_
+        for q
