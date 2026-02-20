@@ -1,51 +1,63 @@
-# PCRE Learning Platform 🚀
+# PCRE Learning Platform 
+
+![Python](https://img.shields.io/badge/Python-3.11-blue?logo=python&logoColor=white)
+![FastAPI](https://img.shields.io/badge/FastAPI-005571?logo=fastapi&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-336791?logo=postgresql&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-2496ED?logo=docker&logoColor=white)
 
 Sistema de aprendizaje de inglés con apuntes en formato PCRE (Pattern, Concept, Rules, Examples) y cuestionarios interactivos. Desarrollado con una arquitectura SaaS escalable.
 
-## 🛠️ Stack Tecnológico
+## Stack tecnologico
 
 ### Backend (Implementado - Fase 1 & 1.5)
-- **Framework:** FastAPI (Python 3.11)
-- **Base de Datos:** PostgreSQL 15
-- **ORM & Migraciones:** SQLAlchemy 2.0 + Alembic
-- **Validación y Serialización:** Pydantic V2
-- **Seguridad:** Modelos preparados para JWT y hashing con bcrypt
-- **Infraestructura:** Docker & Docker Compose
 
-### Frontend (Próxima Fase)
+- Framework: FastAPI (Python 3.11)
+- Base de datos: PostgreSQL 15
+- ORM & migraciones: SQLAlchemy 2.0 + Alembic
+- Validación y serialización: Pydantic v2
+- Seguridad: Modelos preparados para JWT y hashing con bcrypt
+- Infraestructura: Docker & Docker Compose
+
+### Frontend (Proxima fase)
+
 - Next.js 15 (App Router)
 - TypeScript estricto
 - Tailwind CSS + shadcn/ui
 
-## Características del Backend Actual
-- **Diseño Modular:** Arquitectura estructurada separando modelos, esquemas y endpoints.
-- **Gestión de Usuarios:** Modelos de usuario seguros con UUIDs autogenerados, roles (`admin`, `student`) mediante Enums nativos de PostgreSQL y restricciones de unicidad.
-- **Gestión de Contenidos:** Esquema relacional completo para Cursos, Clases (con soporte Markdown) y Quizzes interactivos.
-- **Buenas Prácticas:** Configuración protegida por variables de entorno y documentación automática con Swagger UI.
+## Características del backend actual
 
-## Instalación y Ejecución Local
+- Diseño modular: Arquitectura estructurada separando modelos, esquemas y endpoints.
+- Gestion de usuarios: Modelos de usuario seguros con UUIDs autogenerados, roles (admin, student) mediante Enums nativos de PostgreSQL y restricciones de unicidad.
+- Gestion de contenidos: Esquema relacional completo para Cursos, Clases (con soporte Markdown) y Quizzes interactivos.
+- Buenas prácticas: Configuración protegida por variables de entorno y documentación automática con Swagger UI.
 
-Sigue estos pasos para levantar el entorno de desarrollo en tu máquina:
+## Instalación y ejecución local
 
-1. **Clonar el repositorio:**
-    git clone [https://github.com/astraDukoWave/pcre-learning-platform.git](https://github.com/astraDukoWave/pcre-learning-platform.git)
-    cd pcre-learning-platform
+Sigue estos pasos para levantar el entorno de desarrollo en tu máquina.
 
-2. **Configurar variables de entorno:**    
-    cd apps/backend
-    cp .env.example .env    
+1) Clonar el repositorio:
 
-3. **Levantar los contenedores con Docker:**  
-    Asegúrate de tener Docker corriendo en tu sistema.
-    docker-compose up -d
+```bash
+git clone https://github.com/astraDukoWave/pcre-learning-platform.git
+cd pcre-learning-platform
+```
+2) Configurar variables de entorno:
+```bash
+cd apps/backend
+cp .env.example .env
+```
+3) Levantar contenedores:
+```bash
+docker-compose up -d
+```
+4) Ejecutar migraciones y seed inicial:
+```bash
+docker-compose exec backend alembic upgrade head
+docker-compose exec backend python app/db/seed.py
+```
+5) Abrir la documentación de la API (Swagger):
+http://localhost:8000/docs
 
-4. **Levantar los contenedores con Docker:**  
-    Ejecuta las migraciones de Alembic para crear las tablas (users, courses, classes, etc.) y puebla la base de datos con el primer curso.
-    docker-compose exec backend alembic upgrade head
-    docker-compose exec backend python app/db/seed.py
-
-5. **Levantar los contenedores con Docker:** 
-    Visita http://localhost:8000/docs en tu navegador para interactuar con la documentación auto-generada.
 
 ## Estructura del Proyecto
 ```
