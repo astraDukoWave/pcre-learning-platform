@@ -1,7 +1,8 @@
 # STATE.md — ciclo activo
 
 **Fase:** gate **G0 pendiente**. El paquete de specs y planes está en la
-rama `docs/sdd-mvp-specs` (PR a `main`), esperando la firma de Jonathan.
+rama `docs/sdd-mvp-specs` (PR #2 a `main`), esperando la firma de
+Jonathan.
 **Siguiente ciclo:** MVP-01 (`docs/plans/mvp-01-nucleo-piloto-plan.md`),
 al firmarse G0.
 
@@ -35,7 +36,7 @@ Las tres de `docs/reviews/g0-arranque-autonomo-cto-review.md`:
 
 | Ciclo | CS | Rama | PR | SHA mergeado | Run de CI | Evidencia | Fecha |
 |---|---|---|---|---|---|---|---|
-| — | paquete G0 | `docs/sdd-mvp-specs` | por abrir | — | sin CI todavía | revisión humana del paquete | 5 oct 2026 |
+| — | paquete G0 | `docs/sdd-mvp-specs` | [#2](https://github.com/astraDukoWave/pcre-learning-platform/pull/2) | — | sin CI todavía (la crea MVP-01 CS-01) | revisión humana del paquete | 5 oct 2026 |
 
 ## Desviaciones
 

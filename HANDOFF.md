@@ -195,7 +195,7 @@ VOICE_MAX_MINUTES_PER_USER_MONTH=<firmado en G0>
 
 ## 10. Próxima sesión — cola
 
-1. **G0:** Jonathan revisa el PR del paquete, responde las tres decisiones
+1. **G0:** Jonathan revisa el PR #2, responde las tres decisiones
    de `docs/reviews/g0-arranque-autonomo-cto-review.md` y pega el mensaje
    de aprobación.
 2. **H-1:** ruleset de `main` (pasos en el plan de MVP-01).
