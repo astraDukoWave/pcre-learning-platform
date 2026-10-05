@@ -18,9 +18,9 @@
 - **Nombre:** "PCRE" (Pattern, Concept, Rules, Examples) es el nombre del
   método de explicación y el nombre de trabajo; el nombre comercial está
   abierto (LB-05). `APP_NAME` lo deja configurable.
-- **Fase actual:** gate **G0** pendiente. El paquete de specs y planes
-  espera la firma de Jonathan; al firmarlo, una sesión cloud de Claude Code
-  ejecuta MVP-01 y MVP-02.
+- **Fase actual:** G0 **aprobado** el 5 oct 2026. MVP-01 por iniciar en
+  una sesión cloud de Claude Code, que sigue con MVP-02 (decisiones en
+  `STATE.md`).
 
 ## 2. Estado real
 
@@ -61,7 +61,7 @@ Proveedores (MVP-02, apagados hasta G5): Gemini (feedback) · Deepgram (voz, STT
 Workflows aprobados: deploy.yml (G1) · content-audio.yml (G2) · feedback-eval.yml (G5a)
 ```
 
-## 4. Decisiones técnicas (propuestas en G0; cerradas al firmarlo)
+## 4. Decisiones técnicas (cerradas en G0, 5 oct 2026)
 
 | Decisión | Elegido | Razón | Dónde |
 |---|---|---|---|
@@ -80,7 +80,8 @@ Workflows aprobados: deploy.yml (G1) · content-audio.yml (G2) · feedback-eval.
 | CI/CD | GitHub Actions + deploy aprobado | No depende de la Mac; un clic | ADR-13 |
 | Observabilidad | Logs JSON + `error_events` | Sin otro procesador de datos | ADR-14 |
 | Toolchain | Python 3.12 + uv · Node 22 + npm | Coincide con la VM cloud y CareerAI | ADR-15 |
-| Merges | Claude mergea con merge commit si G0 lo delega; Jonathan aprueba deploys | Autonomía con gate en producción | G0 |
+| Merges | Claude mergea con merge commit (delegado en G0 para MVP-01 y MVP-02); Jonathan aprueba deploys | Autonomía con gate en producción | G0 |
+| Dyno | Basic | Sin sueño para los primeros clientes | G0, decisión 3 |
 
 ## 5. Estrategia comercial — fuera del repo
 
@@ -182,9 +183,9 @@ VOICE_ENABLED=false
 GEMINI_API_KEY=<Heroku Config Vars>
 GEMINI_MODEL=<elegido con el set de evaluación>
 DEEPGRAM_API_KEY=<Heroku Config Vars, proyecto propio de PCRE>
-BUDGET_GLOBAL_MONTHLY_MICROUSD=<firmado en G0>
-BUDGET_USER_MONTHLY_MICROUSD=<firmado en G0>
-VOICE_MAX_MINUTES_PER_USER_MONTH=<firmado en G0>
+BUDGET_GLOBAL_MONTHLY_MICROUSD=25000000   # USD 25 al mes (G0)
+BUDGET_USER_MONTHLY_MICROUSD=8000000      # USD 8 por alumno al mes (G0)
+VOICE_MAX_MINUTES_PER_USER_MONTH=60       # (G0)
 
 # GitHub (Settings → Environments / Variables)
 # environment production: secret HEROKU_API_KEY (con revisor obligatorio)
@@ -195,13 +196,12 @@ VOICE_MAX_MINUTES_PER_USER_MONTH=<firmado en G0>
 
 ## 10. Próxima sesión — cola
 
-1. **G0:** Jonathan revisa el PR #2, responde las tres decisiones
-   de `docs/reviews/g0-arranque-autonomo-cto-review.md` y pega el mensaje
-   de aprobación.
-2. **H-1:** ruleset de `main` (pasos en el plan de MVP-01).
-3. **Arranque:** sesión cloud con el prompt `/goal` del Proyecto privado.
-4. MVP-01 CS-01 → … → CS-12; después MVP-02.
+1. **Arranque:** sesión cloud con el prompt `/goal` del Proyecto privado.
+2. MVP-01 CS-01 → … → CS-12; después MVP-02 CS-01 → … → CS-08.
+3. **H-1b** tras el primer run de CI de CS-01: `ci-gate` como check
+   requerido.
+4. Al cerrar cada ciclo: gates de activación G1–G5 según sus dictámenes.
 
 ---
 
-*Última actualización: 5 oct 2026 (paquete G0).*
+*Última actualización: 5 oct 2026 (G0 aprobado).*

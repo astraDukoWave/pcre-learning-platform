@@ -2,7 +2,8 @@
 
 spec_id: MVP-02-SPEC-01
 Ciclo SDD MVP-02 · Lane: **High-risk** (APIs de pago y datos de voz).
-Estado: **PENDIENTE DE APROBACIÓN** (gate G0). Empieza cuando MVP-01 cierra
+Estado: **APROBADO** por Jonathan el 5 oct 2026 (gate G0); contenido congelado en `9aa2e2c`
+(solo cambia esta línea). Empieza cuando MVP-01 cierra
 su `verify` (todos los AC en ✅ o en pendiente humano justificado).
 Base: el `main` que deje MVP-01. Arquitectura: `docs/arquitectura.md`
 v1.0 (§8–§9, ADR-09 a ADR-11). Contenido: `docs/contenido/contrato-curricular.md`

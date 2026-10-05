@@ -1,6 +1,7 @@
 # Contrato curricular — ruta `toefl-ibt-2026-b1-b2`
 
-Versión 1.0 · 5 oct 2026 · Estado: **PENDIENTE DE APROBACIÓN** (gate G0).
+Versión 1.0 · 5 oct 2026 · Estado: **APROBADO** por Jonathan el 5 oct 2026 (gate G0); contenido congelado en
+`9aa2e2c` (solo cambia esta línea).
 Aplica a MVP-01 (Unidad 1, diagnóstico inicial y escenario U1) y a MVP-03
 (unidades 2–8, formulario final y escenarios 2–8). Insumo:
 PCRE-MVP-20261005 §6 (privado). El esquema ejecutable vive en el código

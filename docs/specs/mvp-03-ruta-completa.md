@@ -3,7 +3,8 @@
 spec_id: MVP-03-SPEC-01
 Ciclo SDD MVP-03 · Lane: Standard. Publicar y generar audio conservan su
 gate (ver "Riesgo por acción").
-Estado: **PENDIENTE DE APROBACIÓN** (gate G0). Arranca solo con el gate
+Estado: **APROBADO** por Jonathan el 5 oct 2026 (gate G0); contenido congelado en `9aa2e2c`
+(solo cambia esta línea). Arranca solo con el gate
 **G6** (ver "Supuestos y decisiones abiertas").
 Base: el `main` que dejen MVP-01 y MVP-02. Contenido:
 `docs/contenido/contrato-curricular.md` v1.0 (todo el documento).

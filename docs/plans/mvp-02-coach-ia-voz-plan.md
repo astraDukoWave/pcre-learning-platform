@@ -9,7 +9,8 @@
   `main`.
 - **Lane:** **High-risk.** CS-02, CS-05 y CS-07 pasan por un verificador de
   contexto fresco antes del merge.
-- **Estado:** **PENDIENTE DE APROBACIÓN** (gate G0).
+- **Estado:** **APROBADO** por Jonathan el 5 oct 2026 (gate G0); contenido congelado en
+  `0100c0a` (el commit de aprobación solo cambia las líneas de estado).
 
 ---
 
@@ -266,4 +267,4 @@ No va en el repo. Ver MVP-01-PLAN-01.
 ---
 
 *Generado: 5 oct 2026 · Basado en MVP-02-SPEC-01 @ `9aa2e2c` · Estado:
-pendiente de aprobación (G0).*
+aprobado en G0 el 5 oct 2026.*

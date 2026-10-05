@@ -6,6 +6,8 @@
   del agente @ `0100c0a` (rama `docs/sdd-mvp-specs`).
 - **Fecha:** 5 oct 2026. Skill: `cto-review` v0.2.
 - **Firma:** Jonathan. Este dictamen no aprueba por él.
+- **Resultado:** **aprobado** por Jonathan el 5 oct 2026 (ver "Resultado del
+  gate").
 
 ## Clasificación por acción
 
@@ -124,6 +126,28 @@ Los cambios son pasos de configuración; no hace falta tocar los documentos.
 > alcance ni contrato se registran en `STATE.md`; cualquier otra desviación
 > queda `pending-human`.
 
+## Resultado del gate
+
+Jonathan pegó el mensaje de aprobación el 5 oct 2026 y completó las tres
+decisiones en un mensaje aparte: "Confirmo: sí · A · USD 25 global, USD 8
+por alumno, 60 min de voz, dyno Basic".
+
+| Decisión | Respuesta | Dónde queda |
+|---|---|---|
+| 1 · Delegación de merges | **Sí**, solo MVP-01 y MVP-02, con las tres condiciones del plan | `STATE.md` |
+| 2 · Encadenamiento | **A**: MVP-01 y MVP-02 en un `/goal`; MVP-03 tras G6 | `STATE.md` |
+| 3 · Techo de gasto | USD 25 al mes global, USD 8 por alumno, 60 min de voz por alumno, dyno Basic | `STATE.md` y `HANDOFF.md` §9 |
+
+| Condición | Estado |
+|---|---|
+| 1 · Ruleset de `main` activo (H-1) | Hecho: ruleset `main` (id 24546040), `enforcement: active`, reglas `deletion`, `non_fast_forward` y `pull_request` `[verified-this-session: API REST]`. Pendiente H-1b (`ci-gate` requerido) tras el primer run de CS-01. |
+| 2 · Environment cloud propio | Hecho según Jonathan: environment `pcre` `[inherited-unverified]`. |
+| 3 · Ninguna llave de pago antes de su gate | El repo solo tiene placeholders; Jonathan creó el environment sin llaves `[inherited-unverified]`. |
+
+El PR #2 (este paquete) entra a `main` con merge commit por la aprobación
+explícita de G0: el repo aún no tiene CI, que nace en MVP-01 CS-01. La
+delegación de merges con `ci-gate` en verde rige desde CS-01.
+
 ## Registro del gate
 
 ```json
@@ -137,17 +161,16 @@ Los cambios son pasos de configuración; no hace falta tocar los documentos.
     "environment cloud propio, red Trusted, timeouts ampliados, sin secretos, modo Auto",
     "ninguna llave de pago antes de su gate"
   ],
-  "respuesta_humana": "pendiente"
+  "respuesta_humana": "aprobado el 5 oct 2026: delegación sí (MVP-01 y MVP-02); encadenamiento A; USD 25 global, USD 8 por alumno, 60 min de voz por alumno, dyno Basic; ADR-08 y tres ciclos ratificados"
 }
 ```
 
-## Estado del ciclo — MVP-01..03 · etapa: G0 (pendiente de aprobación)
+## Estado del ciclo — MVP-01..03 · etapa: G0 (aprobado)
 
 - **Artefactos:** `docs/specs/*` @ `9aa2e2c` · `docs/plans/*` @ `0100c0a` ·
-  este dictamen.
+  este dictamen. El commit de aprobación solo cambia las líneas de estado.
 - **Evidencia:** matriz de arriba (`[verified-this-session]` salvo lo
-  marcado).
+  marcado) y "Resultado del gate".
 - **Desviaciones:** ninguna abierta; ADR-08 y la división en tres ciclos
-  se presentan para ratificar.
-- **Siguiente:** ejecución de MVP-01 → `design-plan` ya aprobado con G0 ·
-  lane Standard.
+  quedaron ratificadas.
+- **Siguiente:** ejecución de MVP-01 desde CS-01 · lane Standard.

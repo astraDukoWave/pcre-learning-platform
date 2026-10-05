@@ -10,7 +10,8 @@
 - **Ramas:** `feat/mvp03-csNN-<unidad>`, una por change set, con PR a
   `main`.
 - **Lane:** Standard. Publicar (G3) y generar audio (G2) son de Jonathan.
-- **Estado:** **PENDIENTE DE APROBACIÓN** (gate G0).
+- **Estado:** **APROBADO** por Jonathan el 5 oct 2026 (gate G0); contenido congelado en
+  `0100c0a` (el commit de aprobación solo cambia las líneas de estado).
 
 ---
 
@@ -142,4 +143,4 @@ No va en el repo. Ver MVP-01-PLAN-01.
 ---
 
 *Generado: 5 oct 2026 · Basado en MVP-03-SPEC-01 @ `9aa2e2c` · Estado:
-pendiente de aprobación (G0).*
+aprobado en G0 el 5 oct 2026.*

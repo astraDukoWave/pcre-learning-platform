@@ -10,7 +10,10 @@
   `ci/mvp01-cs01-base`), cada una con su PR a `main`.
 - **Lane:** Standard; las acciones de alto riesgo conservan su gate
   (tabla del spec).
-- **Estado:** **PENDIENTE DE APROBACIÓN** (gate G0, junto con el spec).
+- **Estado:** **APROBADO** por Jonathan el 5 oct 2026 (gate G0); contenido congelado en
+  `0100c0a`. El commit de aprobación solo cambia las líneas de estado del plan
+  y de los specs: `git diff 9aa2e2c HEAD -- docs/specs/` muestra solo esas
+  líneas, así que no es una desviación.
 - **Ejecuta:** una sesión cloud de Claude Code con `/goal` (prompt en el
   Proyecto privado). El plan se puede retomar en una sesión nueva sin
   memoria: el estado vive en `STATE.md`.
@@ -622,4 +625,4 @@ puede retomar este plan leyendo `CLAUDE.md`, `HANDOFF.md` y `STATE.md`.
 ---
 
 *Generado: 5 oct 2026 · Basado en MVP-01-SPEC-01 @ `9aa2e2c` · Estado:
-pendiente de aprobación (G0).*
+aprobado en G0 el 5 oct 2026.*

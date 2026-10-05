@@ -3,8 +3,8 @@
 spec_id: MVP-01-SPEC-01
 Ciclo SDD MVP-01 · Lane: Standard. Las acciones de alto riesgo conservan
 su propio gate (ver "Riesgo por acción").
-Estado: **PENDIENTE DE APROBACIÓN** (gate G0,
-`docs/reviews/g0-arranque-autonomo-cto-review.md`).
+Estado: **APROBADO** por Jonathan el 5 oct 2026 (gate G0); contenido congelado en `9aa2e2c`
+(solo cambia esta línea). Dictamen: `docs/reviews/g0-arranque-autonomo-cto-review.md`.
 Base: `main` @ `133c5e3`. Arquitectura: `docs/arquitectura.md` v1.0.
 Contenido: `docs/contenido/contrato-curricular.md` v1.0.
 Discovery: contrato PCRE-MVP-20261005 y spec de producto v0.3; contexto

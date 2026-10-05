@@ -1,7 +1,8 @@
 # Arquitectura — PCRE Learning Platform
 
-Versión 1.0 · 5 oct 2026 · Estado: **PENDIENTE DE APROBACIÓN** (gate G0,
-junto con `MVP-01-SPEC-01`, `MVP-02-SPEC-01` y `MVP-03-SPEC-01`).
+Versión 1.0 · 5 oct 2026 · Estado: **APROBADO** por Jonathan el 5 oct 2026 (gate G0), junto con
+`MVP-01-SPEC-01`, `MVP-02-SPEC-01` y `MVP-03-SPEC-01`; contenido congelado
+en `9aa2e2c` (solo cambia esta línea).
 Skill aplicada: `system-design-spec` v0.2 (reglas 0–10).
 
 Fuente de verdad técnica que comparten los tres specs. Un cambio aquí entra
