@@ -1,3 +1,7 @@
+> **Histórico.** Requisitos de la fase 1 (enero de 2026). Quedaron
+> superados por `docs/specs/` y `docs/arquitectura.md` (octubre de 2026);
+> no los uses como requisitos.
+
 # Requirements Document
 
 ## Functional Requirements
