@@ -97,7 +97,8 @@ revisa y publica por lotes (una unidad por lote). La ruta se marca
     cada familia en práctica y en una comprobación posterior y todo audio
     revisado. Se muestra en el panel del admin y, solo cuando es verdadero,
     al alumno ("Ruta inicial completa").
-- **REQ-08 · Paquetes de revisión.** `make review-packet UNIT=u2` genera
+- **REQ-08 · Paquetes de revisión.** `make review-packet UNIT=u2` (la
+  herramienta nace en MVP-01 para revisar U1) genera
   `docs/contenido/revision/u2.md` con: ítems y objetivos, resumen de
   claves y variantes, fuentes por afirmación, advertencias del lint,
   guiones de audio y la lista de revisión del contrato §12. Se regenera con

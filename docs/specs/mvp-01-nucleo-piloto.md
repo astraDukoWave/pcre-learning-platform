@@ -113,7 +113,8 @@ El feedback abierto con IA y el coach de voz llegan en MVP-02; las unidades
 - **Producto:** valoración por lección, comentario general, eventos,
   errores del servidor y panel del piloto.
 - **Contenido U1:** 4 lecciones, escenario en modo texto, checkpoint,
-  diagnóstico inicial y guiones de audio, en estado `ready-for-review`.
+  diagnóstico inicial y guiones de audio, en estado `ready-for-review`, con
+  su paquete de revisión (`make review-packet UNIT=u1`).
 - **Operación:** cabeceras de seguridad, logs sin datos personales,
   readiness, runbook (deploy, rollback, backup y restauración, admin,
   invitaciones, publicación), aviso de privacidad y términos en borrador,
@@ -202,10 +203,13 @@ triggers escritos en esa misma sección.
     `main`. El job `deploy` usa `environment: production` (revisor
     obligatorio, que configura Jonathan) y concurrencia `production` (una
     ejecución pendiente más nueva reemplaza a la anterior).
+  - Activación explícita: el job solo corre si la variable del repo
+    `DEPLOY_ENABLED` vale `true` (la define Jonathan en G1). Sin ella, el job
+    se omite y el run no queda en verde. Con ella, pero sin el secret
+    `HEROKU_API_KEY` o sin la variable `HEROKU_APP_NAME`, falla con el
+    mensaje "deploy no configurado". Nunca termina en verde sin desplegar.
   - Pasos del job:
     - Checkout del SHA exacto con historia completa.
-    - Si faltan `HEROKU_API_KEY` o `HEROKU_APP_NAME`, falla con el mensaje
-      "deploy no configurado" (nunca termina en verde sin desplegar).
     - Instala la CLI de Heroku y captura un backup de la base.
     - Hace `git push` a `https://git.heroku.com/$HEROKU_APP_NAME.git`
       (`HEAD:main`) y espera la release.
@@ -761,7 +765,8 @@ La instrumentación de estas métricas son change sets del plan, no notas.
   acceso, inicio, ruta, lección, comprobación y resultados.
 - [ ] **AC-16** — Contenido U1 (4 lecciones, escenario, checkpoint) y
   diagnóstico pasan lint y mínimos; `cobertura.md` al día; sin marcadores;
-  guiones de audio presentes; todo en `ready-for-review`.
+  guiones de audio presentes; todo en `ready-for-review`;
+  `docs/contenido/revision/u1.md` generado.
 - [ ] **AC-17** — La imagen de producción construye y arranca con el
   comando de `heroku.yml`: `/health` 200, `/api/v1/ready` 200 con base de
   datos, `/` sirve la SPA, `/api/v1/no-existe` → 404 JSON y un asset
@@ -774,8 +779,9 @@ La instrumentación de estas métricas son change sets del plan, no notas.
 - [ ] **AC-20** — El resultado del smoke de rendimiento está registrado en
   `docs/reviews/mvp-01-verify.md` y cumple NFR-03 o tiene desviación
   registrada.
-- [ ] **AC-21** — `deploy.yml` pasa actionlint y, sin secretos, falla con
-  "deploy no configurado" (comprobado en un run real).
+- [ ] **AC-21** — `deploy.yml` pasa actionlint; tras el merge que lo
+  introduce, su run en `main` queda omitido (sin `DEPLOY_ENABLED`) y no en
+  verde (URL del run). El caso "deploy no configurado" se comprueba en G1.
 - [ ] **AC-22** — Exportación y borrado de cuenta funcionan y quedan
   probados; después del borrado no queda ninguna fila del usuario.
 - [ ] **AC-23** — Panel del piloto y feedback por lección muestran datos de

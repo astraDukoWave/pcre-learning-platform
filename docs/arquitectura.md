@@ -485,8 +485,8 @@ Reglas comunes:
 GitHub (repo público)
  ├─ PR ──► ci.yml: backend · migrations · frontend · contract · content · e2e · image ──► ci-gate
  ├─ merge a main (CI verde, ruleset) ──► deploy.yml
- │                                         └─ environment "production": aprobación de Jonathan
- │                                              ├─ backup de la base si hay migraciones nuevas
+ │                                         └─ si DEPLOY_ENABLED=true · environment "production": aprobación de Jonathan
+ │                                              ├─ backup de la base
  │                                              ├─ git push a Heroku (build Docker remoto)
  │                                              └─ smoke: /health · /api/v1/ready · /
  └─ workflow_dispatch: content-audio.yml (TTS) · feedback-eval.yml (MVP-02), con environment aprobado
@@ -517,10 +517,13 @@ Heroku app (Cedar, stack container, 1 web dyno)
   jobs pueden cambiar sin tocar la configuración del repo. Nunca se
   renombra ni se elimina.
 - **CD (`deploy.yml`):** corre tras un CI verde en `main`, en el
-  environment `production` con revisor obligatorio (Jonathan). Si hay
-  migraciones nuevas captura un backup antes del push. Sin
-  `HEROKU_API_KEY` el job termina con un mensaje explícito, nunca en verde
-  falso.
+  environment `production` con revisor obligatorio (Jonathan), y solo si la
+  variable del repo `DEPLOY_ENABLED` vale `true`. Captura un backup antes
+  del push. Sin `DEPLOY_ENABLED` el job se omite; con ella pero sin
+  `HEROKU_API_KEY` falla con un mensaje explícito. Nunca queda en verde sin
+  desplegar. Orden obligatorio al activarlo: primero la regla de revisor
+  del environment, después los secrets (un environment que no existe se
+  crea sin protección al primer uso).
 - **Rollback:** `heroku rollback -a <app>` regresa código y comando de
   arranque; las migraciones expand mantienen compatible el esquema. El
   contenido se revierte retirando una revisión o republicando la anterior.
