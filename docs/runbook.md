@@ -289,7 +289,29 @@ dictamen de activación.
    crea uno nuevo y reemplaza el secret en GitHub (sección 2.4).
 7. Anota el incidente y la causa en `STATE.md` (desviación) para la siguiente sesión.
 
-## 12. Smoke de rendimiento (NFR-03, local)
+## 12. Prueba manual en teléfonos (H-6, después de G1)
+
+En un iPhone (Safari) y un Android (Chrome) actuales, con la URL de Heroku y una cuenta
+interna de alumno. Marca cada casilla; si algo falla, captura de pantalla y el
+`request_id` del mensaje.
+
+- [ ] Aceptar una invitación: el correo aparece fijo, el aviso de privacidad se abre y se
+  puede volver; la contraseña se escribe sin que el teclado tape el botón.
+- [ ] Diagnóstico: empezar, responder dos preguntas, salir con «atrás» y retomar donde iba.
+- [ ] Lectura (L1): elegir, enviar, ver el feedback y pedir una pista.
+- [ ] Escucha (L2): el audio suena, se puede repetir y la transcripción aparece como ayuda.
+- [ ] Escritura (L3): ordenar fichas tocándolas y escribir el correo; el contador de
+  palabras se actualiza.
+- [ ] Habla (L4): el navegador pide el micrófono, se graba, se reproduce lo grabado y nada
+  se sube; con el permiso denegado aparece la explicación y «No pude grabar».
+- [ ] Escenario: recorrer el diálogo hasta el final.
+- [ ] Checkpoint: completarlo y ver los resultados por objetivo.
+- [ ] Panel (con tu cuenta admin): `/admin/contenido`, `/admin/piloto` y
+  `/admin/usuarios` se leen sin desplazamiento horizontal.
+
+Anota el resultado (modelo, versión del sistema y del navegador) en `STATE.md`.
+
+## 13. Smoke de rendimiento (NFR-03, local)
 
 Contra el build de producción local, nunca contra Heroku (crea intentos con la cuenta que
 usa). Desde `apps/backend`, con la base desechable `pcre_migcheck`:

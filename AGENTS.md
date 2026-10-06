@@ -20,7 +20,7 @@ contenido).
 
 ## Estado del código
 
-MVP-01 en curso (ver `STATE.md`). Desde CS-01 el backend usa Python 3.12 con `uv`,
+MVP-01 cerrado; MVP-02 en curso (ver `STATE.md`). El backend usa Python 3.12 con `uv`,
 pytest contra PostgreSQL real, ruff, mypy e import-linter; la CI corre en cada PR y
 `ci-gate` es el check que importa. El prototipo de la fase 1 se retiró (sus tablas
 siguen congeladas en `app/modules/legacy/models.py`).
@@ -28,7 +28,7 @@ siguen congeladas en `app/modules/legacy/models.py`).
 ## Comandos
 
 ```bash
-make setup             # uv sync (+ npm ci desde CS-02)
+make setup             # uv sync + npm ci
 make db-up             # PostgreSQL local: VM cloud (service) o docker compose (db)
 make migrate           # alembic upgrade head sobre DATABASE_URL (base pcre)
 make dev               # backend con recarga en :8000
@@ -39,7 +39,8 @@ make migrations-check  # vacía→head, legado+seed→head, alembic check, downg
 make openapi           # docs/api/openapi.json + apps/frontend/src/api/schema.d.ts
 make frontend-check    # tsc, ESLint, Vitest y build del frontend
 make contract-check    # OpenAPI y tipos sin diferencias con el código
-make content-lint      # lint del contenido + docs/contenido/cobertura.md
+make content-lint      # lint del contenido + cobertura.md + paquetes de revisión
+make review-packet UNIT=u1  # paquete de revisión de una unidad (o inicial/final)
 make content-import    # importa borradores a DATABASE_URL (nunca aprueba ni publica)
 make verify            # todo lo anterior: el check previo a un PR
 ```
