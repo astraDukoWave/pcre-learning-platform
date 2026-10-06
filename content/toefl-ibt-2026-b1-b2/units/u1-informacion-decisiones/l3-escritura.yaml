@@ -1,0 +1,157 @@
+# U1 · L3 · Escritura (contrato curricular §4, §5 y §8). Borrador del agente para revisión
+# humana. En MVP-01 los correos se cierran con autoevaluación guiada (rúbrica `email`).
+kind: lesson
+slug: u1-l3-escritura
+unit: u1-informacion-decisiones
+position: 3
+skill: writing
+title: "Pedir información por escrito"
+status: draft
+objectives: [U1.W]
+objective_es: "Construirás preguntas indirectas correctas y escribirás un correo breve que pida los datos que necesitas para decidir."
+sources:
+  - source: ets-toefl-ibt-content
+    claim: "La sección de escritura incluye construir oraciones (Build a Sentence) y escribir un correo con un propósito y puntos pedidos (Write an Email)."
+    scope: "formato de la tarea"
+  - source: coe-cefr-global-scale
+    claim: "En B1 se escriben textos sencillos y conectados sobre temas conocidos; hacia B2, textos claros y detallados."
+    scope: "nivel del objetivo"
+pcre:
+  pattern: "Could you tell me what time the class starts?"
+  concept: "Una petición cortés empieza con una fórmula (Could you tell me…, Do you know…, I would like to know…) y después va la pregunta en orden de afirmación: primero el sujeto y luego el verbo, sin do ni does. Así suena amable y se entiende a la primera."
+  rules:
+    - text: "Después de Could you tell me, Do you know o I would like to know va sujeto + verbo: «what time the class starts», no «what time does the class start»."
+      source: cambridge-grammar-indirect-questions
+      applies_when_not_es: "En la pregunta directa sí va el auxiliar: «What time does the class start?»."
+    - text: "Si la pregunta es de sí o no, se une con if: «I would like to know if the course includes books»."
+      source: cambridge-grammar-indirect-questions
+      applies_when_not_es: "Con una palabra interrogativa (what, when, how much, where) no se agrega if."
+    - text: "Un correo de petición abre con el propósito («I am writing to ask about…»), dedica una oración a cada dato que necesitas y cierra agradeciendo."
+      source: ets-toefl-ibt-content
+      applies_when_not_es: "Entre amistades, el saludo y el cierre pueden ser más breves; el orden de las ideas se mantiene."
+  examples:
+    - "Do you know where the bus stop is? → no «where is the bus stop»."
+    - "I would like to know if the gym is open on Sundays."
+application_task_es: "Escribe a un lugar real (una escuela, un gimnasio o una oficina) un correo de tres o cuatro oraciones que pida dos datos con preguntas indirectas."
+activities:
+  - key: u1.l3.p1
+    format: sentence_order
+    task_family: build_a_sentence
+    pool: practice
+    objectives: [U1.W]
+    instructions_es: "Ordena las fichas para formar una pregunta cortés. La ficha que empieza con mayúscula va primero."
+    prompt_en: "You want to know when the evening class starts. Ask the receptionist politely."
+    tokens: ["Could you", "tell me", "what time", "the class", "starts?"]
+    accepted_orders:
+      - ["Could you", "tell me", "what time", "the class", "starts?"]
+    hints:
+      - "Después de «tell me», la pregunta va en orden de afirmación: sujeto y luego verbo."
+    support_es: "Quieres decir: «¿Podría decirme a qué hora empieza la clase?»."
+    explanation_es: "Could you tell me + what time + the class (sujeto) + starts (verbo). En la pregunta indirecta no se usa does y el verbo lleva -s."
+  - key: u1.l3.p2
+    format: sentence_order
+    task_family: build_a_sentence
+    pool: practice
+    objectives: [U1.W]
+    instructions_es: "Ordena las fichas. La ficha que empieza con mayúscula va primero."
+    prompt_en: "Ask the school if the course includes books."
+    tokens: ["I would like", "to know", "if", "the course", "includes books."]
+    accepted_orders:
+      - ["I would like", "to know", "if", "the course", "includes books."]
+    hints:
+      - "Es una pregunta de sí o no: ¿qué palabra la une a «I would like to know»?"
+    support_es: "Quieres decir: «Me gustaría saber si el curso incluye los libros»."
+    explanation_es: "I would like to know + if + the course + includes books. Con una pregunta de sí o no, la unión es if."
+  - key: u1.l3.p3
+    format: sentence_order
+    task_family: build_a_sentence
+    pool: practice
+    objectives: [U1.W]
+    instructions_es: "Ordena las fichas. La pregunta empieza con «Do you know»."
+    prompt_en: "You need to pay the course fee. Ask where you can do it."
+    tokens: ["Do you know", "where", "I", "can pay", "the fee?"]
+    accepted_orders:
+      - ["Do you know", "where", "I", "can pay", "the fee?"]
+    hints:
+      - "Después de «Do you know where», va el sujeto y después el verbo."
+    support_es: "Quieres decir: «¿Sabe dónde puedo pagar la cuota?»."
+    explanation_es: "Do you know + where + I + can pay + the fee? En la pregunta directa sería «Where can I pay…?», pero después de «Do you know» va I antes de can."
+  - key: u1.l3.p4
+    format: short_writing
+    task_family: write_an_email
+    pool: practice
+    objectives: [U1.W]
+    instructions_es: "Escribe un correo breve (entre 50 y 110 palabras) que cubra los tres puntos de la consigna."
+    prompt_en: "You saw an ad for evening English classes at Northside Learning Center. Write an email to the center. In your email: ask which days the classes meet; ask how much the course costs per month; ask if the classes are recorded and explain why that matters to you."
+    min_words: 50
+    max_words: 110
+    rubric: email
+    hints:
+      - "Empieza con el propósito: «I am writing to ask about…»."
+      - "Usa una pregunta indirecta para al menos uno de los datos."
+    support_es: "Tres puntos: qué días hay clase, cuánto cuesta al mes y si las clases se graban (y por qué te importa)."
+    model_answer: |
+      Dear Northside Learning Center,
+
+      I am writing to ask about your evening English classes. Could you tell me which days the classes meet? I would also like to know how much the course costs per month. Finally, are the classes recorded? I sometimes have to stay late at work, so I need a way to catch up if I miss a lesson.
+
+      Thank you for your help.
+
+      Best regards,
+      Laura Méndez
+    model_commentary_es: "Abre con el propósito en una oración y dedica una oración a cada punto pedido: días, costo y grabaciones. Explica por qué le importa el último punto (a veces sale tarde del trabajo). Usa dos preguntas indirectas («Could you tell me which days…», «I would like to know how much…») y una directa para variar. Cierra agradeciendo, con un registro formal pero sencillo."
+  - key: u1.l3.p5
+    format: short_writing
+    task_family: write_an_email
+    pool: practice
+    objectives: [U1.W]
+    instructions_es: "Escribe un correo breve (entre 50 y 110 palabras) que cubra los tres puntos de la consigna."
+    prompt_en: "Your gym has announced that, starting next month, it will be open from 7 a.m. to 5 p.m. on weekdays. You usually exercise after work, at 7 p.m. Write an email to the manager. In your email: explain your situation; ask if there will be any evening hours; ask what options you have if the new schedule does not work for you."
+    min_words: 50
+    max_words: 110
+    rubric: email
+    hints:
+      - "Explica tu situación con un dato concreto (hasta qué hora trabajas)."
+      - "Para las dos preguntas, prueba «Could you tell me if…» y «I would like to know what…»."
+    support_es: "Tres puntos: tu situación (entrenas a las 7 p.m.), si habrá horario por la tarde y qué opciones tienes si no te sirve."
+    model_answer: |
+      Dear Mr. Torres,
+
+      I am writing about the new schedule that starts next month. I work until six, so I usually come to the gym at seven in the evening. Could you tell me if there will be any evening hours on weekdays? If not, I would like to know what options I have, for example, a weekend pass or a refund for the months I have already paid.
+
+      Thank you,
+      Andrés Silva
+    model_commentary_es: "Explica la situación con un dato concreto (trabaja hasta las seis), hace las dos preguntas que pide la consigna con «Could you tell me if…» y «I would like to know what…» y propone opciones posibles para que la respuesta sea útil. El tono es firme pero cortés; no reclama, pide información."
+  - key: u1.l3.r1
+    format: sentence_order
+    task_family: build_a_sentence
+    pool: review
+    objectives: [U1.W]
+    instructions_es: "Ordena las fichas. La ficha que empieza con mayúscula va primero."
+    prompt_en: "Ask how much the course costs."
+    tokens: ["Can you", "tell me", "how much", "the course", "costs?"]
+    accepted_orders:
+      - ["Can you", "tell me", "how much", "the course", "costs?"]
+    explanation_es: "Can you tell me + how much + the course + costs? Después de «tell me» va sujeto + verbo, sin does."
+  - key: u1.l3.r2
+    format: sentence_order
+    task_family: build_a_sentence
+    pool: review
+    objectives: [U1.W]
+    instructions_es: "Ordena las fichas para escribir la primera oración de un correo. La ficha que empieza con mayúscula va primero."
+    prompt_en: "Start an email to a language school. Say why you are writing."
+    tokens: ["I am writing", "to ask", "about", "the evening classes."]
+    accepted_orders:
+      - ["I am writing", "to ask", "about", "the evening classes."]
+    explanation_es: "I am writing + to ask (para qué escribes) + about + the evening classes (el tema). Es la forma habitual de abrir un correo de petición."
+  - key: u1.l3.r3
+    format: sentence_order
+    task_family: build_a_sentence
+    pool: review
+    objectives: [U1.W]
+    instructions_es: "Ordena las fichas. La ficha que empieza con mayúscula va primero."
+    prompt_en: "Ask the school to tell you when registration closes."
+    tokens: ["Could you", "let me know", "when", "registration", "closes?"]
+    accepted_orders:
+      - ["Could you", "let me know", "when", "registration", "closes?"]
+    explanation_es: "Could you let me know + when + registration + closes? «Let me know» funciona como «tell me»: después va sujeto + verbo."

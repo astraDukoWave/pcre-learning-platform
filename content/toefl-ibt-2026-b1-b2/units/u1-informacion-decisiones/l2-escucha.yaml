@@ -1,0 +1,185 @@
+# U1 · L2 · Escucha (contrato curricular §4, §5 y §11). Borrador del agente para revisión
+# humana. El audio sale de los guiones de `audio/manifest.yaml` en el workflow aprobado
+# (G2); mientras no esté revisado, el lint marca `pending_audio` y la lección no se aprueba.
+kind: lesson
+slug: u1-l2-escucha
+unit: u1-informacion-decisiones
+position: 2
+skill: listening
+title: "Escuchar avisos y responder a preguntas"
+status: draft
+objectives: [U1.L]
+objective_es: "Identificarás el propósito de un aviso breve y la instrucción que te toca seguir, y elegirás la respuesta adecuada a una pregunta o petición que escuchas."
+sources:
+  - source: ets-toefl-ibt-content
+    claim: "La sección de escucha incluye avisos breves (propósito, instrucciones, cambios) y tareas de elegir la respuesta adecuada a lo que se oye."
+    scope: "formato de la tarea"
+  - source: coe-cefr-global-scale
+    claim: "En B1 se captan las ideas principales de mensajes claros sobre temas cotidianos."
+    scope: "nivel del objetivo"
+pcre:
+  pattern: "will close at six p.m. instead of nine · If you have books to return, please use the box"
+  concept: "Un aviso suele decir primero qué cambió y luego qué tienes que hacer. Si escuchas la palabra que marca el cambio y el verbo de la instrucción, ya tienes el propósito y la acción, aunque no entiendas cada palabra."
+  rules:
+    - text: "instead of + lo de antes marca un reemplazo: «at six p.m. instead of nine» significa que la hora nueva es las seis y que las nueve era la hora anterior."
+      source: cambridge-dictionary-instead-of
+      applies_when_not_es: "«instead» solo, al final de la frase («Let's meet on Friday instead»), se refiere a algo que se dijo antes: busca qué se reemplazó."
+    - text: "Una instrucción suele empezar con un verbo en imperativo (use, sign up, bring), a veces después de please: ese verbo es lo que te piden hacer."
+      source: cambridge-grammar-imperatives
+      applies_when_not_es: "Si antes viene «If you…», la instrucción es solo para quien cumple esa condición."
+    - text: "Para responder una pregunta oída, fíjate en la palabra interrogativa (what time, how much, where): la respuesta adecuada da ese dato y no otro."
+      source: ets-toefl-ibt-content
+      applies_when_not_es: "Una petición con «Would you mind…?» no pide un dato: se acepta con «Not at all» o «Sure»."
+  examples:
+    - "The meeting will be in Room 5 instead of Room 2. → El cambio es de salón; la reunión sigue en pie."
+    - "If you need a receipt, please ask at the front desk. → Solo quien necesita recibo va a la recepción."
+application_task_es: "Escucha un aviso real (en una estación, una tienda o un video). Anota en una frase qué cambió y otra con lo que te piden hacer."
+activities:
+  - key: u1.l2.p1
+    format: choice
+    task_family: listen_announcement
+    pool: practice
+    objectives: [U1.L]
+    instructions_es: "Escucha el aviso. Puedes oírlo más de una vez. Elige la respuesta."
+    prompt_en: "What is the main purpose of the announcement?"
+    stimulus:
+      audio: u1-l2-aviso-biblioteca
+      transcript: "Attention, please. This is an announcement for all students using the Main Library. Because of repair work on the second floor, the library will close at six p.m. today instead of nine. The study rooms on the first floor will stay open until eight. If you have books to return, please use the box next to the main entrance. We are sorry for the inconvenience. Thank you."
+    hints:
+      - "Escucha qué palabra marca un cambio."
+    support_es: "«Instead of nine» significa «en lugar de las nueve»."
+    options:
+      - {id: a, text: "To explain a change in the library's closing time."}
+      - {id: b, text: "To invite students to try the new study rooms.", why_es: "Las salas de estudio no son nuevas: el aviso dice que siguen abiertas hasta las ocho."}
+      - {id: c, text: "To ask students to help with the repair work.", why_es: "La reparación es la causa del cambio; no se pide ayuda."}
+      - {id: d, text: "To remind students that their books are due today.", why_es: "Se habla de devolver libros, pero no de una fecha límite."}
+    correct: [a]
+    explanation_es: "El aviso dice que la biblioteca «will close at six p.m. today instead of nine»: el propósito es avisar el cambio de hora y su causa (la reparación)."
+  - key: u1.l2.p2
+    format: choice
+    task_family: listen_announcement
+    pool: practice
+    objectives: [U1.L]
+    instructions_es: "Escucha de nuevo si lo necesitas. Busca la instrucción."
+    prompt_en: "What should students do if they need to return books today?"
+    stimulus:
+      audio: u1-l2-aviso-biblioteca
+      transcript: "Attention, please. This is an announcement for all students using the Main Library. Because of repair work on the second floor, the library will close at six p.m. today instead of nine. The study rooms on the first floor will stay open until eight. If you have books to return, please use the box next to the main entrance. We are sorry for the inconvenience. Thank you."
+    hints:
+      - "La instrucción empieza con «If you have books to return…»."
+    support_es: "«Next to the main entrance» significa «junto a la entrada principal»."
+    options:
+      - {id: a, text: "Leave them in the box next to the main entrance."}
+      - {id: b, text: "Take them to the second floor before six.", why_es: "En el segundo piso hay reparaciones."}
+      - {id: c, text: "Bring them to the study rooms on the first floor.", why_es: "Las salas siguen abiertas, pero no son para devolver libros."}
+      - {id: d, text: "Wait until the library opens again tomorrow.", why_es: "El aviso no dice que haya que esperar."}
+    correct: [a]
+    explanation_es: "«If you have books to return, please use the box next to the main entrance»: el verbo de la instrucción es use."
+  - key: u1.l2.p3
+    format: choice
+    task_family: listen_choose_response
+    pool: practice
+    objectives: [U1.L]
+    instructions_es: "Escucha la pregunta y elige la mejor respuesta."
+    prompt_en: "Choose the best response."
+    stimulus:
+      audio: u1-l2-respuesta-1
+      transcript: "Excuse me, do you know what time the next bus to the airport leaves?"
+    hints:
+      - "La pregunta empieza con «what time»: busca una hora."
+    support_es: "Te preguntan a qué hora sale el próximo autobús al aeropuerto."
+    options:
+      - {id: a, text: "Yes, it leaves at ten fifteen from platform two."}
+      - {id: b, text: "It takes about forty minutes to get there.", why_es: "Responde cuánto tarda el viaje, no a qué hora sale."}
+      - {id: c, text: "Yes, I have been to the airport many times.", why_es: "«Do you know» aquí pide la hora, no si conoces el aeropuerto."}
+      - {id: d, text: "The airport has two terminals.", why_es: "Es un dato del aeropuerto, no la hora del autobús."}
+    correct: [a]
+    explanation_es: "«Do you know what time…?» pide una hora. Solo la opción a la da (ten fifteen)."
+  - key: u1.l2.p4
+    format: choice
+    task_family: listen_choose_response
+    pool: practice
+    objectives: [U1.L]
+    instructions_es: "Escucha la petición y elige la mejor respuesta."
+    prompt_en: "Choose the best response."
+    stimulus:
+      audio: u1-l2-respuesta-2
+      transcript: "Would you mind closing the window? It's a bit cold in here."
+    hints:
+      - "«Would you mind…?» pregunta si te molesta hacer algo."
+    support_es: "Te piden cerrar la ventana porque hace un poco de frío."
+    options:
+      - {id: a, text: "Not at all. I'll close it now."}
+      - {id: b, text: "Yes, the window is open.", why_es: "Con «Would you mind…?», responder «Yes» significaría que sí te molesta."}
+      - {id: c, text: "No, it isn't cold outside today.", why_es: "Habla del clima de afuera y no responde a la petición."}
+      - {id: d, text: "I don't mind the cold weather.", why_es: "Habla de tu gusto por el frío, no de cerrar la ventana."}
+    correct: [a]
+    explanation_es: "Para aceptar una petición con «Would you mind…?» se dice «Not at all» (no me molesta) y se ofrece hacerlo."
+  - key: u1.l2.r1
+    format: choice
+    task_family: listen_announcement
+    pool: review
+    objectives: [U1.L]
+    instructions_es: "Escucha el aviso y elige la respuesta."
+    prompt_en: "What change does the speaker announce?"
+    stimulus:
+      audio: u1-l2-aviso-feria
+      transcript: "Good morning, everyone, and welcome to the Career Fair. Please note that the talk about job interviews has moved from Room 3 to the main hall, and it will now start at eleven instead of ten thirty. If you want a free review of your résumé, sign up at the information desk before noon. Lunch will be served in the cafeteria from one o'clock. Enjoy the fair."
+    options:
+      - {id: a, text: "The talk about job interviews has a new room and a later start."}
+      - {id: b, text: "The career fair will finish at noon.", why_es: "Noon es el límite para apuntarse a la revisión del currículum."}
+      - {id: c, text: "Lunch will be served in the main hall.", why_es: "La comida es en la cafetería; el salón principal es para la plática."}
+      - {id: d, text: "The résumé reviews have been canceled.", why_es: "Siguen: hay que apuntarse antes del mediodía."}
+    correct: [a]
+    explanation_es: "«The talk… has moved from Room 3 to the main hall, and it will now start at eleven instead of ten thirty»: cambian el lugar y la hora."
+  - key: u1.l2.r2
+    format: choice
+    task_family: listen_announcement
+    pool: review
+    objectives: [U1.L]
+    instructions_es: "Busca la instrucción en el aviso."
+    prompt_en: "What should people do to get a résumé review?"
+    stimulus:
+      audio: u1-l2-aviso-feria
+      transcript: "Good morning, everyone, and welcome to the Career Fair. Please note that the talk about job interviews has moved from Room 3 to the main hall, and it will now start at eleven instead of ten thirty. If you want a free review of your résumé, sign up at the information desk before noon. Lunch will be served in the cafeteria from one o'clock. Enjoy the fair."
+    options:
+      - {id: a, text: "Sign up at the information desk before noon."}
+      - {id: b, text: "Go to Room 3 at ten thirty.", why_es: "Room 3 y las diez y media eran el lugar y la hora anteriores de la plática."}
+      - {id: c, text: "Bring their résumé to the cafeteria at one.", why_es: "A la una empieza la comida en la cafetería."}
+      - {id: d, text: "Send their résumé by email before the fair.", why_es: "El aviso no menciona el correo."}
+    correct: [a]
+    explanation_es: "«If you want a free review of your résumé, sign up at the information desk before noon»: sign up es la instrucción y before noon, el límite."
+  - key: u1.l2.r3
+    format: choice
+    task_family: listen_choose_response
+    pool: review
+    objectives: [U1.L]
+    instructions_es: "Escucha la pregunta y elige la mejor respuesta."
+    prompt_en: "Choose the best response."
+    stimulus:
+      audio: u1-l2-respuesta-3
+      transcript: "How much is a monthly pass for the gym?"
+    options:
+      - {id: a, text: "It's thirty-five dollars, and it includes the pool."}
+      - {id: b, text: "It's open from six in the morning to ten at night.", why_es: "Da el horario, no el precio."}
+      - {id: c, text: "Once a week is enough for me.", why_es: "Habla de frecuencia, no de costo."}
+      - {id: d, text: "Yes, I go there every month.", why_es: "«How much» no se responde con sí o no."}
+    correct: [a]
+    explanation_es: "«How much is…?» pregunta un precio: la opción a da una cantidad."
+  - key: u1.l2.r4
+    format: choice
+    task_family: listen_choose_response
+    pool: review
+    objectives: [U1.L]
+    instructions_es: "Escucha la petición y elige la mejor respuesta."
+    prompt_en: "Choose the best response."
+    stimulus:
+      audio: u1-l2-respuesta-4
+      transcript: "Sorry, I didn't catch your name. Could you say it again?"
+    options:
+      - {id: a, text: "Sure, it's Mariana. M-A-R-I-A-N-A."}
+      - {id: b, text: "I didn't catch it either.", why_es: "La otra persona pregunta por tu nombre: tú sí lo sabes."}
+      - {id: c, text: "My name is very common in Mexico.", why_es: "Comenta el nombre, pero no lo repite."}
+      - {id: d, text: "Yes, I can say it.", why_es: "Responde de forma literal y no repite el nombre."}
+    correct: [a]
+    explanation_es: "«I didn't catch your name» significa que no se entendió el nombre; la respuesta adecuada lo repite y, si ayuda, lo deletrea."

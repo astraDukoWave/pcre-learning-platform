@@ -38,3 +38,33 @@ sources:
     publisher: Cambridge University Press
     status: pending
     note_es: "Sentido de límite superior de up to; confirmar al revisar."
+  - id: cambridge-dictionary-instead-of
+    url: https://dictionary.cambridge.org/dictionary/english/instead-of
+    title: "Cambridge Dictionary: instead of"
+    publisher: Cambridge University Press
+    status: pending
+    note_es: "Sentido de reemplazo de instead of e instead; confirmar al revisar U1 · L2."
+  - id: cambridge-grammar-imperatives
+    url: https://dictionary.cambridge.org/grammar/british-grammar/imperatives
+    title: "Cambridge Grammar: imperatives"
+    publisher: Cambridge University Press
+    status: pending
+    note_es: "Imperativo para instrucciones y uso con please; confirmar la entrada exacta al revisar."
+  - id: cambridge-grammar-indirect-questions
+    url: https://dictionary.cambridge.org/grammar/british-grammar/questions-indirect-questions
+    title: "Cambridge Grammar: indirect questions"
+    publisher: Cambridge University Press
+    status: pending
+    note_es: "Orden sujeto + verbo e if/whether en preguntas indirectas; confirmar la entrada exacta al revisar U1 · L3."
+  - id: cambridge-grammar-adverbs-frequency
+    url: https://dictionary.cambridge.org/grammar/british-grammar/adverbs-and-adverb-phrases-position
+    title: "Cambridge Grammar: position of adverbs (frequency)"
+    publisher: Cambridge University Press
+    status: pending
+    note_es: "Posición de usually, often y sometimes respecto del verbo principal y de be; confirmar al revisar U1 · L4."
+  - id: cambridge-grammar-present-simple
+    url: https://dictionary.cambridge.org/grammar/british-grammar/present-simple-i-work
+    title: "Cambridge Grammar: present simple (I work)"
+    publisher: Cambridge University Press
+    status: pending
+    note_es: "Presente simple para rutinas y -s en tercera persona; confirmar la entrada exacta al revisar."

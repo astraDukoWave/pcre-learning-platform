@@ -1,0 +1,123 @@
+# U1 · L4 · Habla (contrato curricular §4, §5 y §8). Borrador del agente para revisión
+# humana. En MVP-01 la grabación es local (no sale del dispositivo) y se cierra con
+# autoevaluación guiada; la repetición usa audio de `audio/manifest.yaml` (G2).
+kind: lesson
+slug: u1-l4-habla
+unit: u1-informacion-decisiones
+position: 4
+skill: speaking
+title: "Presentarte y hablar de tu rutina"
+status: draft
+objectives: [U1.S]
+objective_es: "Responderás preguntas familiares sobre ti con una respuesta directa, un detalle y un ejemplo, y repetirás oraciones breves con su ritmo."
+sources:
+  - source: ets-toefl-ibt-content
+    claim: "La sección oral incluye repetir oraciones oídas (Listen and Repeat) y responder preguntas en una entrevista breve (Take an Interview)."
+    scope: "formato de la tarea"
+  - source: coe-cefr-global-scale
+    claim: "En B1 se describen experiencias y se dan razones breves; hacia B2 se habla con fluidez sobre temas conocidos."
+    scope: "nivel del objetivo"
+pcre:
+  pattern: "I work at… · I usually… · For example,…"
+  concept: "Una buena respuesta a una pregunta personal tiene tres partes: respondes directo, agregas un detalle y das un ejemplo. Para hablar de lo que haces habitualmente se usa el presente simple, a menudo con una palabra de frecuencia (usually, often, sometimes)."
+  rules:
+    - text: "Las palabras de frecuencia (usually, often, sometimes) van antes del verbo principal: «I usually study after dinner»."
+      source: cambridge-grammar-adverbs-frequency
+      applies_when_not_es: "Con el verbo be van después: «I am usually tired on Mondays»."
+    - text: "Con he, she o it, el verbo en presente simple agrega -s: «My sister works at a bank»."
+      source: cambridge-grammar-present-simple
+      applies_when_not_es: "Con can, will o should no se agrega -s: «She can drive»."
+    - text: "En una entrevista, responde primero lo que te preguntan y después agrega un detalle o un ejemplo; una lista de datos sin conexión suena a formulario."
+      source: ets-toefl-ibt-content
+      applies_when_not_es: "Si la pregunta pide solo un dato (por ejemplo, tu nombre), basta con darlo con claridad."
+  examples:
+    - "What do you do? → I'm a nurse. I work at a clinic in Puebla, and I usually start at seven."
+    - "How do you practice English? → I watch series with subtitles. For example, I watch one episode every night."
+application_task_es: "Grábate respondiendo «Tell me about yourself» en 45 segundos con respuesta, detalle y ejemplo. Escúchate y anota una cosa que quieras mejorar."
+activities:
+  - key: u1.l4.p1
+    format: recorded_speaking
+    task_family: take_an_interview
+    pool: practice
+    objectives: [U1.S]
+    instructions_es: "Lee la pregunta, prepárate y responde en voz alta."
+    subtype: interview
+    question_en: "Tell me a little about yourself. What do you do, and what do you enjoy doing in your free time?"
+    prep_seconds: 15
+    response_seconds: 45
+    rubric: interview
+    hints:
+      - "Responde las dos preguntas en orden: qué haces y qué te gusta hacer."
+      - "Agrega un ejemplo con «For example, last weekend…»."
+    support_es: "Te preguntan a qué te dedicas y qué te gusta hacer en tu tiempo libre."
+    model_answer: "Sure. I'm an accountant, and I work for a small company in Querétaro. Most days I'm busy with numbers, so in my free time I like to do something active. I usually go cycling on Saturday mornings with two friends. For example, last weekend we rode to a town about twenty kilometers away and had breakfast there."
+    model_commentary_es: "Responde las dos preguntas en orden. Cada parte trae un detalle («a small company in Querétaro», «on Saturday mornings») y la segunda cierra con un ejemplo concreto. Usa usually antes del verbo y conecta las ideas con so y for example."
+  - key: u1.l4.p2
+    format: recorded_speaking
+    task_family: take_an_interview
+    pool: practice
+    objectives: [U1.S]
+    instructions_es: "Lee la pregunta, prepárate y responde en voz alta."
+    subtype: interview
+    question_en: "Why are you learning English, and how do you usually practice it?"
+    prep_seconds: 15
+    response_seconds: 45
+    rubric: interview
+    hints:
+      - "Da una razón concreta (para qué lo necesitas)."
+      - "Describe tu práctica con usually o sometimes y un ejemplo."
+    support_es: "Te preguntan por qué aprendes inglés y cómo practicas normalmente."
+    model_answer: "I'm learning English because I want to apply for a master's program abroad, and I need a good test score. I usually practice in the evening. For example, I listen to a podcast while I cook dinner, and then I write three or four sentences about what I heard. On weekends, I sometimes join an online conversation group."
+    model_commentary_es: "La razón es concreta (un posgrado en el extranjero). La rutina usa usually y sometimes en su lugar, antes del verbo, y el ejemplo describe una práctica que se puede imaginar paso a paso."
+  - key: u1.l4.p3
+    format: recorded_speaking
+    task_family: listen_and_repeat
+    pool: practice
+    objectives: [U1.S]
+    instructions_es: "Escucha la oración y repítela tal cual."
+    subtype: listen_and_repeat
+    target_sentence: "Hi, my name is Daniela, and I work at a travel agency."
+    audio: u1-l4-repetir-1
+    response_seconds: 10
+    rubric: repeat
+    model_answer: "Hi, my name is Daniela, and I work at a travel agency."
+    model_commentary_es: "Las palabras con más fuerza son name, Daniela, work y travel agency. Las palabras pequeñas (is, at, a) suenan cortas y se unen a la siguiente: «name-is», «work-at-a»."
+  - key: u1.l4.p4
+    format: recorded_speaking
+    task_family: listen_and_repeat
+    pool: practice
+    objectives: [U1.S]
+    instructions_es: "Escucha la oración y repítela tal cual."
+    subtype: listen_and_repeat
+    target_sentence: "I usually study English for thirty minutes after dinner."
+    audio: u1-l4-repetir-2
+    response_seconds: 10
+    rubric: repeat
+    model_answer: "I usually study English for thirty minutes after dinner."
+    model_commentary_es: "«thirty» lleva la fuerza en la primera sílaba (THIR-ty); en «thirteen», en la segunda (thir-TEEN). Mantén «I usually» junto, sin pausa."
+  - key: u1.l4.r1
+    format: recorded_speaking
+    task_family: take_an_interview
+    pool: review
+    objectives: [U1.S]
+    instructions_es: "Lee la pregunta, prepárate y responde en voz alta."
+    subtype: interview
+    question_en: "What is a typical weekday like for you?"
+    prep_seconds: 15
+    response_seconds: 45
+    rubric: interview
+    model_answer: "On a typical weekday, I get up at six thirty and take the bus to work. I work at a call center, so I spend most of the morning on the phone. I usually have lunch with two coworkers. In the evening, I often cook something simple and study English for half an hour before bed."
+    model_commentary_es: "Sigue el orden del día (mañana, mediodía, noche), usa el presente simple para rutinas y las palabras de frecuencia antes del verbo (usually have, often cook)."
+  - key: u1.l4.r2
+    format: recorded_speaking
+    task_family: listen_and_repeat
+    pool: review
+    objectives: [U1.S]
+    instructions_es: "Escucha la oración y repítela tal cual."
+    subtype: listen_and_repeat
+    target_sentence: "Sorry, could you say that again, please?"
+    audio: u1-l4-repetir-3
+    response_seconds: 8
+    rubric: repeat
+    model_answer: "Sorry, could you say that again, please?"
+    model_commentary_es: "En una petición como esta, la entonación suele subir al final. «could you» suena unido, casi «couldja»."
