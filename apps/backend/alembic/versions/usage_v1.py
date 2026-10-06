@@ -75,9 +75,7 @@ def upgrade() -> None:
         sa.ForeignKeyConstraint(["attempt_id"], ["attempts.id"], ondelete="SET NULL"),
         sa.ForeignKeyConstraint(["user_id"], ["users.id"], ondelete="CASCADE"),
         sa.PrimaryKeyConstraint("id"),
-        sa.UniqueConstraint(
-            "user_id", "purpose", "idempotency_key", name="uq_ai_runs_idempotency"
-        ),
+        sa.UniqueConstraint("user_id", "purpose", "idempotency_key", name="uq_ai_runs_idempotency"),
     )
     op.create_index("ix_ai_runs_attempt", "ai_runs", ["attempt_id"])
     op.create_index("ix_ai_runs_period_user", "ai_runs", ["period", "user_id"])
