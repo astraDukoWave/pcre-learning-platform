@@ -1,26 +1,34 @@
+"""Entrada ASGI: `uvicorn app.main:app` (el comando vive en `heroku.yml`)."""
+
+from __future__ import annotations
+
 from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-from app.core.config import settings
-from app.api.v1.api import api_router
 
-app = FastAPI( # FastAPI app
-    title=settings.PROJECT_NAME, # Titulo de la app (config.py)
-    openapi_url=f"{settings.API_V1_STR}/openapi.json" # URL de la API (config.py)
-)
+from app.bootstrap import Container, build_container
+from app.core.config import Settings, get_settings
+from app.core.logging import configure_logging
+from app.http import health
+from app.http.errors import install_error_handlers
+from app.http.middleware import RequestContextMiddleware
 
-# CORS
-app.add_middleware( # Middleware de CORS
-    CORSMiddleware,
-    allow_origins=["http://localhost:3000"],  # Frontend URL (config.py)
-    allow_credentials=True, # Permitir credenciales
-    allow_methods=["*"], # Permitir todos los metodos
-    allow_headers=["*"], # Permitir todos los headers
-)
 
-# Health check
-@app.get("/health") # Endpoint de health check
-def health_check():
-    return {"status": "ok"} # Devolver el estado de la app
+def create_app(settings: Settings | None = None, *, container: Container | None = None) -> FastAPI:
+    settings = settings or (container.settings if container else get_settings())
+    container = container or build_container(settings)
+    configure_logging(settings.log_level)
 
-# Include API router
-app.include_router(api_router, prefix=settings.API_V1_STR) # Incluir el router de la API (api.py)
+    app = FastAPI(
+        title=f"{settings.app_name} API",
+        version="1.0.0",
+        openapi_url="/api/v1/openapi.json" if settings.app_env != "prod" else None,
+        docs_url="/api/v1/docs" if settings.app_env != "prod" else None,
+        redoc_url=None,
+    )
+    app.state.container = container
+    install_error_handlers(app)
+    app.include_router(health.router)
+    app.add_middleware(RequestContextMiddleware)
+    return app
+
+
+app = create_app()
