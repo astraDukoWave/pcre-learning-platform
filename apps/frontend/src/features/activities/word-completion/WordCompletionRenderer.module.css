@@ -1,0 +1,33 @@
+.text {
+  font-family: var(--font-en);
+  line-height: 2.2;
+  margin: 0 0 var(--space-4);
+}
+
+.gap {
+  white-space: nowrap;
+}
+
+.input {
+  font: inherit;
+  min-width: 4ch;
+  min-height: 36px;
+  padding: 0 var(--space-1);
+  border: 0;
+  border-bottom: 2px solid var(--pen);
+  background: var(--paper);
+  color: var(--ink);
+}
+
+.input:focus-visible {
+  outline: var(--focus);
+  outline-offset: 2px;
+}
+
+.ok {
+  border-bottom-color: var(--ok);
+}
+
+.review {
+  border-bottom-color: var(--note);
+}

@@ -1,0 +1,14 @@
+.player {
+  margin: 0 0 var(--space-4);
+}
+
+.player audio {
+  width: 100%;
+  min-height: 48px;
+}
+
+.meta {
+  font-size: var(--step--1);
+  color: var(--ink-soft);
+  margin-top: var(--space-1);
+}

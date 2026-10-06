@@ -77,3 +77,11 @@
 .counter {
   color: var(--ink-soft);
 }
+
+.scenario {
+  padding: var(--space-3) var(--space-4);
+  margin: var(--space-3) 0;
+  background: var(--surface);
+  border: 1px solid var(--grid);
+  border-radius: var(--radius);
+}

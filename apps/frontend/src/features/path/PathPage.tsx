@@ -12,7 +12,7 @@ const STATE_LABEL: Record<string, string> = {
   completed: "Completada",
 };
 
-const ROUTES: Record<string, string> = { lesson: "/lecciones" };
+const ROUTES: Record<string, string> = { lesson: "/lecciones", scenario: "/escenarios" };
 
 export function usePath() {
   const paths = useQuery({ queryKey: ["paths"], queryFn: () => unwrap(api.GET("/api/v1/learning-paths")) });

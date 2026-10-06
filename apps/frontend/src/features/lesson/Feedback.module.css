@@ -1,0 +1,7 @@
+.model {
+  margin: 0 0 var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border-left: 3px solid var(--ok);
+  font-family: var(--font-en);
+  white-space: pre-line;
+}
