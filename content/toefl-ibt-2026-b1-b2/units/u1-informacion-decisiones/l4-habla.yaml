@@ -7,7 +7,7 @@ unit: u1-informacion-decisiones
 position: 4
 skill: speaking
 title: "Presentarte y hablar de tu rutina"
-status: draft
+status: ready-for-review
 objectives: [U1.S]
 objective_es: "Responderás preguntas familiares sobre ti con una respuesta directa, un detalle y un ejemplo, y repetirás oraciones breves con su ritmo."
 sources:
@@ -23,8 +23,8 @@ pcre:
   rules:
     - text: "Las palabras de frecuencia (usually, often, sometimes) van antes del verbo principal: «I usually study after dinner»."
       source: cambridge-grammar-adverbs-frequency
-      applies_when_not_es: "Con el verbo be van después: «I am usually tired on Mondays»."
-    - text: "Con he, she o it, el verbo en presente simple agrega -s: «My sister works at a bank»."
+      applies_when_not_es: "Con el verbo be van después: «I am usually tired on Mondays». Usually y sometimes también pueden abrir la oración: «Sometimes I study on the bus»."
+    - text: "Con he, she o it, el verbo en presente simple agrega -s o -es: «My sister works at a bank», «He watches the news». Have cambia a has."
       source: cambridge-grammar-present-simple
       applies_when_not_es: "Con can, will o should no se agrega -s: «She can drive»."
     - text: "En una entrevista, responde primero lo que te preguntan y después agrega un detalle o un ejemplo; una lista de datos sin conexión suena a formulario."

@@ -6,7 +6,7 @@ unit: u1-informacion-decisiones
 position: 3
 skill: writing
 title: "Pedir información por escrito"
-status: draft
+status: ready-for-review
 objectives: [U1.W]
 objective_es: "Construirás preguntas indirectas correctas y escribirás un correo breve que pida los datos que necesitas para decidir."
 sources:
@@ -113,7 +113,7 @@ activities:
     hints:
       - "Explica tu situación con un dato concreto (hasta qué hora trabajas)."
       - "Para las dos preguntas, prueba «Could you tell me if…» y «I would like to know what…»."
-    support_es: "Tres puntos: tu situación (entrenas a las 7 p.m.), si habrá horario por la tarde y qué opciones tienes si no te sirve."
+    support_es: "Tres puntos: tu situación (entrenas a las 7 p.m.), si habrá horario por la noche y qué opciones tienes si no te sirve."
     model_answer: |
       Dear Mr. Torres,
 

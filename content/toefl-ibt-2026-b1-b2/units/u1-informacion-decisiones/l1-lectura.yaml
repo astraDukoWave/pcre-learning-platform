@@ -5,7 +5,7 @@ unit: u1-informacion-decisiones
 position: 1
 skill: reading
 title: "Elegir un curso que encaje con tu horario"
-status: draft
+status: ready-for-review
 objectives: [U1.R]
 objective_es: "Localizarás horarios, costos y límites en un anuncio y harás una inferencia simple para decidir qué opción conviene a una persona."
 sources:
@@ -134,7 +134,7 @@ activities:
     prompt_en: "Complete the words in Valeria's message to the center."
     text_en: "Hello, I would like to join the evening cour{{g1}} for adults. I work until five, so I can only stu{{g2}} after six. If I miss a class, can I watch the record{{g3}} at home? I will pay the fee bef{{g4}} the 28th. Is it 95 dol{{g5}} a month?"
     gaps:
-      - {id: g1, shown: "cour", accepted: ["course"]}
+      - {id: g1, shown: "cour", accepted: ["course", "courses"]}
       - {id: g2, shown: "stu", accepted: ["study"]}
       - {id: g3, shown: "record", accepted: ["recording", "recordings"]}
       - {id: g4, shown: "bef", accepted: ["before"]}
@@ -142,7 +142,7 @@ activities:
     hints:
       - "Cada palabra aparece en el anuncio de Northside: búscala allí."
     support_es: "Las palabras son: curso, estudiar, grabación, antes de y dólares."
-    explanation_es: "course, study, recording (o recordings), before y dollars: el resto de la oración indica qué palabra falta (después de «can only» va un verbo; después de «95» va la moneda)."
+    explanation_es: "course (o courses), study, recording (o recordings), before y dollars: el resto de la oración indica qué palabra falta (después de «can only» va un verbo; después de «95» va la moneda)."
   - key: u1.l1.r1
     format: choice
     task_family: read_in_daily_life

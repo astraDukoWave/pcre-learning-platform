@@ -7,7 +7,7 @@ slug: u1-escenario
 unit: u1-informacion-decisiones
 position: 5
 title: "Informarte para inscribirte a un curso"
-status: draft
+status: ready-for-review
 objectives: [U1.T]
 sources:
   - source: coe-cefr-companion-volume
@@ -17,7 +17,7 @@ situation_es: "Llegas a la recepción de un centro de idiomas para adultos. Quie
 situation_en: "You go to the front desk of an adult language center. You want to join an evening course, and you need to find out the price, whether there is space in a group, and what to do before the first class."
 learner_role_en: "A working adult who wants to join an evening English course."
 agent_persona_en: "A friendly receptionist at an adult language center. Speaks clearly at a B1 level, answers questions about schedules, prices and the placement interview, gives one piece of information at a time, and never asks for personal data."
-opening_en: "Good afternoon, Northside Learning Center. How can I help you?"
+opening_en: "Good afternoon, Lakeside Language Center. How can I help you?"
 required_moves:
   - "Say what you need in one sentence"
   - "Ask about the price"
@@ -41,7 +41,7 @@ activities:
     nodes:
       - id: n1
         speaker: agent
-        text_en: "Good afternoon, Northside Learning Center. How can I help you?"
+        text_en: "Good afternoon, Lakeside Language Center. How can I help you?"
         options:
           - id: a
             text: "Hi. I'd like some information about the evening English classes, please."
@@ -157,4 +157,4 @@ activities:
       - ["n2.a", "n3r.a", "n4.a"]
       - ["n2.b", "n3r.a", "n4.a"]
       - ["n2.c", "n3r.a", "n4.a"]
-    explanation_es: "Para resolver la gestión necesitabas tres datos: el precio, un grupo con lugar y lo que hay que llevar a la entrevista. Cualquier camino que los consiga cumple el objetivo; la forma de preguntar y de cerrar cambia qué tan clara y cortés suena la conversación."
+    explanation_es: "Para resolver la gestión tenías que preguntar tú por tres datos: el precio, si hay lugar en un grupo y qué llevar a la entrevista. Cualquier camino en el que haces esas tres preguntas cumple el objetivo; si eliges un grupo sin preguntar si hay lugar, la recepcionista te corrige, pero ese movimiento te faltó. La forma de preguntar y de cerrar cambia qué tan clara y cortés suena la conversación."
