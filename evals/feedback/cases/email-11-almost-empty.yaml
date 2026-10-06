@@ -1,0 +1,8 @@
+id: email-11-almost-empty
+task: u1-email
+category: casi vacía
+learner_text: '  .  '
+expected_status: not_evaluable
+expected_reason: empty
+must_not_flag: []
+must_mention_criteria: []

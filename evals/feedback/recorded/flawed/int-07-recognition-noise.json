@@ -1,0 +1,12 @@
+{
+  "status": "evaluable",
+  "reason": null,
+  "observations": [
+    {
+      "criterion": "development",
+      "evidence": "I go to a book club once a month",
+      "observation_es": "El club de lectura es un buen detalle concreto.",
+      "suggestion_es": "Puedes cerrar con un ejemplo: «Last month we read …»."
+    }
+  ]
+}

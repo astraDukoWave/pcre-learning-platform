@@ -1,0 +1,17 @@
+id: email-10-url
+task: u1-email
+category: con URL
+learner_text: 'Hello,
+
+
+  I found your ad on https://example.com/classes. Could you tell me which days the evening classes meet
+  and the monthly price? Are the classes recorded? I travel a lot for my job, so I need to watch them
+  later.
+
+
+  Regards,
+
+  Sofía'
+expected_status: evaluable
+must_not_flag: []
+must_mention_criteria: []

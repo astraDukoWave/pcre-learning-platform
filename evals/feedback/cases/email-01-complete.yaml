@@ -1,0 +1,19 @@
+id: email-01-complete
+task: u1-email
+category: correcta
+learner_text: 'Dear Northside Learning Center,
+
+
+  I am writing to ask about your evening English classes. Could you tell me which days the classes meet?
+  I would also like to know how much the course costs per month. Finally, are the classes recorded? Sometimes
+  I stay late at work, so I need to catch up at home.
+
+
+  Thank you,
+
+  Marta'
+expected_status: evaluable
+must_not_flag:
+- Could you tell me which days the classes meet
+- I would also like to know how much the course costs
+must_mention_criteria: []

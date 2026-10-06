@@ -1,0 +1,12 @@
+{
+  "status": "evaluable",
+  "reason": null,
+  "observations": [
+    {
+      "criterion": "language_range",
+      "evidence": "program",
+      "observation_es": "Error de ortografía.",
+      "suggestion_es": "Escribe «programme»."
+    }
+  ]
+}

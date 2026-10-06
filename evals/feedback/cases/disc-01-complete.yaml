@@ -1,0 +1,12 @@
+id: disc-01-complete
+task: dx-discussion
+category: correcta
+learner_text: I agree with Ana that universities should require a public speaking course. Almost every
+  job asks people to explain their ideas, even in technical areas. For example, my brother is a programmer
+  and he presents his work to clients every week. Kevin is right that time is limited, but a short course
+  of one semester would not take much time away from a major.
+expected_status: evaluable
+must_not_flag:
+- I agree with Ana
+- Kevin is right that time is limited
+must_mention_criteria: []

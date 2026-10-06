@@ -1,0 +1,12 @@
+{
+  "status": "evaluable",
+  "reason": null,
+  "observations": [
+    {
+      "criterion": "relevance",
+      "evidence": "The weather in my city is very hot in May.",
+      "observation_es": "La respuesta habla del clima y no de qué haces ni de tu tiempo libre.",
+      "suggestion_es": "Empieza respondiendo directo: «I work as … In my free time, I …»."
+    }
+  ]
+}

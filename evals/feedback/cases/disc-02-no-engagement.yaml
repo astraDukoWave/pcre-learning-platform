@@ -1,0 +1,10 @@
+id: disc-02-no-engagement
+task: dx-discussion
+category: incorrecta
+learner_text: I think universities should require a public speaking course. Speaking in public is very
+  important in the modern world. Many people are nervous when they speak in front of others, and a course
+  can help them practice and feel more confident in their future jobs.
+expected_status: evaluable
+must_not_flag: []
+must_mention_criteria:
+- engagement

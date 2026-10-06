@@ -1,0 +1,9 @@
+id: int-05-spanish
+task: u1-interview
+category: en español
+learner_text: Pues yo trabajo en una oficina y en mi tiempo libre me gusta ver series y salir con mis
+  amigos los fines de semana.
+expected_status: not_evaluable
+expected_reason: other_language
+must_not_flag: []
+must_mention_criteria: []

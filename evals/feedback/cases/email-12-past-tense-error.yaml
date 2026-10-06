@@ -1,0 +1,19 @@
+id: email-12-past-tense-error
+task: u1-email
+category: incorrecta
+learner_text: 'Dear Northside Learning Center,
+
+
+  Yesterday I see your ad for evening classes. Could you tell me which days the classes meet and how much
+  they cost per month? Are the classes recorded? Sometimes I have meetings at night, so I need to review
+  the lessons later.
+
+
+  Best regards,
+
+  Carmen'
+expected_status: evaluable
+must_not_flag:
+- Could you tell me which days the classes meet
+must_mention_criteria:
+- language_control

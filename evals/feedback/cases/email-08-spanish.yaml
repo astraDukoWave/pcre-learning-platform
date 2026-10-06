@@ -1,0 +1,9 @@
+id: email-08-spanish
+task: u1-email
+category: en español
+learner_text: Hola, quiero saber qué días son las clases de la tarde y cuánto cuestan al mes. También
+  me gustaría saber si las clases se graban porque a veces salgo tarde del trabajo. Gracias.
+expected_status: not_evaluable
+expected_reason: other_language
+must_not_flag: []
+must_mention_criteria: []

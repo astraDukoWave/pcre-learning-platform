@@ -1,0 +1,12 @@
+{
+  "status": "evaluable",
+  "reason": null,
+  "observations": [
+    {
+      "criterion": "task",
+      "evidence": "I would also like to know the price per month.",
+      "observation_es": "Preguntas los días y el precio, pero falta el tercer punto: si las clases se graban y por qué te importa.",
+      "suggestion_es": "Agrega una oración como «Are the classes recorded? I travel for work, so I may miss some lessons.»"
+    }
+  ]
+}

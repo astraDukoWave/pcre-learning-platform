@@ -1,0 +1,30 @@
+# Tareas del set de evaluación del feedback (REQ-03). Cada caso apunta a una de estas tareas.
+# La rúbrica sale de content/toefl-ibt-2026-b1-b2/rubrics.yaml; los criterios de
+# autoevaluación (`self_assessed_only`) nunca se le piden al evaluador.
+tasks:
+  u1-email:
+    kind: writing
+    rubric: email
+    objective_es: "Escribir un correo breve que pida los datos que necesitas para decidir."
+    task_en: >-
+      You saw an ad for evening English classes at Northside Learning Center. Write an email
+      to the center. In your email: ask which days the classes meet; ask how much the course
+      costs per month; ask if the classes are recorded and explain why that matters to you.
+    max_observations: 3
+  dx-discussion:
+    kind: writing
+    rubric: academic-discussion
+    objective_es: "Dar una opinión, apoyarla y responder a la idea de un compañero."
+    task_en: >-
+      Your professor asks: "Should universities require all students to take a public
+      speaking course?" Ana writes: "Yes. Most jobs require presenting ideas, and many students
+      are afraid of speaking in public." Kevin writes: "No. Students should choose their own
+      courses; a required course takes time away from their major." Write a post that gives
+      your opinion and supports it. Respond to at least one of your classmates.
+    max_observations: 3
+  u1-interview:
+    kind: interview
+    rubric: interview
+    objective_es: "Responder preguntas familiares con una respuesta directa, un detalle y un ejemplo."
+    task_en: "Tell me a little about yourself. What do you do, and what do you enjoy doing in your free time?"
+    max_observations: 3

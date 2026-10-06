@@ -1,0 +1,5 @@
+The learner answered an interview question aloud. The text below is an automatic transcription that the learner confirmed; it may contain recognition noise, so do not comment on spelling or punctuation. Focus on relevance, development, coherence and language that is still understandable.
+
+<learner_response>
+{learner_text}
+</learner_response>
