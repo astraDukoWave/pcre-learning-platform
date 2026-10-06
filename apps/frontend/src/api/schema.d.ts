@@ -1900,6 +1900,11 @@ export interface components {
              * Format: uuid
              */
             id: string;
+            /**
+             * Revision Id
+             * Format: uuid
+             */
+            revision_id: string;
             /** Kind */
             kind: string;
             /** Slug */

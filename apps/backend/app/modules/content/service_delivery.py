@@ -242,6 +242,7 @@ def review_activity(s: Session, activity_id: uuid.UUID) -> dict[str, Any] | None
     return {
         "item": {
             "id": str(item.id),
+            "revision_id": str(rev.id),
             "kind": item.kind,
             "slug": item.slug,
             "title": rev.body["title"],

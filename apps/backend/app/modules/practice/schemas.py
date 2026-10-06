@@ -304,6 +304,7 @@ class DiagnosticResetOut(BaseModel):
 
 class ReviewItemRefOut(BaseModel):
     id: uuid.UUID
+    revision_id: uuid.UUID
     kind: str
     slug: str
     title: str

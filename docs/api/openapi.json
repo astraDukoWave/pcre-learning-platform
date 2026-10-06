@@ -5276,6 +5276,11 @@
             "format": "uuid",
             "title": "Id"
           },
+          "revision_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Revision Id"
+          },
           "kind": {
             "type": "string",
             "title": "Kind"
@@ -5302,6 +5307,7 @@
         "type": "object",
         "required": [
           "id",
+          "revision_id",
           "kind",
           "slug",
           "title",

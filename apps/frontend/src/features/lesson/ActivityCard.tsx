@@ -7,6 +7,7 @@ import { ErrorNotice } from "../../components/ErrorNotice";
 import { Notice } from "../../components/Notice";
 import { ActivityRenderer, isReady } from "../activities/ActivityRenderer";
 import { AudioPlayer } from "../activities/audio-player/AudioPlayer";
+import { ReportProblem } from "../feedback/ReportProblem";
 import styles from "./ActivityCard.module.css";
 import { clearDraft, loadDraft, saveDraft } from "./drafts";
 import { Feedback } from "./Feedback";
@@ -46,6 +47,7 @@ export function ActivityCard({
   onNext,
   isLast,
   nextLabel,
+  revisionId,
 }: {
   activity: Activity;
   last?: AttemptSummary;
@@ -53,6 +55,8 @@ export function ActivityCard({
   onNext: () => void;
   isLast: boolean;
   nextLabel?: string;
+  /** Revisión que ve el alumno: "Reportar un problema" queda ligado a ella. */
+  revisionId?: string;
 }) {
   const initial = loadDraft(activity.id)?.response ?? last?.response ?? {};
   const [response, setResponse] = useState<Record<string, unknown>>(initial);
@@ -247,6 +251,10 @@ export function ActivityCard({
 
       {answered ? <Feedback activity={activity} shown={view} onUpdate={onAssessed} /> : null}
       <ErrorNotice error={detail.error} />
+
+      {revisionId ? (
+        <ReportProblem revisionId={revisionId} activityId={activity.id} attemptId={view?.id} />
+      ) : null}
 
       <div className={styles.actions}>
         {!answered ? (
