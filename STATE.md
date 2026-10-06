@@ -1,8 +1,8 @@
 # STATE.md — ciclo activo
 
-**Fase:** MVP-01 por iniciar. G0 aprobado por Jonathan el 5 oct 2026
-(PR #2).
-**Siguiente change set:** MVP-01 CS-01 · Base reproducible y CI mínima
+**Fase:** MVP-01 en ejecución (sesión cloud con `/goal`, desde el 6 oct 2026).
+G0 aprobado por Jonathan el 5 oct 2026 (PR #2).
+**Change set en curso:** ver la última línea del registro
 (`docs/plans/mvp-01-nucleo-piloto-plan.md`).
 **Encadenamiento** (decisión 2 = A): un `/goal` para MVP-01 y después
 MVP-02; MVP-03 espera a G6.
@@ -44,14 +44,20 @@ anotan en el registro; cualquier otra desviación queda `pending-human`.
   `pull_request` con 0 aprobaciones `[verified-this-session: API REST, 5 oct
   2026]`. Pendiente **H-1b**: `ci-gate` como check requerido, después del
   primer run de CI de CS-01.
-- Environment cloud `pcre` creado por Jonathan (red Trusted, sin llaves,
-  timeouts ampliados) `[inherited-unverified]`.
+- Comprobado al arrancar MVP-01 (6 oct 2026): `origin/main` @ `a642934`, 0 PRs
+  abiertos, ruleset con `deletion`, `non_fast_forward` y `pull_request`
+  `[verified-this-session: API REST]`.
+- Environment cloud: `CLAUDE_CODE_REMOTE=true`, PostgreSQL 16, Node 22, uv y
+  Docker presentes; PyPI, npm y GitHub alcanzables `[verified-this-session]`.
+  Red Trusted y ausencia de llaves `[inherited-unverified]` (ninguna variable de
+  proveedor en el entorno).
 
 ## Registro de change sets
 
 | Ciclo | CS | Rama | PR | SHA mergeado | Run de CI | Evidencia | Fecha |
 |---|---|---|---|---|---|---|---|
-| — | paquete G0 | `docs/sdd-mvp-specs` | [#2](https://github.com/astraDukoWave/pcre-learning-platform/pull/2) | se completa en CS-01 | sin CI (la crea CS-01) | aprobación de Jonathan (G0) | 5 oct 2026 |
+| — | paquete G0 | `docs/sdd-mvp-specs` | [#2](https://github.com/astraDukoWave/pcre-learning-platform/pull/2) | `a642934` | sin CI (la crea CS-01) | aprobación de Jonathan (G0) | 5 oct 2026 |
+| MVP-01 | CS-01 · base y CI | `ci/mvp01-cs01-base` | [#3](https://github.com/astraDukoWave/pcre-learning-platform/pull/3) | se completa al mergear | se completa al terminar | `make verify` exit 0 en el PR | 6 oct 2026 |
 
 ## Desviaciones
 
@@ -65,4 +71,4 @@ Ninguna.
    como requerido en el ruleset (pasos en el plan de MVP-01, "Tareas
    [HUMANO]").
 
-*Última actualización: 5 oct 2026 (G0 aprobado).*
+*Última actualización: 6 oct 2026 (MVP-01 CS-01 abierto).*
