@@ -11,6 +11,7 @@ import importlib
 MODEL_MODULES = (
     "app.modules.legacy.models",
     "app.modules.identity.models",
+    "app.modules.content.models",
 )
 
 

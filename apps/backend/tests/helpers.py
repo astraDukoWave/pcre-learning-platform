@@ -124,3 +124,23 @@ def committed_container(engine: object, settings: object) -> Iterator[Container]
     with engine.begin() as conn:
         conn.execute(text("DELETE FROM invitations WHERE email LIKE '%@race.example.com'"))
         conn.execute(text("DELETE FROM users WHERE email LIKE '%@race.example.com'"))
+
+
+@pytest.fixture
+def editorial(container: Container) -> object:
+    from app.modules.content.service_editorial import EditorialService
+
+    return EditorialService(container.uow, container.clock)
+
+
+@pytest.fixture
+def imported(editorial: object, tmp_path: object) -> object:
+    """Ruta de contenido de prueba (`tests/content/builder.py`) importada como borrador."""
+    from pathlib import Path
+
+    from tests.content.builder import write_content
+
+    assert isinstance(tmp_path, Path)
+    root = write_content(tmp_path / "content")
+    editorial.import_dir(root)  # type: ignore[attr-defined]
+    return root

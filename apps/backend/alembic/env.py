@@ -17,7 +17,9 @@ config = context.config
 config.set_main_option("sqlalchemy.url", database_url_from_env().replace("%", "%%"))
 
 if config.config_file_name is not None and not config.attributes.get("skip_logging_config"):
-    fileConfig(config.config_file_name)
+    # Sin deshabilitar los loggers de la app: `python -m app.cli release` migra y luego
+    # importa en el mismo proceso, y sus logs deben seguir saliendo.
+    fileConfig(config.config_file_name, disable_existing_loggers=False)
 
 target_metadata = Base.metadata
 

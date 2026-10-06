@@ -18,7 +18,8 @@ def main(which: str) -> int:
     if which == "web":
         print(data["run"]["web"])
     elif which == "release":
-        print(" && ".join(data["release"]["command"]))
+        # `release.command` es la forma exec de Docker: una lista que forma un solo comando.
+        print(" ".join(data["release"]["command"]))
     else:
         print(f"uso: {sys.argv[0]} web|release", file=sys.stderr)
         return 2

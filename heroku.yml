@@ -6,6 +6,6 @@ build:
 release:
   image: web
   command:
-    - alembic upgrade head
+    - python -m app.cli release
 run:
   web: uvicorn app.main:app --host 0.0.0.0 --port $PORT --workers 1 --proxy-headers --forwarded-allow-ips '*' --ws-max-size 1048576 --ws-max-queue 8 --ws-per-message-deflate false
