@@ -224,14 +224,18 @@ def _import_bundle(
         rows = _activity_rows(bundle, item)
         label = f"{item.slug}"
 
-        existing = repository.revision_by_hash(s, db_item.id, digest)
+        existing = repository.revision_by_hash(s, db_item.id, digest, lock=True)
         if existing is not None:
-            if existing.status == "draft":
-                existing.file_status = item.status
+            # El cuerpo de una revisión aprobada es inmutable, pero su estado de audio y sus
+            # advertencias se reevalúan: un audio que vuelve a quedar sin revisar bloquea
+            # publicar (hallazgo 3 de CS-04). Lo publicado o retirado no se toca.
+            if existing.status in ("draft", "approved"):
                 existing.lint_warnings = warnings
                 existing.audio_pending = audio_pending
                 _refresh_audio_urls(s, existing.id, rows)
-                result.refreshed.append(f"{label} v{existing.version}")
+                if existing.status == "draft":
+                    existing.file_status = item.status
+                result.refreshed.append(f"{label} v{existing.version} ({existing.status})")
             else:
                 result.unchanged.append(f"{label} v{existing.version} ({existing.status})")
             continue

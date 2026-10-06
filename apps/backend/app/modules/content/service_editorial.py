@@ -70,6 +70,19 @@ def _iso(value: datetime | None) -> str | None:
     return value.isoformat() if value else None
 
 
+def _lock_for_decision(s: Session, revision_id: uuid.UUID) -> tuple[ContentRevision, ContentItem]:
+    """Orden fijo de bloqueo: primero el ítem, después la revisión. Publicar, publicar
+    unidad y retirar lo comparten, así no hay bloqueos mutuos (hallazgo 2 de CS-04)."""
+    plain = s.get(ContentRevision, revision_id)
+    if plain is None:
+        raise NotFound()
+    item = repository.item_for_update(s, plain.item_id)
+    rev = repository.revision(s, revision_id, lock=True)
+    if item is None or rev is None:
+        raise NotFound()
+    return rev, item
+
+
 class EditorialService:
     def __init__(self, uow: UnitOfWorkFactory, clock: Clock) -> None:
         self.uow = uow
@@ -291,9 +304,7 @@ class EditorialService:
         self, revision_id: uuid.UUID, *, by: uuid.UUID, content_hash: str, note: str | None = None
     ) -> dict[str, Any]:
         with self.uow() as s:
-            rev = repository.revision(s, revision_id, lock=True)
-            if rev is None:
-                raise NotFound()
+            rev, _item = _lock_for_decision(s, revision_id)
             blockers = domain.approval_blockers(_facts(s, rev), content_hash)
             if blockers:
                 raise _blocked(blockers)
@@ -306,10 +317,8 @@ class EditorialService:
         return self.revision_detail(revision_id)
 
     def _publish_locked(
-        self, s: Session, rev: ContentRevision, by: uuid.UUID, note: str | None
+        self, s: Session, rev: ContentRevision, item: ContentItem, by: uuid.UUID, note: str | None
     ) -> None:
-        item = repository.item_for_update(s, rev.item_id)
-        assert item is not None
         blockers = domain.publish_blockers(_facts(s, rev))
         if blockers:
             raise _blocked(blockers)
@@ -328,10 +337,8 @@ class EditorialService:
         self, revision_id: uuid.UUID, *, by: uuid.UUID, note: str | None = None
     ) -> dict[str, Any]:
         with self.uow() as s:
-            rev = repository.revision(s, revision_id, lock=True)
-            if rev is None:
-                raise NotFound()
-            self._publish_locked(s, rev, by, note)
+            rev, item = _lock_for_decision(s, revision_id)
+            self._publish_locked(s, rev, item, by, note)
         logger.info("revision_published", extra={"revision_id": str(revision_id)})
         return self.revision_detail(revision_id)
 
@@ -341,6 +348,15 @@ class EditorialService:
         with self.uow() as s:
             if s.get(Unit, unit_id) is None:
                 raise NotFound()
+            # Ítems primero (en orden de id), después sus revisiones.
+            list(
+                s.scalars(
+                    select(ContentItem)
+                    .where(ContentItem.unit_id == unit_id)
+                    .order_by(ContentItem.id)
+                    .with_for_update()
+                )
+            )
             rows = s.execute(
                 select(ContentRevision, ContentItem)
                 .join(ContentItem, ContentItem.id == ContentRevision.item_id)
@@ -353,7 +369,7 @@ class EditorialService:
                 if item.id in seen:
                     continue
                 seen.add(item.id)
-                self._publish_locked(s, rev, by, "publicación de la unidad")
+                self._publish_locked(s, rev, item, by, "publicación de la unidad")
                 published.append(PublishedRef(rev.id, item.slug, rev.version))
             if not published:
                 raise Conflict(
@@ -363,14 +379,10 @@ class EditorialService:
 
     def withdraw(self, revision_id: uuid.UUID, *, by: uuid.UUID, reason: str) -> dict[str, Any]:
         with self.uow() as s:
-            rev = repository.revision(s, revision_id, lock=True)
-            if rev is None:
-                raise NotFound()
+            rev, item = _lock_for_decision(s, revision_id)
             blockers = domain.withdraw_blockers(rev.status, reason)
             if blockers:
                 raise _blocked(blockers)
-            item = repository.item_for_update(s, rev.item_id)
-            assert item is not None
             rev.status = "withdrawn"
             rev.withdrawn_at = self.clock.now()
             rev.withdraw_reason = reason.strip()

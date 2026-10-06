@@ -61,7 +61,11 @@ class Strict(BaseModel):
 
 
 NonEmpty = Annotated[str, Field(min_length=1)]
-Key = Annotated[str, Field(pattern=r"^[a-z0-9][a-z0-9._-]{2,80}$")]
+# Límites de las columnas de `content_v1`: el lint los conoce para que la release nunca
+# falle por un texto demasiado largo (hallazgo 6 de CS-04).
+Title = Annotated[str, Field(min_length=1, max_length=200)]
+Short = Annotated[str, Field(min_length=1, max_length=80)]
+Key = Annotated[str, Field(pattern=r"^[a-z0-9][a-z0-9._-]{2,80}$")]  # columna de 90
 
 
 class Stimulus(Strict):
@@ -253,7 +257,7 @@ class SourceClaim(Strict):
     source: NonEmpty
     claim: NonEmpty
     scope: NonEmpty
-    location: str | None = None
+    location: Annotated[str, Field(max_length=200)] | None = None
 
 
 class Rule(Strict):
@@ -276,8 +280,8 @@ class Passage(Strict):
 
 
 class ItemBase(Strict):
-    slug: Annotated[str, Field(pattern=r"^[a-z0-9][a-z0-9-]{2,80}$")]
-    title: NonEmpty
+    slug: Annotated[str, Field(pattern=r"^[a-z0-9][a-z0-9-]{2,79}$")]
+    title: Title
     status: FileStatus = "draft"
     position: int = Field(ge=1, le=99)
     objectives: list[NonEmpty] = Field(min_length=1)
@@ -329,20 +333,20 @@ ItemFile = Annotated[LessonFile | ScenarioFile | AssessmentFormFile, Field(discr
 
 
 class UnitEntry(Strict):
-    slug: Annotated[str, Field(pattern=r"^u[1-9]-[a-z0-9-]+$")]
+    slug: Annotated[str, Field(pattern=r"^u[1-9]-[a-z0-9-]{1,77}$")]
     position: int = Field(ge=1, le=20)
-    title: NonEmpty
+    title: Title
     summary: NonEmpty
 
 
 class PathFile(Strict):
-    code: NonEmpty
-    exam_code: NonEmpty
-    exam_format_version: NonEmpty
-    level_from: NonEmpty
-    level_to: NonEmpty
-    title: NonEmpty
-    label: NonEmpty
+    code: Short
+    exam_code: Annotated[str, Field(min_length=1, max_length=40)]
+    exam_format_version: Annotated[str, Field(min_length=1, max_length=20)]
+    level_from: Annotated[str, Field(min_length=1, max_length=4)]
+    level_to: Annotated[str, Field(min_length=1, max_length=4)]
+    title: Title
+    label: Short
     catalog_version: int = Field(ge=1)
     units: list[UnitEntry] = Field(min_length=1)
 
@@ -362,9 +366,9 @@ class ObjectivesFile(Strict):
 
 class Source(Strict):
     id: Annotated[str, Field(pattern=r"^[a-z0-9-]{3,60}$")]
-    url: Annotated[str, Field(pattern=r"^https://")]
-    title: NonEmpty
-    publisher: NonEmpty
+    url: Annotated[str, Field(pattern=r"^https://", max_length=500)]
+    title: Annotated[str, Field(min_length=1, max_length=300)]
+    publisher: Annotated[str, Field(min_length=1, max_length=120)]
     accessed_on: date | None = None
     status: Literal["consulted", "pending"]
     note_es: str | None = None

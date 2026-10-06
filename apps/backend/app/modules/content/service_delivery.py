@@ -10,6 +10,7 @@ from __future__ import annotations
 import uuid
 from typing import Any, Literal
 
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.core.errors import NotFound
@@ -96,6 +97,15 @@ def _unit(unit: Unit | None) -> dict[str, Any] | None:
     return {"id": str(unit.id), "slug": unit.slug, "title": unit.title, "position": unit.position}
 
 
+def _unit_from_body(s: Session, item: ContentItem, body: dict[str, Any]) -> Unit | None:
+    """La unidad que ve el alumno sale del cuerpo de la revisión (aprobado), no de la fila
+    del ítem, que el importador actualiza con cada borrador."""
+    slug = body.get("unit")
+    if not slug:
+        return None
+    return s.scalar(select(Unit).where(Unit.path_id == item.path_id, Unit.slug == slug))
+
+
 def item_dto(
     s: Session,
     item: ContentItem,
@@ -104,8 +114,10 @@ def item_dto(
     mode: Mode = "practice",
     pools: tuple[str, ...] = ("practice",),
 ) -> dict[str, Any]:
+    """DTO del alumno. Todo texto visible sale de `rev.body` (la revisión aprobada y
+    publicada o fijada), nunca de la fila mutable del ítem (hallazgo 1 de CS-04)."""
     body = rev.body
-    unit = s.get(Unit, item.unit_id) if item.unit_id else None
+    unit = _unit_from_body(s, item, body)
     acts = [a for a in repository.activities_of(s, rev.id) if a.pool in pools]
     dto: dict[str, Any] = {
         "id": str(item.id),
@@ -113,7 +125,7 @@ def item_dto(
         "revision_version": rev.version,
         "kind": item.kind,
         "slug": item.slug,
-        "title": item.title,
+        "title": body["title"],
         "unit": _unit(unit),
         "objectives": list(body.get("objectives", [])),
         "activities": [student_activity(a, mode) for a in acts],
@@ -121,7 +133,7 @@ def item_dto(
     if item.kind == "lesson":
         dto.update(
             {
-                "skill": item.skill,
+                "skill": body.get("skill"),
                 "objective_es": body["objective_es"],
                 "pcre": body["pcre"],
                 "application_task_es": body["application_task_es"],
@@ -142,7 +154,7 @@ def item_dto(
     else:
         dto.update(
             {
-                "form_kind": item.form_kind,
+                "form_kind": body.get("form_kind"),
                 "duration_minutes": body.get("duration_minutes"),
                 "passages": body.get("passages", []),
             }
@@ -166,14 +178,19 @@ class DeliveryService:
             path = next((p for p in repository.active_paths(s) if p.id == path_id), None)
             if path is None:
                 raise NotFound()
-            items = repository.published_items(s, path.id)
+            refs: list[tuple[str | None, dict[str, Any]]] = []
+            for item in repository.published_items(s, path.id):
+                rev = repository.revision(s, item.published_revision_id)  # type: ignore[arg-type]
+                if rev is None:
+                    continue
+                refs.append((rev.body.get("unit"), _item_ref(item, rev.body)))
+            refs.sort(key=lambda r: (r[1]["position"], r[1]["slug"]))
             units = []
             for unit in repository.units_of(s, path.id):
-                unit_items = [i for i in items if i.unit_id == unit.id]
-                if not unit_items:
-                    continue
-                units.append({**(_unit(unit) or {}), "items": [_item_ref(i) for i in unit_items]})
-            forms = [_item_ref(i) for i in items if i.unit_id is None]
+                unit_items = [ref for slug, ref in refs if slug == unit.slug]
+                if unit_items:
+                    units.append({**(_unit(unit) or {}), "items": unit_items})
+            forms = [ref for slug, ref in refs if slug is None]
             return {
                 "id": str(path.id),
                 "code": path.code,
@@ -194,13 +211,13 @@ class DeliveryService:
             return item_dto(s, item, rev)
 
 
-def _item_ref(item: ContentItem) -> dict[str, Any]:
+def _item_ref(item: ContentItem, body: dict[str, Any]) -> dict[str, Any]:
     return {
         "id": str(item.id),
         "kind": item.kind,
         "slug": item.slug,
-        "title": item.title,
-        "position": item.position,
-        "skill": item.skill,
-        "form_kind": item.form_kind,
+        "title": body["title"],
+        "position": body["position"],
+        "skill": body.get("skill"),
+        "form_kind": body.get("form_kind"),
     }

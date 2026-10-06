@@ -44,12 +44,15 @@ def item_for_update(s: Session, item_id: uuid.UUID) -> ContentItem | None:
     return s.scalar(select(ContentItem).where(ContentItem.id == item_id).with_for_update())
 
 
-def revision_by_hash(s: Session, item_id: uuid.UUID, content_hash: str) -> ContentRevision | None:
-    return s.scalar(
-        select(ContentRevision).where(
-            ContentRevision.item_id == item_id, ContentRevision.content_hash == content_hash
-        )
+def revision_by_hash(
+    s: Session, item_id: uuid.UUID, content_hash: str, *, lock: bool = False
+) -> ContentRevision | None:
+    stmt = select(ContentRevision).where(
+        ContentRevision.item_id == item_id, ContentRevision.content_hash == content_hash
     )
+    if lock:
+        stmt = stmt.with_for_update()
+    return s.scalar(stmt)
 
 
 def max_version(s: Session, item_id: uuid.UUID) -> int:

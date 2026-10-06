@@ -57,6 +57,7 @@ class ContentBundle:
     audio: AudioManifest = field(default_factory=AudioManifest)
     items: list[LoadedItem] = field(default_factory=list)
     issues: list[Issue] = field(default_factory=list)
+    registry_texts: dict[str, str] = field(default_factory=dict)
 
     def rel(self, path: Path) -> str:
         return path.relative_to(self.root).as_posix()
@@ -99,7 +100,8 @@ def load_path_dir(path_dir: Path, content_root: Path | None = None) -> ContentBu
             )
             return None
         try:
-            data, _ = _read_yaml(file)
+            data, text = _read_yaml(file)
+            bundle.registry_texts[bundle.rel(file)] = text
             return model.model_validate(data)
         except (yaml.YAMLError, ValidationError) as exc:
             msg = _format_validation(exc) if isinstance(exc, ValidationError) else str(exc)

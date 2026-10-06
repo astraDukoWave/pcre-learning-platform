@@ -66,6 +66,16 @@ anotan en el registro; cualquier otra desviación queda `pending-human`.
 
 Ninguna.
 
+## Notas de interpretación (no cambian alcance; confirmación opcional de Jonathan)
+
+- **NI-01 · Bloque PCRE en el DTO de la lección** (verificador de CS-04, PR #6). La lección
+  muestra su explicación breve PCRE (patrón, concepto, reglas, dos ejemplos y tarea de
+  aplicación) antes de practicar: el contrato §5 la exige como contenido de la lección.
+  AC-08 se aplica a lo que es de cada ítem: su `explanation_es`, su clave, variantes,
+  pistas, apoyo, transcripción, ejemplo (`example`, la ayuda de REQ-11) y rúbrica, que solo
+  viajan después de enviar o por `POST /aids`. Regla editorial asociada: el patrón y los
+  ejemplos de la explicación no deben resolver un ítem (lista de revisión, contrato §12).
+
 ## Loop humano vigente
 
 1. Lanzar la sesión cloud con el prompt del §2 de `claude/prompts-arranque.md`

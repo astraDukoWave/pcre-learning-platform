@@ -124,6 +124,13 @@ def committed_container(engine: object, settings: object) -> Iterator[Container]
     with engine.begin() as conn:
         conn.execute(text("DELETE FROM invitations WHERE email LIKE '%@race.example.com'"))
         conn.execute(text("DELETE FROM users WHERE email LIKE '%@race.example.com'"))
+        conn.execute(text("DELETE FROM learning_paths WHERE code = 'ruta-prueba'"))
+        conn.execute(
+            text(
+                "DELETE FROM sources "
+                "WHERE key IN ('ets-toefl-ibt-content', 'cambridge-prepositions')"
+            )
+        )
 
 
 @pytest.fixture

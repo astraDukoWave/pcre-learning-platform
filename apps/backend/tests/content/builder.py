@@ -306,6 +306,7 @@ def base_files() -> dict[str, Any]:
                     ("email", "write_an_email"),
                     ("interview", "take_an_interview"),
                     ("transfer", "communicative_transfer"),
+                    ("repeat", "listen_and_repeat"),
                 )
             ]
         },
@@ -385,3 +386,102 @@ def add_listening(files: dict[str, Any], *, reviewed: bool) -> None:
         "activities": [listen(f"u1.l2.p{i}", "practice", i) for i in range(1, 5)]
         + [listen(f"u1.l2.r{i}", "review", i + 10) for i in range(1, 5)],
     }
+
+
+def _reviewed_audio(files: dict[str, Any], audio_id: str, text: str) -> None:
+    mp3 = f"ID3-{audio_id}".encode()
+    name = f"{hashlib.sha256(mp3).hexdigest()[:8]}-{audio_id}.mp3"
+    files[f"audio/{name}"] = mp3
+    files["audio/manifest.yaml"]["audio"].append(
+        {
+            "id": audio_id,
+            "script": [{"speaker": "A", "text": text}],
+            "voices": {"A": "voz-a"},
+            "file": name,
+            "sha256": hashlib.sha256(mp3).hexdigest(),
+            "provider": "deepgram",
+            "model": "aura-2",
+            "reviewed_by": "jonathan",
+            "reviewed_at": "2026-10-06",
+        }
+    )
+
+
+def add_all_formats(files: dict[str, Any]) -> None:
+    """Agrega escucha (con transcripción), habla (entrevista y repetición), completado y
+    orden: con lo base, la ruta de prueba cubre los seis formatos (AC-08)."""
+    add_listening(files, reviewed=True)
+    _reviewed_audio(files, "u1-l4-repetir", "I would like a table for two, please.")
+    writing = files["units/u1/l3-escritura.yaml"]
+    writing["activities"] += [
+        {
+            "key": "u1.l3.p3",
+            "format": "sentence_order",
+            "task_family": "build_a_sentence",
+            "pool": "practice",
+            "objectives": ["U1.W"],
+            "instructions_es": "Ordena la oración.",
+            "tokens": ["I", "usually", "walk", "to work"],
+            "accepted_orders": [
+                ["I", "usually", "walk", "to work"],
+                ["usually", "I", "walk", "to work"],
+            ],
+            "explanation_es": "Usually va antes del verbo principal.",
+        },
+        {
+            "key": "u1.l3.p4",
+            "format": "word_completion",
+            "task_family": "complete_the_words",
+            "pool": "practice",
+            "objectives": ["U1.R"],
+            "instructions_es": "Completa las palabras.",
+            "text_en": "We {{g1}} by bus every day.",
+            "gaps": [
+                {"id": "g1", "shown": "trav", "accepted": ["travelling-variante-secreta", "travel"]}
+            ],
+            "explanation_es": "Travel es el verbo base.",
+        },
+    ]
+    speaking = {k: v for k, v in files["units/u1/l3-escritura.yaml"].items() if k != "activities"}
+    speaking.update(
+        {
+            "slug": "u1-l4-habla",
+            "position": 4,
+            "skill": "speaking",
+            "title": "Presentarte",
+            "objectives": ["U1.S"],
+            "activities": [
+                {
+                    "key": "u1.l4.p1",
+                    "format": "recorded_speaking",
+                    "task_family": "take_an_interview",
+                    "pool": "practice",
+                    "objectives": ["U1.S"],
+                    "instructions_es": "Responde la pregunta.",
+                    "subtype": "interview",
+                    "question_en": "What do you do on weekends?",
+                    "prep_seconds": 10,
+                    "response_seconds": 45,
+                    "rubric": "interview",
+                    "model_answer": "Respuesta modelo secreta de entrevista.",
+                    "model_commentary_es": "Comentario secreto de la entrevista.",
+                },
+                {
+                    "key": "u1.l4.p2",
+                    "format": "recorded_speaking",
+                    "task_family": "listen_and_repeat",
+                    "pool": "practice",
+                    "objectives": ["U1.S"],
+                    "instructions_es": "Escucha y repite.",
+                    "subtype": "listen_and_repeat",
+                    "target_sentence": "I would like a table for two, please.",
+                    "audio": "u1-l4-repetir",
+                    "response_seconds": 10,
+                    "rubric": "repeat",
+                    "model_answer": "I would like a table for two, please.",
+                    "model_commentary_es": "Comentario secreto de la repetición.",
+                },
+            ],
+        }
+    )
+    files["units/u1/l4-habla.yaml"] = speaking

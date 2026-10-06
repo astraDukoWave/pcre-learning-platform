@@ -32,7 +32,8 @@ from app.modules.content.schema import (
     script_hash,
 )
 
-MARKERS = re.compile(r"\b(TODO|TBD|lorem|placeholder|XXX)\b", re.IGNORECASE)
+# `TODO`, `TBD` y `XXX` solo en mayúsculas (marcadores): «todo» es una palabra en español.
+MARKERS = re.compile(r"\b(TODO|TBD|XXX)\b|\b(?i:lorem|placeholder)\b")
 ABSOLUTE = re.compile(r"\b(siempre|nunca|always|never|must)\b", re.IGNORECASE)
 WORDS = re.compile(r"[A-Za-z0-9'’-]+")
 WORDS_PER_SECOND = 2.5  # ~150 palabras por minuto (ritmo natural B1–B2)
@@ -78,13 +79,25 @@ def lint_bundle(bundle: ContentBundle) -> list[Issue]:
     if bundle.path is None or bundle.objectives is None or bundle.sources is None:
         return issues
     issues += _lint_registries(bundle)
+    # Los marcadores se buscan en todo archivo publicable, registros incluidos (contrato §9).
+    for file, text in sorted(bundle.registry_texts.items()):
+        for match in MARKERS.finditer(text):
+            issues.append(
+                Issue("error", "forbidden_marker", file, f"marcador prohibido: {match.group(0)}")
+            )
     seen_slugs: dict[str, str] = {}
     seen_keys: dict[str, str] = {}
     fingerprints: dict[str, tuple[str, str, str]] = {}
+    form_fingerprints: dict[str, tuple[str, str]] = {}
     for loaded in bundle.items:
-        for marker in MARKERS.findall(loaded.raw_text):
+        for match in MARKERS.finditer(loaded.raw_text):
             issues.append(
-                Issue("error", "forbidden_marker", loaded.file, f"marcador prohibido: {marker}")
+                Issue(
+                    "error",
+                    "forbidden_marker",
+                    loaded.file,
+                    f"marcador prohibido: {match.group(0)}",
+                )
             )
         item = loaded.model
         if item is None:
@@ -112,6 +125,19 @@ def lint_bundle(bundle: ContentBundle) -> list[Issue]:
                 )
             seen_keys[act.key] = loaded.file
             fp = _fingerprint(item, act)
+            if fp and isinstance(item, AssessmentFormFile):
+                # Formularios sin ítems repetidos entre ellos (contrato §5).
+                other = form_fingerprints.setdefault(fp, (loaded.file, act.key))
+                if other[0] != loaded.file:
+                    issues.append(
+                        Issue(
+                            "error",
+                            "duplicate_across_forms",
+                            loaded.file,
+                            f"mismo ítem que {other[1]} ({other[0]})",
+                            act.key,
+                        )
+                    )
             if fp:
                 fingerprints.setdefault(fp, (loaded.file, act.key, act.pool))
                 first = fingerprints[fp]

@@ -38,6 +38,7 @@ FORBIDDEN_KEYS = frozenset(
         "target_sentence",
         "good",
         "case_sensitive",
+        "next_review",
         "coach_hints",
         "agent_persona_en",
     }
@@ -51,6 +52,12 @@ FORBIDDEN_VALUES = (
     "Es en sábado.",  # motivo de opción
     "Pregunta directa y clara.",  # feedback de diálogo
     "Dear Ms. Lee",  # respuesta modelo
+    "Attention please.",  # transcripción de la escucha
+    "travelling-variante-secreta",  # variante aceptada
+    "I would like a table for two",  # oración objetivo de la repetición
+    "Respuesta modelo secreta",  # respuesta modelo de la entrevista
+    "Comentario secreto",  # comentario del ejemplo
+    "Usually va antes del verbo",  # explicación del orden
 )
 
 
@@ -65,7 +72,11 @@ def walk_keys(value: Any) -> Iterator[str]:
 
 
 @pytest.fixture
-def published(admin: Account, imported: Path) -> dict[str, str]:
+def published(admin: Account, editorial: object, tmp_path: Path) -> dict[str, str]:
+    """Ruta de prueba con los seis formatos, aprobada y publicada completa."""
+    from tests.content.builder import add_all_formats, write_content
+
+    editorial.import_dir(write_content(tmp_path / "all", add_all_formats))  # type: ignore[attr-defined]
     ids = {}
     for rev in admin.client.get("/api/v1/admin/content/revisions").json():
         admin.client.post(
@@ -85,22 +96,37 @@ def student_endpoints(student: Account, ids: dict[str, str]) -> list[str]:
     paths = student.client.get("/api/v1/learning-paths").json()
     assert paths, "la ruta publicada debe aparecer"
     return [
+        "/api/v1/me",
+        "/api/v1/me/export",
         "/api/v1/learning-paths",
         f"/api/v1/learning-paths/{paths[0]['id']}",
         f"/api/v1/lessons/{ids['u1-l1-lectura']}",
+        f"/api/v1/lessons/{ids['u1-l2-escucha']}",
         f"/api/v1/lessons/{ids['u1-l3-escritura']}",
+        f"/api/v1/lessons/{ids['u1-l4-habla']}",
         f"/api/v1/scenarios/{ids['u1-escenario']}",
     ]
 
 
 def test_student_dtos_have_no_forbidden_keys(student: Account, published: dict[str, str]) -> None:
+    formats = set()
     for url in student_endpoints(student, published):
+        if "/lessons/" in url or "/scenarios/" in url:
+            formats |= {a["format"] for a in student.client.get(url).json()["activities"]}
         res = student.client.get(url)
         assert res.status_code == 200, url
         leaked = set(walk_keys(res.json())) & FORBIDDEN_KEYS
         assert not leaked, f"{url} filtra {sorted(leaked)}"
         for fragment in FORBIDDEN_VALUES:
             assert fragment not in res.text, f"{url} filtra '{fragment}'"
+    assert formats == {
+        "choice",
+        "word_completion",
+        "sentence_order",
+        "short_writing",
+        "recorded_speaking",
+        "guided_dialogue",
+    }
 
 
 def test_lesson_announces_aids_without_content(student: Account, published: dict[str, str]) -> None:
@@ -110,6 +136,12 @@ def test_lesson_announces_aids_without_content(student: Account, published: dict
     assert {"kind": "support_es", "count": 1} in first["aids"]
     assert all(a["pool"] == "practice" for a in lesson["activities"])  # el pool review no viaja
     assert lesson["pcre"]["examples"]
+
+
+def test_tokens_are_shuffled(student: Account, published: dict[str, str]) -> None:
+    lesson = student.client.get(f"/api/v1/lessons/{published['u1-l3-escritura']}").json()
+    order = next(a for a in lesson["activities"] if a["format"] == "sentence_order")
+    assert order["data"]["tokens"] != ["I", "usually", "walk", "to work"]
 
 
 def test_unpublished_items_are_404(student: Account, imported: Path, admin: Account) -> None:
