@@ -1,0 +1,26 @@
+.split {
+  display: grid;
+  gap: var(--space-5);
+}
+
+@media (min-width: 960px) {
+  .split {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: start;
+  }
+}
+
+.passage {
+  font-family: var(--font-en);
+  line-height: 1.6;
+  white-space: pre-line;
+  background: var(--surface);
+  border: 1px solid var(--grid);
+  border-radius: var(--radius);
+  padding: var(--space-4);
+}
+
+.meta {
+  color: var(--ink-soft);
+  font-size: var(--step--1);
+}

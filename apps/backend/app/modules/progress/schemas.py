@@ -58,7 +58,7 @@ class AidCountsOut(BaseModel):
     example: int
 
 
-class ProgressOut(BaseModel):
+class LearnerProgressOut(BaseModel):
     period_days: int
     advance: AdvanceOut
     initial_accuracy: RatioOut

@@ -1388,7 +1388,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/app__modules__progress__schemas__ProgressOut"
+                  "$ref": "#/components/schemas/LearnerProgressOut"
                 }
               }
             }
@@ -3347,6 +3347,74 @@
         ],
         "title": "ItemStateRefOut"
       },
+      "LearnerProgressOut": {
+        "properties": {
+          "period_days": {
+            "type": "integer",
+            "title": "Period Days"
+          },
+          "advance": {
+            "$ref": "#/components/schemas/AdvanceOut"
+          },
+          "initial_accuracy": {
+            "$ref": "#/components/schemas/RatioOut"
+          },
+          "delayed_recall": {
+            "$ref": "#/components/schemas/RatioOut"
+          },
+          "aids": {
+            "$ref": "#/components/schemas/AidCountsOut"
+          },
+          "production": {
+            "$ref": "#/components/schemas/ProductionOut"
+          },
+          "to_reinforce": {
+            "items": {
+              "$ref": "#/components/schemas/ReinforceOut"
+            },
+            "type": "array",
+            "title": "To Reinforce"
+          },
+          "streak_days": {
+            "type": "integer",
+            "title": "Streak Days"
+          },
+          "reviews_due": {
+            "type": "integer",
+            "title": "Reviews Due"
+          },
+          "next_action": {
+            "$ref": "#/components/schemas/NextActionOut"
+          },
+          "diagnostic_form_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Diagnostic Form Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "period_days",
+          "advance",
+          "initial_accuracy",
+          "delayed_recall",
+          "aids",
+          "production",
+          "to_reinforce",
+          "streak_days",
+          "reviews_due",
+          "next_action",
+          "diagnostic_form_id"
+        ],
+        "title": "LearnerProgressOut"
+      },
       "LessonOut": {
         "properties": {
           "id": {
@@ -3557,7 +3625,7 @@
             "title": "Notice"
           },
           "progress": {
-            "$ref": "#/components/schemas/app__modules__practice__schemas__ProgressOut"
+            "$ref": "#/components/schemas/ProgressOut"
           }
         },
         "type": "object",
@@ -4250,6 +4318,38 @@
           "label"
         ],
         "title": "ProductionStatOut"
+      },
+      "ProgressOut": {
+        "properties": {
+          "started_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Started At"
+          },
+          "completed_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Completed At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "started_at",
+          "completed_at"
+        ],
+        "title": "ProgressOut"
       },
       "PublishIn": {
         "properties": {
@@ -5317,106 +5417,6 @@
           "reason"
         ],
         "title": "WithdrawIn"
-      },
-      "app__modules__practice__schemas__ProgressOut": {
-        "properties": {
-          "started_at": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Started At"
-          },
-          "completed_at": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Completed At"
-          }
-        },
-        "type": "object",
-        "required": [
-          "started_at",
-          "completed_at"
-        ],
-        "title": "ProgressOut"
-      },
-      "app__modules__progress__schemas__ProgressOut": {
-        "properties": {
-          "period_days": {
-            "type": "integer",
-            "title": "Period Days"
-          },
-          "advance": {
-            "$ref": "#/components/schemas/AdvanceOut"
-          },
-          "initial_accuracy": {
-            "$ref": "#/components/schemas/RatioOut"
-          },
-          "delayed_recall": {
-            "$ref": "#/components/schemas/RatioOut"
-          },
-          "aids": {
-            "$ref": "#/components/schemas/AidCountsOut"
-          },
-          "production": {
-            "$ref": "#/components/schemas/ProductionOut"
-          },
-          "to_reinforce": {
-            "items": {
-              "$ref": "#/components/schemas/ReinforceOut"
-            },
-            "type": "array",
-            "title": "To Reinforce"
-          },
-          "streak_days": {
-            "type": "integer",
-            "title": "Streak Days"
-          },
-          "reviews_due": {
-            "type": "integer",
-            "title": "Reviews Due"
-          },
-          "next_action": {
-            "$ref": "#/components/schemas/NextActionOut"
-          },
-          "diagnostic_form_id": {
-            "anyOf": [
-              {
-                "type": "string",
-                "format": "uuid"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Diagnostic Form Id"
-          }
-        },
-        "type": "object",
-        "required": [
-          "period_days",
-          "advance",
-          "initial_accuracy",
-          "delayed_recall",
-          "aids",
-          "production",
-          "to_reinforce",
-          "streak_days",
-          "reviews_due",
-          "next_action",
-          "diagnostic_form_id"
-        ],
-        "title": "ProgressOut"
       }
     }
   }

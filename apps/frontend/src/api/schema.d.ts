@@ -1281,6 +1281,25 @@ export interface components {
              */
             state: "not_started" | "in_progress" | "completed";
         };
+        /** LearnerProgressOut */
+        LearnerProgressOut: {
+            /** Period Days */
+            period_days: number;
+            advance: components["schemas"]["AdvanceOut"];
+            initial_accuracy: components["schemas"]["RatioOut"];
+            delayed_recall: components["schemas"]["RatioOut"];
+            aids: components["schemas"]["AidCountsOut"];
+            production: components["schemas"]["ProductionOut"];
+            /** To Reinforce */
+            to_reinforce: components["schemas"]["ReinforceOut"][];
+            /** Streak Days */
+            streak_days: number;
+            /** Reviews Due */
+            reviews_due: number;
+            next_action: components["schemas"]["NextActionOut"];
+            /** Diagnostic Form Id */
+            diagnostic_form_id: string | null;
+        };
         /** LessonOut */
         LessonOut: {
             /**
@@ -1340,7 +1359,7 @@ export interface components {
             };
             /** Notice */
             notice: string | null;
-            progress: components["schemas"]["app__modules__practice__schemas__ProgressOut"];
+            progress: components["schemas"]["ProgressOut"];
         };
         /** LinkOut */
         LinkOut: {
@@ -1530,6 +1549,13 @@ export interface components {
              * @constant
              */
             label: "autoevaluación";
+        };
+        /** ProgressOut */
+        ProgressOut: {
+            /** Started At */
+            started_at: string | null;
+            /** Completed At */
+            completed_at: string | null;
         };
         /** PublishIn */
         PublishIn: {
@@ -1938,32 +1964,6 @@ export interface components {
         WithdrawIn: {
             /** Reason */
             reason: string;
-        };
-        /** ProgressOut */
-        app__modules__practice__schemas__ProgressOut: {
-            /** Started At */
-            started_at: string | null;
-            /** Completed At */
-            completed_at: string | null;
-        };
-        /** ProgressOut */
-        app__modules__progress__schemas__ProgressOut: {
-            /** Period Days */
-            period_days: number;
-            advance: components["schemas"]["AdvanceOut"];
-            initial_accuracy: components["schemas"]["RatioOut"];
-            delayed_recall: components["schemas"]["RatioOut"];
-            aids: components["schemas"]["AidCountsOut"];
-            production: components["schemas"]["ProductionOut"];
-            /** To Reinforce */
-            to_reinforce: components["schemas"]["ReinforceOut"][];
-            /** Streak Days */
-            streak_days: number;
-            /** Reviews Due */
-            reviews_due: number;
-            next_action: components["schemas"]["NextActionOut"];
-            /** Diagnostic Form Id */
-            diagnostic_form_id: string | null;
         };
     };
     responses: never;
@@ -3002,7 +3002,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["app__modules__progress__schemas__ProgressOut"];
+                    "application/json": components["schemas"]["LearnerProgressOut"];
                 };
             };
         };

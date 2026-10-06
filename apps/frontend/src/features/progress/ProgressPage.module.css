@@ -1,0 +1,28 @@
+.period {
+  color: var(--ink-soft);
+  font-size: var(--step--1);
+}
+
+.metrics {
+  display: grid;
+  gap: var(--space-3);
+  margin: var(--space-4) 0;
+}
+
+.metrics > div {
+  border-top: 1px solid var(--grid);
+  padding-top: var(--space-2);
+}
+
+.metrics dt {
+  font-weight: 700;
+}
+
+.metrics dd {
+  margin: 0;
+}
+
+.metrics ul {
+  margin: var(--space-1) 0 0;
+  padding-left: var(--space-4);
+}

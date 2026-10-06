@@ -5,6 +5,8 @@ import { RunPage } from "../features/assessment/RunPage";
 import { RequireAuth } from "../features/auth/guards";
 import { LessonPage } from "../features/lesson/LessonPage";
 import { PathPage } from "../features/path/PathPage";
+import { ProgressPage } from "../features/progress/ProgressPage";
+import { ReviewsPage } from "../features/reviews/ReviewsPage";
 import { AcceptInvite } from "../pages/AcceptInvite";
 import { Home } from "../pages/Home";
 import { Login } from "../pages/Login";
@@ -34,6 +36,8 @@ export const routes: RouteObject[] = [
       { path: "inicio", element: auth(<Home />) },
       { path: "perfil", element: auth(<Profile />) },
       { path: "ruta", element: auth(<PathPage />) },
+      { path: "repasos", element: auth(<ReviewsPage />) },
+      { path: "progreso", element: auth(<ProgressPage />) },
       { path: "lecciones/:itemId", element: auth(<LessonPage />) },
       { path: "escenarios/:itemId", element: auth(<LessonPage kind="scenario" />) },
       { path: "comprobaciones/:formId", element: auth(<AssessmentPage />) },

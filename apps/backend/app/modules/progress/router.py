@@ -8,7 +8,7 @@ from fastapi import APIRouter, Depends
 
 from app.http.deps import AuthDep, ContainerDep
 from app.modules.identity.service import AuthContext
-from app.modules.progress.schemas import ProgressOut, ReviewsOut
+from app.modules.progress.schemas import LearnerProgressOut, ReviewsOut
 from app.modules.progress.service import ProgressService, Viewer
 
 router = APIRouter(prefix="/api/v1", tags=["progress"])
@@ -25,9 +25,9 @@ def _viewer(ctx: AuthContext) -> Viewer:
     return Viewer(user_id=ctx.user_id, timezone=ctx.timezone)
 
 
-@router.get("/me/progress", response_model=ProgressOut)
-def my_progress(ctx: AuthDep, svc: ProgressDep) -> ProgressOut:
-    return ProgressOut.model_validate(svc.progress(_viewer(ctx)))
+@router.get("/me/progress", response_model=LearnerProgressOut)
+def my_progress(ctx: AuthDep, svc: ProgressDep) -> LearnerProgressOut:
+    return LearnerProgressOut.model_validate(svc.progress(_viewer(ctx)))
 
 
 @router.get("/me/reviews", response_model=ReviewsOut)
