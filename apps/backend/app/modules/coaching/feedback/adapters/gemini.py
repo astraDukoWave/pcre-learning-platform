@@ -1,12 +1,16 @@
 """Evaluador con Gemini por la API REST (`generateContent`), sin SDK.
 
 `POST https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent` con
-`x-goog-api-key`, salida JSON con `responseSchema` y timeout total de 20 s (bajo los 30 s
-del router de Heroku). La salida se valida igual en `domain.validate`. Mapeo de errores:
+`x-goog-api-key`, salida JSON con `responseSchema` y plazo total de 20 s (bajo los 30 s
+del router de Heroku; `app.core.deadline`). La salida se valida igual en `domain.validate`.
+Mapeo de errores:
 
-- No se pudo conectar → `EvaluatorFailed` (no se envió: sin costo).
+- No se pudo conectar, o la llamada no salió de la cola → `EvaluatorFailed` (sin costo).
 - Respuesta HTTP de error → `EvaluatorFailed("http_<código>")`.
-- Timeout o conexión cortada después de enviar → `EvaluatorUnknown`: nunca se reintenta solo.
+- Timeout, plazo total vencido o conexión cortada después de enviar → `EvaluatorUnknown`.
+- Un 200 que no se puede interpretar → `EvaluatorUnknown("invalid_response")`: se procesó y
+  se pudo facturar. Si falta `usageMetadata`, se concilia al peor caso (bytes del prompt y
+  `max_output_tokens`). Nada se reintenta solo.
 
 Solo se construye con `GEMINI_API_KEY` en el servidor (G5) o en `feedback-eval.yml` (G5a).
 """
@@ -18,6 +22,8 @@ from typing import Any
 
 import httpx
 
+from app.core.deadline import DeadlineExceeded, call_with_deadline
+from app.modules.coaching.feedback.domain import observation_cap
 from app.modules.coaching.feedback.ports import (
     EvaluatorFailed,
     EvaluatorReply,
@@ -41,7 +47,7 @@ def response_schema(request: FeedbackRequest) -> dict[str, Any]:
             },
             "observations": {
                 "type": "ARRAY",
-                "maxItems": request.max_observations,
+                "maxItems": observation_cap(request.kind, request.max_observations),
                 "items": {
                     "type": "OBJECT",
                     "properties": {
@@ -81,6 +87,7 @@ class GeminiFeedbackEvaluator:
         self._key = api_key
         self.model = model
         self.max_output_tokens = max_output_tokens
+        self.timeout_s = timeout_s
         self._client = client or httpx.Client(timeout=httpx.Timeout(timeout_s, connect=5.0))
 
     def evaluate(self, prompt: str, request: FeedbackRequest) -> EvaluatorReply:
@@ -95,33 +102,41 @@ class GeminiFeedbackEvaluator:
         }
         started = time.perf_counter()
         try:
-            response = self._client.post(
-                API_URL.format(model=self.model),
-                headers={"x-goog-api-key": self._key, "Content-Type": "application/json"},
-                json=body,
-            )
+            response = call_with_deadline(lambda: self._post(body), self.timeout_s)
+        except DeadlineExceeded as exc:
+            raise (EvaluatorUnknown("timeout") if exc.started else EvaluatorFailed("busy")) from exc
         except (httpx.ConnectError, httpx.ConnectTimeout) as exc:
             raise EvaluatorFailed("connect") from exc
         except httpx.TimeoutException as exc:
             raise EvaluatorUnknown("timeout") from exc
-        except httpx.TransportError as exc:
+        except httpx.HTTPError as exc:  # conexión cortada, cuerpo corrupto, protocolo
             raise EvaluatorUnknown("connection_lost") from exc
         latency_ms = round((time.perf_counter() - started) * 1000)
         if response.status_code >= 400:
             raise EvaluatorFailed(f"http_{response.status_code}")
         try:
             data = response.json()
-        except ValueError as exc:
-            raise EvaluatorFailed("invalid_response") from exc
-        usage = data.get("usageMetadata") or {}
+            text = _text(data)
+            tokens = _usage(data)
+        except (ValueError, TypeError, AttributeError) as exc:
+            raise EvaluatorUnknown("invalid_response") from exc
+        input_tokens, output_tokens = tokens or (
+            len(prompt.encode("utf-8")),
+            self.max_output_tokens,
+        )
         return EvaluatorReply(
-            raw_text=_text(data),
+            raw_text=text,
             model=self.model,
-            input_tokens=int(usage.get("promptTokenCount") or 0),
-            # Los tokens de razonamiento se facturan como salida.
-            output_tokens=int(usage.get("candidatesTokenCount") or 0)
-            + int(usage.get("thoughtsTokenCount") or 0),
+            input_tokens=input_tokens,
+            output_tokens=output_tokens,
             latency_ms=latency_ms,
+        )
+
+    def _post(self, body: dict[str, Any]) -> httpx.Response:
+        return self._client.post(
+            API_URL.format(model=self.model),
+            headers={"x-goog-api-key": self._key, "Content-Type": "application/json"},
+            json=body,
         )
 
 
@@ -132,3 +147,13 @@ def _text(data: dict[str, Any]) -> str:
         if texts:
             return "".join(texts)
     return ""
+
+
+def _usage(data: dict[str, Any]) -> tuple[int, int] | None:
+    """Tokens (entrada, salida) facturados; `None` si la respuesta no los trae."""
+    usage = data.get("usageMetadata")
+    if not isinstance(usage, dict) or "promptTokenCount" not in usage:
+        return None
+    # Los tokens de razonamiento se facturan como salida.
+    output = int(usage.get("candidatesTokenCount") or 0) + int(usage.get("thoughtsTokenCount") or 0)
+    return int(usage["promptTokenCount"]), output

@@ -78,6 +78,16 @@ def test_urls_exam_scores_extra_fields_and_unknown_criteria_are_discarded() -> N
     assert out.discarded == ("url", "exam_score", "shape", "unknown_criterion")
 
 
+def test_evidence_may_quote_a_link_the_learner_wrote() -> None:
+    text = "I found your ad on https://example.com/classes and I want to join."
+    quoted = {
+        "status": "evaluable",
+        "observations": [obs("I found your ad on https://example.com/classes", criterion="task")],
+    }
+    out = domain.validate(quoted, learner_text=text, criteria=CRITERIA, max_observations=3)
+    assert out.status == "evaluable" and out.discarded == ()
+
+
 def test_extra_top_level_field_invalidates_the_whole_output() -> None:
     raw = json.dumps({"status": "evaluable", "observations": [obs("evening classes")], "score": 6})
     assert check(raw).reason == "invalid_output"
@@ -93,9 +103,64 @@ def test_limit_of_observations_and_abstention_reasons() -> None:
 
 
 def test_disputed_turns_hide_their_observations() -> None:
+    turns = ["Hi, how much is it per month?", "I want the Monday group"]
     kept = (
         domain.Observation("required_moves", "how much is it", "a", "b"),
         domain.Observation("language_control", "I want the Monday group", "a", "b"),
+        domain.Observation("language_control", "per month? | I want the Monday", "a", "b"),
     )
-    visible = domain.hidden_by_disputes(kept, ["Hi, how much is it per month?"])
+    visible = domain.visible_after_disputes(kept, turns, {0})
     assert [o.evidence for o in visible] == ["I want the Monday group"]
+    # La evidencia que cruza turnos no está completa en ninguno: se oculta.
+    assert [o.evidence for o in domain.visible_after_disputes(kept, turns, {1})] == [
+        "how much is it"
+    ]
+    assert len(domain.visible_after_disputes(kept, turns, set())) == 2
+
+
+def test_links_without_scheme_and_emails_are_discarded() -> None:
+    for text in (
+        "Repasa en bbc.co.uk/learningenglish/grammar",
+        "Más ejemplos en grammarly.com/blog/indirect-questions",
+        "Ver youtu.be/abc123",
+        "Lee [la guía](bit.ly/x1)",
+        "Repasa más en example.com",
+        "Escribe a ayuda@example.com",
+    ):
+        out = check(
+            {"status": "evaluable", "observations": [obs("Dear Northside", suggestion_es=text)]}
+        )
+        assert out.discarded == ("url",), text
+    for text in (
+        "Usa «which days», p. ej. «Which days do the classes meet?»",
+        "Agrega un dato, etc.",
+    ):
+        assert domain.forbidden_content(text) is None, text
+
+
+def test_scores_bands_grades_and_levels_in_spanish_are_discarded() -> None:
+    for text in (
+        "Tu respuesta merece 5 de 6.",
+        "Mereces 6/6.",
+        "Sacarías 30 sobre 30.",
+        "Una puntuación de 25.",
+        "Tu calificación sería 4/5.",
+        "Banda 7 de IELTS.",
+        "Score: 28 en Writing.",
+        "Tu nivel es C2.",
+        "Ya estás en B2.",
+    ):
+        out = check(
+            {"status": "evaluable", "observations": [obs("Dear Northside", observation_es=text)]}
+        )
+        assert out.discarded == ("exam_score",), text
+    assert domain.forbidden_content("Tu correo pide 2 de los 3 datos.") is None
+
+
+def test_evidence_must_be_whole_words_and_survives_the_prompt_delimiter() -> None:
+    assert not domain.evidence_in("ch da", TEXT) and not domain.evidence_in("lasses", TEXT)
+    assert domain.evidence_in("which days", TEXT) and not domain.evidence_in("...", TEXT)
+    # El prompt cambia < > por ‹ › (prompts.delimit) y el modelo cita lo que vio.
+    assert domain.evidence_in("I ‹3 this course", "Hi! I <3 this course.")
+    # Ancho completo y ligaduras se comparan en NFKC.
+    assert domain.evidence_in("ＷＨＩＣＨ days", TEXT)
