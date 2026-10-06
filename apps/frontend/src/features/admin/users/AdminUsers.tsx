@@ -62,6 +62,14 @@ export function AdminUsers() {
       unwrap(api.POST("/api/v1/admin/users/{user_id}/revoke-sessions", { params: { path: { user_id: id } } })),
     onSuccess: refresh,
   });
+  const [notice, setNotice] = useState<string | null>(null);
+  const diagnostic = useMutation({
+    mutationFn: (u: { id: string; email: string }) =>
+      unwrap(
+        api.POST("/api/v1/admin/users/{user_id}/diagnostic-reset", { params: { path: { user_id: u.id } } }),
+      ).then(() => u.email),
+    onSuccess: (who) => setNotice(`Diagnóstico reiniciado para ${who}: puede hacerlo de nuevo.`),
+  });
   const internal = useMutation({
     mutationFn: (u: { id: string; is_internal: boolean }) =>
       unwrap(
@@ -88,7 +96,8 @@ export function AdminUsers() {
           Crear invitación
         </Button>
       </form>
-      <ErrorNotice error={invite.error ?? reset.error ?? revoke.error ?? internal.error} />
+      <ErrorNotice error={invite.error ?? reset.error ?? revoke.error ?? internal.error ?? diagnostic.error} />
+      {notice ? <Notice tone="success">{notice}</Notice> : null}
       {link ? <OneTimeLink label={link.label} url={link.url} expiresAt={link.expires_at} /> : null}
 
       <h2>Cuentas</h2>
@@ -113,6 +122,11 @@ export function AdminUsers() {
               <Button variant="quiet" onClick={() => revoke.mutate(u.id)}>
                 Cerrar sesiones
               </Button>
+              {u.role === "student" ? (
+                <Button variant="quiet" onClick={() => diagnostic.mutate({ id: u.id, email: u.email })}>
+                  Reiniciar diagnóstico
+                </Button>
+              ) : null}
               <label className={styles.toggle}>
                 <input
                   type="checkbox"

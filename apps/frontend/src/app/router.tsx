@@ -1,5 +1,7 @@
 import { createBrowserRouter, type RouteObject } from "react-router";
 import { AdminUsers } from "../features/admin/users/AdminUsers";
+import { AssessmentPage } from "../features/assessment/AssessmentPage";
+import { RunPage } from "../features/assessment/RunPage";
 import { RequireAuth } from "../features/auth/guards";
 import { LessonPage } from "../features/lesson/LessonPage";
 import { PathPage } from "../features/path/PathPage";
@@ -34,6 +36,8 @@ export const routes: RouteObject[] = [
       { path: "ruta", element: auth(<PathPage />) },
       { path: "lecciones/:itemId", element: auth(<LessonPage />) },
       { path: "escenarios/:itemId", element: auth(<LessonPage kind="scenario" />) },
+      { path: "comprobaciones/:formId", element: auth(<AssessmentPage />) },
+      { path: "corridas/:runId", element: auth(<RunPage />) },
       { path: "admin/usuarios", element: admin(<AdminUsers />) },
       { path: "*", element: <NotFound /> },
     ],
