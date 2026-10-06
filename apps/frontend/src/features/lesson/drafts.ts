@@ -36,3 +36,10 @@ export function clearDraft(activityId: string): void {
     // nada que limpiar
   }
 }
+
+/** Tras un 409 `idempotency_conflict` (el envío anterior se guardó con otra respuesta y su
+ * confirmación se perdió), la respuesta nueva necesita otra clave: será otro intento. */
+export function renewDraftKey(activityId: string, response: Record<string, unknown>): Draft {
+  clearDraft(activityId);
+  return saveDraft(activityId, response);
+}
