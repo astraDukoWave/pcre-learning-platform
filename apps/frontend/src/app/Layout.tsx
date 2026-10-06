@@ -4,6 +4,7 @@ import { api, unwrap } from "../api/client";
 import { Notice } from "../components/Notice";
 import { UnauthorizedBridge } from "../features/auth/guards";
 import { useMe, useSetMe } from "../features/auth/session";
+import { FeedbackButton } from "../features/feedback/FeedbackButton";
 import { es } from "../i18n/es";
 import styles from "./Layout.module.css";
 import { useOnline } from "./useOnline";
@@ -27,7 +28,15 @@ function Nav() {
       <NavLink to="/repasos">Repasos</NavLink>
       <NavLink to="/progreso">Progreso</NavLink>
       <NavLink to="/perfil">Perfil</NavLink>
-      {me.data.role === "admin" ? <NavLink to="/admin/usuarios">Usuarios</NavLink> : null}
+      {me.data.role === "admin" ? (
+        <>
+          <NavLink to="/admin/usuarios">Usuarios</NavLink>
+          <NavLink to="/admin/contenido">Contenido</NavLink>
+          <NavLink to="/admin/reportes">Reportes</NavLink>
+          <NavLink to="/admin/piloto">Piloto</NavLink>
+        </>
+      ) : null}
+      <FeedbackButton className={styles.logout} />
       <button type="button" className={styles.logout} onClick={() => logout.mutate()}>
         Salir
       </button>

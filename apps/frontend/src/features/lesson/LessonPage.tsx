@@ -7,6 +7,7 @@ import { ErrorNotice } from "../../components/ErrorNotice";
 import { Highlight } from "../../components/Highlight";
 import { Notice } from "../../components/Notice";
 import { Page } from "../../components/Page";
+import { LessonRating } from "../feedback/LessonRating";
 import { ActivityCard } from "./ActivityCard";
 import styles from "./LessonPage.module.css";
 import type { Lesson } from "./types";
@@ -164,6 +165,7 @@ export function LessonPage({ kind = "lesson" }: { kind?: "lesson" | "scenario" }
                 activity={activity}
                 last={lesson.last_attempts[activity.id]}
                 isLast={current === total - 1}
+                revisionId={lesson.revision_id}
                 onSubmitted={(lessonCompleted) => {
                   // Se queda en esta actividad para mostrar el feedback aunque el refresco
                   // de la lección cambie cuál es la primera sin responder.
@@ -177,6 +179,7 @@ export function LessonPage({ kind = "lesson" }: { kind?: "lesson" | "scenario" }
           ) : (
             <Notice tone="success" title={scenario ? "Completaste el escenario" : "Completaste la lección"}>
               <p>Completar no significa acertar todo: los objetivos que fallaste vuelven en tus repasos.</p>
+              <LessonRating itemId={lesson.id} noun={scenario ? "este escenario" : "esta lección"} />
               <p>
                 <Link to="/ruta">Volver a la ruta</Link>
               </p>

@@ -70,6 +70,7 @@ export function ReviewsPage() {
               onNext={refresh}
               isLast
               nextLabel="Siguiente repaso"
+              revisionId={review.item.revision_id}
             />
           </section>
         </div>

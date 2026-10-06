@@ -1417,6 +1417,269 @@
         }
       }
     },
+    "/api/v1/feedback": {
+      "post": {
+        "tags": [
+          "insights"
+        ],
+        "summary": "Submit Feedback",
+        "operationId": "submit_feedback_api_v1_feedback_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FeedbackIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreatedOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/pilot/summary": {
+      "get": {
+        "tags": [
+          "insights"
+        ],
+        "summary": "Pilot Summary",
+        "operationId": "pilot_summary_api_v1_admin_pilot_summary_get",
+        "parameters": [
+          {
+            "name": "days",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 28,
+              "minimum": 1,
+              "default": 7,
+              "title": "Days"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PilotSummaryOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/feedback": {
+      "get": {
+        "tags": [
+          "insights"
+        ],
+        "summary": "Feedback Overview",
+        "operationId": "feedback_overview_api_v1_admin_feedback_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FeedbackOverviewOut"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/errors": {
+      "get": {
+        "tags": [
+          "insights"
+        ],
+        "summary": "Errors",
+        "operationId": "errors_api_v1_admin_errors_get",
+        "parameters": [
+          {
+            "name": "days",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 30,
+              "minimum": 1,
+              "default": 30,
+              "title": "Days"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ErrorRowOut"
+                  },
+                  "title": "Response Errors Api V1 Admin Errors Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/content-reports": {
+      "get": {
+        "tags": [
+          "admin-content"
+        ],
+        "summary": "List Reports",
+        "operationId": "list_reports_api_v1_admin_content_reports_get",
+        "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^(open|triaged|resolved|wont_fix)$"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Status"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ReportOut"
+                  },
+                  "title": "Response List Reports Api V1 Admin Content Reports Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/content-reports/{report_id}": {
+      "patch": {
+        "tags": [
+          "admin-content"
+        ],
+        "summary": "Triage Report",
+        "operationId": "triage_report_api_v1_admin_content_reports__report_id__patch",
+        "parameters": [
+          {
+            "name": "report_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Report Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReportPatch"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReportOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/admin/content/revisions": {
       "get": {
         "tags": [
@@ -1943,6 +2206,24 @@
           "adult"
         ],
         "title": "AcceptInvitationIn"
+      },
+      "ActiveDayOut": {
+        "properties": {
+          "day": {
+            "type": "string",
+            "title": "Day"
+          },
+          "students": {
+            "type": "integer",
+            "title": "Students"
+          }
+        },
+        "type": "object",
+        "required": [
+          "day",
+          "students"
+        ],
+        "title": "ActiveDayOut"
       },
       "AdminInvitationIn": {
         "properties": {
@@ -3032,6 +3313,219 @@
         ],
         "title": "DiagnosticResetOut"
       },
+      "ErrorRowOut": {
+        "properties": {
+          "request_id": {
+            "type": "string",
+            "title": "Request Id"
+          },
+          "route": {
+            "type": "string",
+            "title": "Route"
+          },
+          "status_code": {
+            "type": "integer",
+            "title": "Status Code"
+          },
+          "error_code": {
+            "type": "string",
+            "title": "Error Code"
+          },
+          "exception_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Exception Type"
+          },
+          "occurred_at": {
+            "type": "string",
+            "title": "Occurred At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "request_id",
+          "route",
+          "status_code",
+          "error_code",
+          "exception_type",
+          "occurred_at"
+        ],
+        "title": "ErrorRowOut"
+      },
+      "FeedbackIn": {
+        "properties": {
+          "context_type": {
+            "type": "string",
+            "enum": [
+              "lesson",
+              "general"
+            ],
+            "title": "Context Type"
+          },
+          "context_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Context Id"
+          },
+          "rating": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 5.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rating"
+          },
+          "message": {
+            "type": "string",
+            "maxLength": 1000,
+            "title": "Message",
+            "default": ""
+          },
+          "page": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 200
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Page"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "context_type"
+        ],
+        "title": "FeedbackIn",
+        "description": "Valoración de una lección o escenario (1–5, comentario opcional) o comentario\ngeneral con la página como contexto (REQ-15)."
+      },
+      "FeedbackOverviewOut": {
+        "properties": {
+          "by_lesson": {
+            "items": {
+              "$ref": "#/components/schemas/LessonRatingOut"
+            },
+            "type": "array",
+            "title": "By Lesson"
+          },
+          "latest": {
+            "items": {
+              "$ref": "#/components/schemas/FeedbackRowOut"
+            },
+            "type": "array",
+            "title": "Latest"
+          }
+        },
+        "type": "object",
+        "required": [
+          "by_lesson",
+          "latest"
+        ],
+        "title": "FeedbackOverviewOut"
+      },
+      "FeedbackRowOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "email": {
+            "type": "string",
+            "title": "Email"
+          },
+          "context_type": {
+            "type": "string",
+            "title": "Context Type"
+          },
+          "context_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Context Id"
+          },
+          "rating": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rating"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          },
+          "page": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Page"
+          },
+          "created_at": {
+            "type": "string",
+            "title": "Created At"
+          },
+          "internal": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Internal"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "email",
+          "context_type",
+          "context_id",
+          "rating",
+          "message",
+          "page",
+          "created_at"
+        ],
+        "title": "FeedbackRowOut"
+      },
       "FindingIn": {
         "properties": {
           "category": {
@@ -3644,6 +4138,35 @@
           "progress"
         ],
         "title": "LessonOut"
+      },
+      "LessonRatingOut": {
+        "properties": {
+          "item_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Item Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "average": {
+            "type": "number",
+            "title": "Average"
+          },
+          "count": {
+            "type": "integer",
+            "title": "Count"
+          }
+        },
+        "type": "object",
+        "required": [
+          "item_id",
+          "title",
+          "average",
+          "count"
+        ],
+        "title": "LessonRatingOut"
       },
       "LinkOut": {
         "properties": {
@@ -4272,6 +4795,105 @@
         ],
         "title": "PcreRuleOut"
       },
+      "PilotSummaryOut": {
+        "properties": {
+          "days": {
+            "type": "integer",
+            "title": "Days"
+          },
+          "internal_excluded": {
+            "type": "boolean",
+            "title": "Internal Excluded"
+          },
+          "active_by_day": {
+            "items": {
+              "$ref": "#/components/schemas/ActiveDayOut"
+            },
+            "type": "array",
+            "title": "Active By Day"
+          },
+          "attempts": {
+            "type": "integer",
+            "title": "Attempts"
+          },
+          "lessons_completed": {
+            "type": "integer",
+            "title": "Lessons Completed"
+          },
+          "reviews_done": {
+            "type": "integer",
+            "title": "Reviews Done"
+          },
+          "reviews_due": {
+            "type": "integer",
+            "title": "Reviews Due"
+          },
+          "diagnostics": {
+            "type": "integer",
+            "title": "Diagnostics"
+          },
+          "checkpoints": {
+            "type": "integer",
+            "title": "Checkpoints"
+          },
+          "average_rating": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Average Rating"
+          },
+          "ratings": {
+            "type": "integer",
+            "title": "Ratings"
+          },
+          "latest_comments": {
+            "items": {
+              "$ref": "#/components/schemas/FeedbackRowOut"
+            },
+            "type": "array",
+            "title": "Latest Comments"
+          },
+          "open_reports": {
+            "type": "integer",
+            "title": "Open Reports"
+          },
+          "server_errors": {
+            "type": "integer",
+            "title": "Server Errors"
+          },
+          "latest_errors": {
+            "items": {
+              "$ref": "#/components/schemas/ErrorRowOut"
+            },
+            "type": "array",
+            "title": "Latest Errors"
+          }
+        },
+        "type": "object",
+        "required": [
+          "days",
+          "internal_excluded",
+          "active_by_day",
+          "attempts",
+          "lessons_completed",
+          "reviews_done",
+          "reviews_due",
+          "diagnostics",
+          "checkpoints",
+          "average_rating",
+          "ratings",
+          "latest_comments",
+          "open_reports",
+          "server_errors",
+          "latest_errors"
+        ],
+        "title": "PilotSummaryOut"
+      },
       "ProductionOut": {
         "properties": {
           "writing": {
@@ -4466,6 +5088,146 @@
         ],
         "title": "ReinforceOut"
       },
+      "ReportOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "revision_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Revision Id"
+          },
+          "item_title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Item Title"
+          },
+          "activity_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Activity Id"
+          },
+          "attempt_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Attempt Id"
+          },
+          "category": {
+            "type": "string",
+            "title": "Category"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          },
+          "page": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Page"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "open",
+              "triaged",
+              "resolved",
+              "wont_fix"
+            ],
+            "title": "Status"
+          },
+          "triage_note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Triage Note"
+          },
+          "created_at": {
+            "type": "string",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "revision_id",
+          "item_title",
+          "activity_id",
+          "attempt_id",
+          "category",
+          "message",
+          "page",
+          "status",
+          "triage_note",
+          "created_at"
+        ],
+        "title": "ReportOut"
+      },
+      "ReportPatch": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "open",
+              "triaged",
+              "resolved",
+              "wont_fix"
+            ],
+            "title": "Status"
+          },
+          "triage_note": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 1000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Triage Note"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "status"
+        ],
+        "title": "ReportPatch"
+      },
       "ResetConfirmIn": {
         "properties": {
           "token": {
@@ -4514,6 +5276,11 @@
             "format": "uuid",
             "title": "Id"
           },
+          "revision_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Revision Id"
+          },
           "kind": {
             "type": "string",
             "title": "Kind"
@@ -4540,6 +5307,7 @@
         "type": "object",
         "required": [
           "id",
+          "revision_id",
           "kind",
           "slug",
           "title",

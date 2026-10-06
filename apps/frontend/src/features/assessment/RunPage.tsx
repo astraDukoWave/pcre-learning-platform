@@ -91,7 +91,10 @@ function InProgress({ run }: { run: AssessmentRun }) {
         return next;
       });
       setPlays(0);
-      setIndex((i) => Math.min(i + 1, total));
+      // Avanza solo si la persona sigue en la pregunta que se guardó: un guardado lento no
+      // la mueve de la pregunta a la que ya navegó.
+      const saved = run.items.findIndex((a) => a.id === req.activity.id);
+      setIndex((i) => (i === saved ? Math.min(saved + 1, total) : i));
     },
   });
 

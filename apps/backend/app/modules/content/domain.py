@@ -14,6 +14,7 @@ STATUSES = ("draft", "approved", "published", "superseded", "withdrawn")
 FINDING_SEVERITIES = ("material", "minor")
 FINDING_STATUSES = ("open", "resolved", "wont_fix")
 REPORT_CATEGORIES = ("answer_key", "unclear", "audio", "typo", "other")
+REPORT_STATUSES = ("open", "triaged", "resolved", "wont_fix")
 
 BLOCKER_MESSAGES = {
     "not_draft": "Solo se aprueba una revisión en borrador.",

@@ -25,6 +25,7 @@ from app.core.errors import Conflict, NotFound, ValidationFailed
 from app.core.logging import user_ref
 from app.db.uow import UnitOfWorkFactory
 from app.modules.content import service_delivery
+from app.modules.insights import service as insights
 from app.modules.practice import domain, repository
 from app.modules.practice.models import AssessmentRun, Attempt
 from app.modules.practice.service import Learner, check_idempotency_key, post_submit_feedback
@@ -142,6 +143,10 @@ class AssessmentService:
                 s.add(open_run)
                 s.flush()
                 status = 201
+                if form_kind == "initial":
+                    insights.emit(
+                        s, learner.user_id, "diagnostic_started", now, run_id=str(open_run.id)
+                    )
                 logger.info(
                     "assessment_started",
                     extra={
@@ -357,6 +362,16 @@ class AssessmentService:
         run.status = "submitted"
         run.submitted_at = now
         s.flush()
+        event = {"initial": "diagnostic_completed", "checkpoint": "checkpoint_completed"}
+        if run.form_kind in event:
+            insights.emit(
+                s,
+                learner.user_id,
+                event[run.form_kind],
+                now,
+                run_id=str(run.id),
+                run_number=run.run_number,
+            )
         logger.info(
             "assessment_submitted",
             extra={

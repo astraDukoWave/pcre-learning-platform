@@ -28,6 +28,7 @@ from app.modules.content.models import (
     Unit,
 )
 from app.modules.content.service_delivery import Mode, item_dto
+from app.modules.insights import service as insights
 
 logger = logging.getLogger("app.content")
 
@@ -428,7 +429,43 @@ class EditorialService:
                 created_at=self.clock.now(),
             )
             repository.add_report(s, report)
+            insights.emit(s, user_id, "content_reported", report.created_at, category=category)
             return report.id
+
+    def reports(self, status: str | None) -> list[dict[str, Any]]:
+        with self.uow() as s:
+            return [_report(r, title) for r, title in repository.reports(s, status)]
+
+    def triage_report(
+        self, report_id: uuid.UUID, *, status: str, note: str | None
+    ) -> dict[str, Any]:
+        if status not in domain.REPORT_STATUSES:
+            raise ValidationFailed("Estado de reporte desconocido.", code="status_invalid")
+        with self.uow() as s:
+            found = repository.report(s, report_id)
+            if found is None:
+                raise NotFound()
+            report, title = found
+            report.status = status
+            report.triage_note = (note or "").strip() or None
+            s.flush()
+            return _report(report, title)
+
+
+def _report(r: ContentReport, title: str | None) -> dict[str, Any]:
+    return {
+        "id": str(r.id),
+        "revision_id": str(r.revision_id),
+        "item_title": title,
+        "activity_id": str(r.activity_id) if r.activity_id else None,
+        "attempt_id": str(r.attempt_id) if r.attempt_id else None,
+        "category": r.category,
+        "message": r.message,
+        "page": r.page,
+        "status": r.status,
+        "triage_note": r.triage_note,
+        "created_at": r.created_at.isoformat(),
+    }
 
 
 def _finding(f: ReviewFinding) -> dict[str, Any]:

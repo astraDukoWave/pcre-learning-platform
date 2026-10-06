@@ -1,4 +1,8 @@
 import { createBrowserRouter, type RouteObject } from "react-router";
+import { ContentList } from "../features/admin/content/ContentList";
+import { RevisionDetail } from "../features/admin/content/RevisionDetail";
+import { PilotPage } from "../features/admin/pilot/PilotPage";
+import { ReportsPage } from "../features/admin/reports/ReportsPage";
 import { AdminUsers } from "../features/admin/users/AdminUsers";
 import { AssessmentPage } from "../features/assessment/AssessmentPage";
 import { RunPage } from "../features/assessment/RunPage";
@@ -43,6 +47,10 @@ export const routes: RouteObject[] = [
       { path: "comprobaciones/:formId", element: auth(<AssessmentPage />) },
       { path: "corridas/:runId", element: auth(<RunPage />) },
       { path: "admin/usuarios", element: admin(<AdminUsers />) },
+      { path: "admin/contenido", element: admin(<ContentList />) },
+      { path: "admin/contenido/:revisionId", element: admin(<RevisionDetail />) },
+      { path: "admin/reportes", element: admin(<ReportsPage />) },
+      { path: "admin/piloto", element: admin(<PilotPage />) },
       { path: "*", element: <NotFound /> },
     ],
   },

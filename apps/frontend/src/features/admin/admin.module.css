@@ -1,0 +1,130 @@
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  align-items: end;
+  margin-bottom: var(--space-4);
+}
+
+.filters label {
+  display: grid;
+  gap: var(--space-1);
+  font-size: var(--step--1);
+}
+
+.filters select,
+.form select,
+.form textarea,
+.form input {
+  font: inherit;
+  min-height: 44px;
+  padding: var(--space-2);
+  border: 2px solid var(--grid);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--ink);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--step--1);
+}
+
+.table th,
+.table td {
+  text-align: left;
+  padding: var(--space-2);
+  border-bottom: 1px solid var(--grid);
+  vertical-align: top;
+}
+
+.tag {
+  display: inline-block;
+  padding: 0 var(--space-2);
+  border-radius: var(--radius);
+  background: var(--paper);
+  border: 1px solid var(--grid);
+  font-size: var(--step--1);
+}
+
+.warn {
+  color: var(--note);
+  font-weight: 700;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  align-items: center;
+  margin: var(--space-3) 0;
+}
+
+.form {
+  display: grid;
+  gap: var(--space-2);
+  max-width: 48rem;
+  margin: var(--space-3) 0;
+}
+
+.form label {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--grid);
+  border-radius: var(--radius);
+  padding: var(--space-4);
+  margin-bottom: var(--space-3);
+}
+
+.mono {
+  font-family: ui-monospace, "SFMono-Regular", Menlo, monospace;
+  font-size: var(--step--1);
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+.tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin: var(--space-4) 0 var(--space-3);
+}
+
+.tabs button[aria-selected="true"] {
+  border-color: var(--pen);
+  font-weight: 700;
+}
+
+.tabs button {
+  min-height: 44px;
+  padding: var(--space-2) var(--space-3);
+  border: 2px solid var(--grid);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.grid {
+  display: grid;
+  gap: var(--space-3);
+  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+  margin: var(--space-3) 0;
+}
+
+.stat {
+  background: var(--surface);
+  border: 1px solid var(--grid);
+  border-radius: var(--radius);
+  padding: var(--space-3);
+}
+
+.stat strong {
+  display: block;
+  font-size: var(--step-2);
+}
