@@ -707,6 +707,23 @@ export interface paths {
         patch: operations["triage_report_api_v1_admin_content_reports__report_id__patch"];
         trace?: never;
     };
+    "/api/v1/admin/usage": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Usage Overview */
+        get: operations["usage_overview_api_v1_admin_usage_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/content/revisions": {
         parameters: {
             query?: never;
@@ -1251,6 +1268,15 @@ export interface components {
             /** Mode */
             mode?: string | null;
         };
+        /** CapabilityOut */
+        CapabilityOut: {
+            /** Capability */
+            capability: string;
+            /** Enabled */
+            enabled: boolean;
+            /** Reason */
+            reason: string | null;
+        };
         /** ContentReportIn */
         ContentReportIn: {
             /**
@@ -1407,6 +1433,21 @@ export interface components {
             status: "open" | "resolved" | "wont_fix";
             /** Resolution Note */
             resolution_note?: string | null;
+        };
+        /** GlobalBudgetOut */
+        GlobalBudgetOut: {
+            /** Configured */
+            configured: boolean;
+            /** Limit Microusd */
+            limit_microusd: number;
+            /** Reserved Microusd */
+            reserved_microusd: number;
+            /** Spent Microusd */
+            spent_microusd: number;
+            /** Estimated Microusd */
+            estimated_microusd: number;
+            /** Warning */
+            warning: boolean;
         };
         /** HTTPValidationError */
         HTTPValidationError: {
@@ -2247,6 +2288,52 @@ export interface components {
             position: number;
             /** Items */
             items: components["schemas"]["ItemStateRefOut"][];
+        };
+        /** UsageOverviewOut */
+        UsageOverviewOut: {
+            /** Period */
+            period: string;
+            /** Period Note */
+            period_note: string;
+            /** Capabilities */
+            capabilities: components["schemas"]["CapabilityOut"][];
+            global_budget: components["schemas"]["GlobalBudgetOut"];
+            /** User Limit Microusd */
+            user_limit_microusd: number | null;
+            /** Voice Minutes Per User */
+            voice_minutes_per_user: number | null;
+            /** Calls By Purpose */
+            calls_by_purpose: {
+                [key: string]: number;
+            };
+            /** Users */
+            users: components["schemas"]["UserUsageOut"][];
+        };
+        /** UserUsageOut */
+        UserUsageOut: {
+            /**
+             * User Id
+             * Format: uuid
+             */
+            user_id: string;
+            /** Email */
+            email: string;
+            /** Calls */
+            calls: number;
+            /** Voice Sessions */
+            voice_sessions: number;
+            /** Voice Seconds */
+            voice_seconds: number;
+            /** Unknown Runs */
+            unknown_runs: number;
+            /** Limit Microusd */
+            limit_microusd: number | null;
+            /** Reserved Microusd */
+            reserved_microusd: number;
+            /** Spent Microusd */
+            spent_microusd: number;
+            /** Estimated Microusd */
+            estimated_microusd: number;
         };
         /** ValidationError */
         ValidationError: {
@@ -3516,6 +3603,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ReportOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    usage_overview_api_v1_admin_usage_get: {
+        parameters: {
+            query?: {
+                period?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UsageOverviewOut"];
                 };
             };
             /** @description Validation Error */

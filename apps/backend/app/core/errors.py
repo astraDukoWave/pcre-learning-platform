@@ -7,6 +7,9 @@ class AppError(Exception):
     status_code: int = 400
     code: str = "bad_request"
     default_message: str = "La petición no es válida."
+    # Un 5xx esperado (capacidad apagada, presupuesto agotado) no es un error del servidor:
+    # no entra a `error_events`.
+    expected: bool = False
 
     def __init__(
         self,

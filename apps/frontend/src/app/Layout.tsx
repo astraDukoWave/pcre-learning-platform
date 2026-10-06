@@ -34,6 +34,7 @@ function Nav() {
           <NavLink to="/admin/contenido">Contenido</NavLink>
           <NavLink to="/admin/reportes">Reportes</NavLink>
           <NavLink to="/admin/piloto">Piloto</NavLink>
+          <NavLink to="/admin/consumo">Consumo</NavLink>
         </>
       ) : null}
       <FeedbackButton className={styles.logout} />

@@ -30,6 +30,7 @@ from app.modules.insights.service import InsightsService
 from app.modules.practice import router as practice_router
 from app.modules.practice import router_assessment
 from app.modules.progress import router as progress_router
+from app.modules.usage import router as usage_router
 
 logger = logging.getLogger("app")
 
@@ -53,6 +54,8 @@ def create_app(settings: Settings | None = None, *, container: Container | None 
         yield
 
     def on_server_error(scope: Scope, status: int, exc: BaseException | None) -> None:
+        if exc is None and scope.get("state", {}).get("error_expected"):
+            return  # 503 esperado (capacidad apagada o sin presupuesto): no es un error
         route = getattr(scope.get("route"), "path", None) or "unmatched"
         insights.record_error(
             request_id=str(scope.get("state", {}).get("request_id", "")),
@@ -81,6 +84,7 @@ def create_app(settings: Settings | None = None, *, container: Container | None 
     app.include_router(progress_router.router)
     app.include_router(insights_router.router)
     app.include_router(content_admin.reports_router)
+    app.include_router(usage_router.router)
     if settings.test_clock_active:
         app.include_router(test_clock.router)
     app.include_router(content_admin.router)

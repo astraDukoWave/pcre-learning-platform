@@ -124,3 +124,20 @@ register(
         note="eventos de producto (lista cerrada de REQ-16; solo ids y enumerados)",
     )
 )
+register(
+    UserDataTable(
+        "budget_periods",
+        ("user_id",),
+        export=True,
+        note="consumo mensual del alumno en micro-USD (las filas globales no tienen usuario)",
+    )
+)
+register(
+    UserDataTable(
+        "ai_runs",
+        ("user_id",),
+        export=True,
+        exclude_columns=("idempotency_key",),
+        note="ejecuciones de IA y voz con su costo y su resultado validado",
+    )
+)
