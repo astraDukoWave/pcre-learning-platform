@@ -4,7 +4,7 @@
   "observations": [
     {
       "criterion": "language_control",
-      "evidence": "programme",
+      "evidence": "evening programme",
       "observation_es": "«Programme» está mal escrito.",
       "suggestion_es": "Escribe «program»."
     }

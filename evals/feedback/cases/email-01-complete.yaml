@@ -14,6 +14,7 @@ learner_text: 'Dear Northside Learning Center,
   Marta'
 expected_status: evaluable
 must_not_flag:
-- Could you tell me which days the classes meet
-- I would also like to know how much the course costs
+- which days the classes meet
+- how much the course costs
 must_mention_criteria: []
+max_observations: 3

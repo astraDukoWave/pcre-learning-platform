@@ -3,8 +3,11 @@ versión viaja en `ai_runs.prompt_version` y en el reporte del set de evaluació
 
 from __future__ import annotations
 
+import hashlib
+import unicodedata
 from pathlib import Path
 
+from app.modules.coaching.feedback.domain import observation_cap
 from app.modules.coaching.feedback.ports import FeedbackRequest
 
 HERE = Path(__file__).parent
@@ -16,9 +19,20 @@ _FILES = {
 }
 
 
+ANGLES = str.maketrans({"<": "‹", ">": "›", "〈": "‹", "〉": "›", "⟨": "‹", "⟩": "›"})
+
+
 def delimit(learner_text: str) -> str:
-    """El texto del alumno no puede cerrar el delimitador ni abrir otro."""
-    return learner_text.replace("<", "‹").replace(">", "›")
+    """El texto del alumno no puede cerrar el delimitador ni abrir otro: se normaliza a NFKC
+    (los ＜ ＞ de ancho completo pasan a < >) y los signos de ángulo pasan a ‹ ›."""
+    return unicodedata.normalize("NFKC", learner_text).translate(ANGLES)
+
+
+def boundary(learner_text: str) -> str:
+    """Nombre del bloque con un sufijo que sale del propio texto: el alumno no puede escribir
+    el cierre porque no conoce el sufijo antes de escribir su texto."""
+    digest = hashlib.sha256(learner_text.encode("utf-8")).hexdigest()[:12]
+    return f"learner_response_{digest}"
 
 
 def render(request: FeedbackRequest) -> str:
@@ -31,12 +45,14 @@ def render(request: FeedbackRequest) -> str:
         + " / ".join(f"{n}: {d}" for n, d in enumerate(c.descriptors_es))
         for c in request.criteria
     )
+    tag = boundary(request.learner_text)
     head = common.format(
         task_en=request.task_en,
         objective_es=request.objective_es,
         rubric_id=request.rubric_id,
         rubric_version=request.rubric_version,
         criteria=criteria,
-        max_observations=request.max_observations,
-    )
+        max_observations=observation_cap(request.kind, request.max_observations),
+    ).replace("learner_response", tag)
+    body = body.replace("learner_response", tag)
     return head + "\n" + body.replace("{learner_text}", delimit(request.learner_text))

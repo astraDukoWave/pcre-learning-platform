@@ -11,8 +11,9 @@ from dataclasses import dataclass
 from app.modules.coaching.feedback import domain, prompts
 from app.modules.coaching.feedback.ports import EvaluatorReply, FeedbackEvaluator, FeedbackRequest
 
-# Cota de tokens de entrada para reservar: ~2 caracteres por token (conservador).
-CHARS_PER_TOKEN_FLOOR = 2
+# Cota de tokens de entrada para reservar: un token nunca tiene menos de un byte UTF-8 (los
+# tokenizadores caen a bytes con lo que no conocen), más el esquema de salida que también viaja.
+SCHEMA_TOKENS = 1024
 
 
 @dataclass(frozen=True)
@@ -24,7 +25,7 @@ class Evaluation:
 
 def max_tokens(prompt: str, evaluator: FeedbackEvaluator) -> tuple[int, int]:
     """Tokens máximos (entrada, salida) para la reserva antes de llamar."""
-    return len(prompt) // CHARS_PER_TOKEN_FLOOR + 64, evaluator.max_output_tokens
+    return len(prompt.encode("utf-8")) + SCHEMA_TOKENS, evaluator.max_output_tokens
 
 
 def evaluate(evaluator: FeedbackEvaluator, request: FeedbackRequest) -> Evaluation:
@@ -35,6 +36,6 @@ def evaluate(evaluator: FeedbackEvaluator, request: FeedbackRequest) -> Evaluati
         reply.raw_text,
         learner_text=request.learner_text,
         criteria=frozenset(c.id for c in request.criteria),
-        max_observations=request.max_observations,
+        max_observations=domain.observation_cap(request.kind, request.max_observations),
     )
     return Evaluation(feedback=feedback, reply=reply, prompt_version=request.prompt_version)

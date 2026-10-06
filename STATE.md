@@ -119,9 +119,20 @@ Ninguna.
   MVP-01 las omite. Los demás 503 (base de datos, migración) se siguen registrando.
 - **NI-06 · Gemini por REST** (MVP-02 CS-02). El plan (D5) menciona el SDK `google-genai`;
   el adaptador llama a `generateContent` por HTTP con `httpx` (salida JSON con
-  `responseSchema`, timeout de 20 s), sin dependencia nueva y probado con un transporte
-  simulado. Las salidas de referencia del set de evaluación están escritas a mano con la
-  forma de la salida del modelo: no son grabaciones de un modelo real (eso es G5a).
+  `responseSchema`, plazo total de 20 s con `app/core/deadline.py`), sin dependencia nueva y
+  probado con un transporte simulado. Las salidas de referencia del set de evaluación están
+  escritas a mano con la forma de la salida del modelo: no son grabaciones de un modelo real
+  (eso es G5a).
+- **NI-07 · Guardas de la regla de selección** (MVP-02 CS-02, verificador independiente). La
+  regla del spec (0 contradicciones, evidencia válida ≥ 95 %, p95 ≤ 12 s) la cumplía un modelo
+  que siempre devuelve vacío o siempre se abstiene, y no medía la inyección. `evals/run.py`
+  además exige 0 salidas inválidas, estado y motivo esperados en ≥ 90 % de los casos, 0 URLs o
+  puntajes devueltos y, en los casos de inyección, el estado y los criterios esperados; la
+  evidencia sin observaciones vale 0. Una variante válida citada dentro de una evidencia más
+  larga deja al modelo "revisar": no se elige solo y lo decide quien firma G5a. Cada caso
+  declara `max_observations` (REQ-03). Antes del run de G5a, Jonathan confirma que
+  `GEMINI_API_KEY` existe **solo** como secret del environment `evals` (no del repo ni de la
+  organización) y que `evals` tiene revisor obligatorio.
 
 ## Loop humano vigente
 

@@ -3,10 +3,10 @@
   "reason": null,
   "observations": [
     {
-      "criterion": "support",
-      "evidence": "For example, in my engineering classes we present projects every month.",
-      "observation_es": "El ejemplo apoya tu postura de forma concreta.",
-      "suggestion_es": "Explica la consecuencia: «…, so we already practice presenting without an extra course.»"
+      "criterion": "engagement",
+      "evidence": "I agree with Kevin that students should choose.",
+      "observation_es": "Mencionas a Kevin al final, pero no explicas por qué coincides con él.",
+      "suggestion_es": "Desarrolla la idea: «I agree with Kevin because students know which skills they need.»"
     }
   ]
 }

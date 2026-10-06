@@ -18,3 +18,4 @@ must_not_flag:
 - programme
 - colour-coded
 must_mention_criteria: []
+max_observations: 3

@@ -8,7 +8,11 @@ La salida del modelo es un dato no confiable. Se acepta solo si:
   `suggestion_es`. La evidencia debe ser un fragmento literal del texto del alumno
   normalizado (espacios, comillas y guiones; sin distinguir mayúsculas). Una observación
   con evidencia inexistente, criterio desconocido, URL o puntaje de examen se descarta.
-- Hay como máximo `max_observations` (3 en escritura, 2 en voz).
+- Hay como máximo `max_observations`, acotado por tipo (`MAX_OBSERVATIONS`: 3 en escritura y
+  entrevista, 2 en voz).
+- `observation_es` y `suggestion_es` no traen URLs (con o sin esquema) ni correos, ni dan
+  puntajes de examen, bandas, calificaciones o niveles del MCER. La evidencia sí puede citar un
+  enlace que escribió el alumno: es literal.
 
 Sin observaciones válidas el resultado es "no evaluable", con motivo.
 """
@@ -32,12 +36,29 @@ NOT_EVALUABLE_REASONS = (
 )
 TOP_KEYS = frozenset({"status", "reason", "observations", "rubric_levels"})
 OBSERVATION_KEYS = frozenset({"criterion", "evidence", "observation_es", "suggestion_es"})
-URL = re.compile(r"(https?://|www\.)\S+", re.IGNORECASE)
-EXAM_SCORE = re.compile(
-    r"\b\d{1,3}\s*/\s*(6|30|120)\b|\b(toefl|ielts)\s+(score|band)\b|\bpuntaje\b|\bscore\s+of\b",
+MAX_OBSERVATIONS = {"writing": 3, "interview": 3, "voice": 2}
+TLDS = (
+    "com|net|org|edu|gov|info|io|co|uk|us|ca|au|es|mx|ar|cl|pe|de|fr|it|be|ly|me|app|dev|ai"
+    "|tv|gl|to|link|site|online"
+)
+URL = re.compile(
+    r"(https?://|www\.)\S+"  # con esquema o www
+    r"|[\w.+-]+@[\w-]+(\.[\w-]+)+"  # correo
+    r"|\b[a-z0-9-]+(\.[a-z0-9-]+)+/\S*"  # dominio con ruta: bit.ly/x1
+    rf"|\b([a-z0-9-]+\.)+({TLDS})\b",  # dominio con un TLD común: example.com
     re.IGNORECASE,
 )
-QUOTES = str.maketrans({"‘": "'", "’": "'", "“": '"', "”": '"', "–": "-", "—": "-"})
+EXAM_SCORE = re.compile(
+    r"\b\d{1,3}\s*(/|\bde\b|\bsobre\b|\bout\s+of\b)\s*\d{1,3}\b"  # 6/6, 5 de 6, 25 sobre 30
+    r"|\b(toefl|ielts|cambridge)\s+(score|band)\b|\bscore\s*(of\b|[:=]?\s*\d)"
+    r"|\bband[as]?\s*\d|\bpuntaje|\bpuntuaci[oó]n|\bcalificaci[oó]n|\bnota\s+(de\s+)?\d"
+    r"|\b\d{1,3}\s+puntos\b|\b(nivel|level)\s+(del?\s+)?(mcer\s+|cefr\s+)?[abc][12]\b",
+    re.IGNORECASE,
+)
+CEFR = re.compile(r"\b[ABC][12]\b")  # B2 suelto; en mayúsculas para no tocar «a1» u otras
+QUOTES = str.maketrans(
+    {"‘": "'", "’": "'", "“": '"', "”": '"', "–": "-", "—": "-", "‹": "<", "›": ">"}
+)
 MAX_FIELD = 600
 
 
@@ -69,15 +90,35 @@ class ValidatedFeedback:
 
 
 def normalize(text: str) -> str:
-    """Normaliza para comparar evidencia: Unicode NFC, comillas y guiones rectos, espacios
-    colapsados y sin distinguir mayúsculas."""
-    text = unicodedata.normalize("NFC", text).translate(QUOTES)
+    """Normaliza para comparar evidencia: Unicode NFKC, comillas y guiones rectos, los ‹ › que
+    pone el delimitador del prompt vuelven a ser < >, espacios colapsados y sin distinguir
+    mayúsculas."""
+    text = unicodedata.normalize("NFKC", text).translate(QUOTES)
     return " ".join(text.split()).casefold()
 
 
 def evidence_in(evidence: str, learner_text: str) -> bool:
+    """La evidencia es un fragmento literal de palabras completas del texto del alumno: «is»
+    no cuenta como cita de «this»."""
     needle = normalize(evidence).strip(" .,;:!?\"'")
-    return len(needle) >= 2 and needle in normalize(learner_text)
+    if not any(ch.isalnum() for ch in needle) or len(needle) < 2:
+        return False
+    pattern = rf"(?<!\w){re.escape(needle)}(?!\w)"
+    return re.search(pattern, normalize(learner_text)) is not None
+
+
+def observation_cap(kind: str, requested: int) -> int:
+    """Tope de observaciones: el pedido, nunca más que el del tipo (2 en voz)."""
+    return min(requested, MAX_OBSERVATIONS[kind])
+
+
+def forbidden_content(text: str) -> str | None:
+    """`url` o `exam_score` si un texto para el alumno trae un enlace o un puntaje."""
+    if URL.search(text):
+        return "url"
+    if EXAM_SCORE.search(text) or CEFR.search(text):
+        return "exam_score"
+    return None
 
 
 def not_evaluable(
@@ -155,10 +196,12 @@ def _observation_problem(item: object, learner_text: str, criteria: frozenset[st
         return "too_long"
     if item["criterion"] not in criteria:
         return "unknown_criterion"
-    if any(URL.search(item[k]) for k in OBSERVATION_KEYS):
-        return "url"
-    if any(EXAM_SCORE.search(item[k]) for k in ("observation_es", "suggestion_es")):
-        return "exam_score"
+    # La evidencia puede citar un enlace que el alumno escribió (es literal); lo que se le
+    # muestra como observación o sugerencia nunca trae enlaces ni puntajes.
+    for key in ("observation_es", "suggestion_es"):
+        problem = forbidden_content(item[key])
+        if problem is not None:
+            return problem
     if not evidence_in(item["evidence"], learner_text):
         return "evidence_not_found"
     return None
@@ -174,10 +217,17 @@ def _levels(raw: object, criteria: frozenset[str]) -> dict[str, int]:
     }
 
 
-def hidden_by_disputes(
-    observations: tuple[Observation, ...], disputed_turns: list[str]
+def visible_after_disputes(
+    observations: tuple[Observation, ...], turns: list[str], disputed: set[int]
 ) -> tuple[Observation, ...]:
-    """Oculta las observaciones cuya evidencia está en un turno disputado (REQ-05, AC-13)."""
+    """Observaciones que siguen visibles tras disputar turnos (REQ-05, AC-13): la evidencia debe
+    estar completa dentro de un turno no disputado y en ninguno disputado. Una evidencia que
+    cruza turnos (` | `) no está completa en ninguno y se oculta."""
+    kept = [t for i, t in enumerate(turns) if i not in disputed]
+    hidden = [t for i, t in enumerate(turns) if i in disputed]
     return tuple(
-        o for o in observations if not any(evidence_in(o.evidence, turn) for turn in disputed_turns)
+        o
+        for o in observations
+        if any(evidence_in(o.evidence, t) for t in kept)
+        and not any(evidence_in(o.evidence, t) for t in hidden)
     )

@@ -7,6 +7,6 @@ learner_text: I agree with Ana that universities should require a public speakin
   of one semester would not take much time away from a major.
 expected_status: evaluable
 must_not_flag:
-- I agree with Ana
-- Kevin is right that time is limited
+- Kevin is right
 must_mention_criteria: []
+max_observations: 3
