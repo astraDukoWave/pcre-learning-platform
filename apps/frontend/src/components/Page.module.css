@@ -1,0 +1,9 @@
+.page {
+  max-width: 44rem;
+  margin: 0 auto;
+  padding: var(--space-5) var(--space-4) calc(var(--space-7) + 72px);
+}
+
+.wide {
+  max-width: 72rem;
+}

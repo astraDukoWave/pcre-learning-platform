@@ -1,0 +1,52 @@
+/* Dirección visual de MVP-01: "el cuaderno corregido". Solo tema claro; los tokens
+   permiten agregar el oscuro después (LB-12). Cada par texto/fondo cumple AA. */
+:root {
+  --paper: #f6f8fb;
+  --ink: #16233f;
+  --pen: #2347c6;
+  --grid: #d9e1ec;
+  --marker: #e8f25b;
+  --note: #6b3fb5;
+  --ok: #1f7a55;
+  --system-error: #b42318;
+
+  --surface: #ffffff;
+  --ink-soft: #3f4c66;
+
+  --font-ui: "Atkinson Hyperlegible Next", "Atkinson Hyperlegible", system-ui, sans-serif;
+  --font-en: "Literata", Georgia, "Times New Roman", serif;
+
+  /* Escala 1.25 sobre 17 px (teléfono) y 18 px (escritorio). */
+  --base: 17px;
+  --step--1: calc(var(--base) / 1.25);
+  --step-0: var(--base);
+  --step-1: calc(var(--base) * 1.25);
+  --step-2: calc(var(--base) * 1.5625);
+  --step-3: calc(var(--base) * 1.953);
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+
+  --radius: 6px;
+  --measure: 70ch;
+  --focus: 3px solid var(--pen);
+  --grid-size: 24px;
+  --marker-duration: 250ms;
+}
+
+@media (min-width: 768px) {
+  :root {
+    --base: 18px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --marker-duration: 0ms;
+  }
+}

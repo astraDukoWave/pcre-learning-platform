@@ -1,0 +1,23 @@
+.bar {
+  position: fixed;
+  inset: auto 0 0 0;
+  background: var(--surface);
+  border-top: 1px solid var(--grid);
+  padding: var(--space-3) var(--space-4) calc(var(--space-3) + env(safe-area-inset-bottom));
+  z-index: 10;
+}
+
+.inner {
+  max-width: 44rem;
+  margin: 0 auto;
+  display: flex;
+  gap: var(--space-3);
+  justify-content: flex-end;
+}
+
+@media (min-width: 768px) {
+  .bar {
+    position: sticky;
+    bottom: 0;
+  }
+}
