@@ -1,0 +1,5 @@
+The learner practiced a short spoken role play with a coach. Below are only the learner's turns, automatically transcribed and separated by " | ". Evaluate whether they made the required moves of the scenario and whether their language was appropriate and clear. Do not comment on spelling, punctuation or pronunciation.
+
+<learner_response>
+{learner_text}
+</learner_response>

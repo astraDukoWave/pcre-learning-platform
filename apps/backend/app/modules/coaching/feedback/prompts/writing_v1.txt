@@ -1,0 +1,5 @@
+The learner wrote a short email or discussion post for the task above. Focus on whether it completes the task, how it is organized, language control and register.
+
+<learner_response>
+{learner_text}
+</learner_response>
