@@ -431,6 +431,108 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/assessments/{form_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Form */
+        get: operations["form_api_v1_assessments__form_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/assessments/{form_id}/start": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Start */
+        post: operations["start_api_v1_assessments__form_id__start_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/assessment-runs/{run_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Run */
+        get: operations["run_api_v1_assessment_runs__run_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/assessment-runs/{run_id}/answers/{activity_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Save Answer */
+        put: operations["save_answer_api_v1_assessment_runs__run_id__answers__activity_id__put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/assessment-runs/{run_id}/submit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Submit */
+        post: operations["submit_api_v1_assessment_runs__run_id__submit_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/users/{user_id}/diagnostic-reset": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Reset Diagnostic */
+        post: operations["reset_diagnostic_api_v1_admin_users__user_id__diagnostic_reset_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/content/revisions": {
         parameters: {
             query?: never;
@@ -698,12 +800,111 @@ export interface components {
             /** Count */
             count: number;
         };
+        /** AnswerIn */
+        AnswerIn: {
+            /** Response */
+            response?: {
+                [key: string]: unknown;
+            };
+            /**
+             * Audio Failed
+             * @default false
+             */
+            audio_failed: boolean;
+        };
+        /** AnswerSavedOut */
+        AnswerSavedOut: {
+            /**
+             * Activity Id
+             * Format: uuid
+             */
+            activity_id: string;
+            /** Saved At */
+            saved_at: string;
+        };
         /** ApproveIn */
         ApproveIn: {
             /** Content Hash */
             content_hash: string;
             /** Note */
             note?: string | null;
+        };
+        /** AssessmentFormOut */
+        AssessmentFormOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Slug */
+            slug: string;
+            /** Title */
+            title: string;
+            /** Form Kind */
+            form_kind: ("initial" | "checkpoint" | "final") | null;
+            /** Duration Minutes */
+            duration_minutes: number | null;
+            unit: components["schemas"]["UnitRefOut"] | null;
+            /** Label */
+            label: string;
+            /** Runs */
+            runs: components["schemas"]["RunRefOut"][];
+            /** Open Run Id */
+            open_run_id: string | null;
+            /** Can Start */
+            can_start: boolean;
+        };
+        /** AssessmentFormRefOut */
+        AssessmentFormRefOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Slug */
+            slug: string;
+            /** Title */
+            title: string;
+            /** Form Kind */
+            form_kind: ("initial" | "checkpoint" | "final") | null;
+            /** Duration Minutes */
+            duration_minutes: number | null;
+            unit: components["schemas"]["UnitRefOut"] | null;
+        };
+        /** AssessmentRunOut */
+        AssessmentRunOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Run Number */
+            run_number: number;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "in_progress" | "submitted";
+            /** Comparable */
+            comparable: boolean;
+            /** Started At */
+            started_at: string;
+            /** Submitted At */
+            submitted_at: string | null;
+            form: components["schemas"]["AssessmentFormRefOut"];
+            /** Label */
+            label: string;
+            /** Passages */
+            passages: components["schemas"]["PassageOut"][];
+            /** Items */
+            items: components["schemas"]["StudentActivityOut"][];
+            /** Answers */
+            answers: {
+                [key: string]: components["schemas"]["SavedAnswerOut"];
+            };
+            summary: components["schemas"]["RunSummaryOut"] | null;
+            /** Results */
+            results: components["schemas"]["ItemResultOut"][];
         };
         /** AttemptDetailOut */
         AttemptDetailOut: {
@@ -886,6 +1087,11 @@ export interface components {
             /** Password */
             password: string;
         };
+        /** DiagnosticResetOut */
+        DiagnosticResetOut: {
+            /** Reset */
+            reset: number;
+        };
         /** FindingIn */
         FindingIn: {
             /** Category */
@@ -953,6 +1159,27 @@ export interface components {
              * Format: date-time
              */
             expires_at: string;
+        };
+        /** ItemResultOut */
+        ItemResultOut: {
+            /**
+             * Activity Id
+             * Format: uuid
+             */
+            activity_id: string;
+            /** Answered */
+            answered: boolean;
+            /** Attempt Id */
+            attempt_id: string | null;
+            /** Evaluation Status */
+            evaluation_status: string | null;
+            /** Correct */
+            correct: boolean | null;
+            /** Result */
+            result: {
+                [key: string]: unknown;
+            };
+            feedback: components["schemas"]["AttemptFeedbackOut"];
         };
         /** ItemStateRefOut */
         ItemStateRefOut: {
@@ -1117,6 +1344,17 @@ export interface components {
             self_reported_level?: ("A2" | "B1" | "B2" | "unknown") | null;
             /** Onboarded */
             onboarded?: boolean | null;
+        };
+        /** ObjectiveResultOut */
+        ObjectiveResultOut: {
+            /** Code */
+            code: string;
+            /** Correct */
+            correct: number;
+            /** Total */
+            total: number;
+            /** Not Evaluable */
+            not_evaluable: number;
         };
         /** PassageOut */
         PassageOut: {
@@ -1342,6 +1580,53 @@ export interface components {
             open_material_findings: number;
             /** Created At */
             created_at: string;
+        };
+        /** RunRefOut */
+        RunRefOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Run Number */
+            run_number: number;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "in_progress" | "submitted";
+            /** Comparable */
+            comparable: boolean;
+            /** Started At */
+            started_at: string;
+            /** Submitted At */
+            submitted_at: string | null;
+        };
+        /** RunSummaryOut */
+        RunSummaryOut: {
+            /** Objectives */
+            objectives: components["schemas"]["ObjectiveResultOut"][];
+            /** Closed Correct */
+            closed_correct: number;
+            /** Closed Total */
+            closed_total: number;
+            /** Productions Answered */
+            productions_answered: number;
+            /** Productions Total */
+            productions_total: number;
+            /** Not Evaluable Audio */
+            not_evaluable_audio: number;
+        };
+        /** SavedAnswerOut */
+        SavedAnswerOut: {
+            /** Response */
+            response: {
+                [key: string]: unknown;
+            };
+            /** Audio Failed */
+            audio_failed: boolean;
+            /** Saved At */
+            saved_at: string;
         };
         /**
          * SelfAssessmentIn
@@ -2240,6 +2525,201 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AttemptSummaryOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    form_api_v1_assessments__form_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                form_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AssessmentFormOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    start_api_v1_assessments__form_id__start_post: {
+        parameters: {
+            query?: never;
+            header: {
+                "Idempotency-Key": string;
+            };
+            path: {
+                form_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AssessmentRunOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    run_api_v1_assessment_runs__run_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                run_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AssessmentRunOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    save_answer_api_v1_assessment_runs__run_id__answers__activity_id__put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                run_id: string;
+                activity_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AnswerIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AnswerSavedOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    submit_api_v1_assessment_runs__run_id__submit_post: {
+        parameters: {
+            query?: never;
+            header: {
+                "Idempotency-Key": string;
+            };
+            path: {
+                run_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AssessmentRunOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    reset_diagnostic_api_v1_admin_users__user_id__diagnostic_reset_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                user_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DiagnosticResetOut"];
                 };
             };
             /** @description Validation Error */

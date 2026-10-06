@@ -34,7 +34,7 @@ def get_practice(container: ContainerDep) -> PracticeService:
 PracticeDep = Annotated[PracticeService, Depends(get_practice)]
 
 
-def _learner(ctx: AuthContext) -> Learner:
+def learner_from(ctx: AuthContext) -> Learner:
     return Learner(user_id=ctx.user_id, timezone=ctx.timezone)
 
 
@@ -45,23 +45,23 @@ def list_paths(_: AuthDep, practice: PracticeDep) -> list[PathOut]:
 
 @router.get("/learning-paths/{path_id}", response_model=PathStateOut)
 def path_detail(path_id: uuid.UUID, ctx: AuthDep, practice: PracticeDep) -> PathStateOut:
-    return PathStateOut.model_validate(practice.path_for(_learner(ctx), path_id))
+    return PathStateOut.model_validate(practice.path_for(learner_from(ctx), path_id))
 
 
 @router.get("/lessons/{item_id}", response_model=LessonOut)
 def lesson(item_id: uuid.UUID, ctx: AuthDep, practice: PracticeDep) -> LessonOut:
-    return LessonOut.model_validate(practice.item_for(_learner(ctx), item_id, "lesson"))
+    return LessonOut.model_validate(practice.item_for(learner_from(ctx), item_id, "lesson"))
 
 
 @router.get("/scenarios/{item_id}", response_model=LessonOut)
 def scenario(item_id: uuid.UUID, ctx: AuthDep, practice: PracticeDep) -> LessonOut:
-    return LessonOut.model_validate(practice.item_for(_learner(ctx), item_id, "scenario"))
+    return LessonOut.model_validate(practice.item_for(learner_from(ctx), item_id, "scenario"))
 
 
 @router.post("/aids", response_model=AidContentOut)
 def serve_aid(body: AidIn, ctx: AuthDep, practice: PracticeDep) -> AidContentOut:
     return AidContentOut.model_validate(
-        practice.serve_aid(_learner(ctx), body.activity_id, body.kind, body.index)
+        practice.serve_aid(learner_from(ctx), body.activity_id, body.kind, body.index)
     )
 
 
@@ -74,7 +74,7 @@ def submit_attempt(
     idempotency_key: Annotated[str, Header(alias="Idempotency-Key", max_length=80)],
 ) -> AttemptOut:
     status, payload, replayed = practice.submit_attempt(
-        _learner(ctx),
+        learner_from(ctx),
         idempotency_key=idempotency_key,
         activity_id=body.activity_id,
         response=body.response,
@@ -92,13 +92,13 @@ def self_assess(
     attempt_id: uuid.UUID, body: SelfAssessmentIn, ctx: AuthDep, practice: PracticeDep
 ) -> AttemptDetailOut:
     return AttemptDetailOut.model_validate(
-        practice.self_assess(_learner(ctx), attempt_id, body.scores)
+        practice.self_assess(learner_from(ctx), attempt_id, body.scores)
     )
 
 
 @router.get("/attempts/{attempt_id}", response_model=AttemptDetailOut)
 def get_attempt(attempt_id: uuid.UUID, ctx: AuthDep, practice: PracticeDep) -> AttemptDetailOut:
-    return AttemptDetailOut.model_validate(practice.get_attempt(_learner(ctx), attempt_id))
+    return AttemptDetailOut.model_validate(practice.get_attempt(learner_from(ctx), attempt_id))
 
 
 @router.get("/me/attempts", response_model=list[AttemptSummaryOut])
@@ -108,5 +108,5 @@ def my_attempts(
     limit: Annotated[int, Query(ge=1, le=100)] = 50,
     before: datetime | None = None,
 ) -> list[AttemptSummaryOut]:
-    rows = practice.list_attempts(_learner(ctx), limit, before)
+    rows = practice.list_attempts(learner_from(ctx), limit, before)
     return [AttemptSummaryOut.model_validate(r) for r in rows]

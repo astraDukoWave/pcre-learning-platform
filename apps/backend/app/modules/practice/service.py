@@ -70,11 +70,16 @@ class PracticeService:
             assert path is not None
             repository.ensure_enrollment(s, learner.user_id, path, self.clock.now())
             progress = repository.progress_by_item(s, learner.user_id)
+            runs = repository.run_states(s, learner.user_id)
         for unit in detail["units"]:
             for item in unit["items"]:
-                item["state"] = _state(progress.get(uuid.UUID(item["id"])))
+                item_id = uuid.UUID(item["id"])
+                if item["kind"] == "assessment_form":
+                    item["state"] = runs.get(item_id, "not_started")
+                else:
+                    item["state"] = _state(progress.get(item_id))
         for item in detail["assessments"]:
-            item["state"] = "not_started"
+            item["state"] = runs.get(uuid.UUID(item["id"]), "not_started")
         return detail
 
     def _accessible_revision(
@@ -208,7 +213,7 @@ class PracticeService:
     ) -> tuple[int, dict[str, Any], bool]:
         """Devuelve (status, cuerpo, repetido). Misma clave y mismo cuerpo → misma
         respuesta y una sola fila; misma clave y cuerpo distinto → 409 (AC-09)."""
-        key = _check_key(idempotency_key)
+        key = check_idempotency_key(idempotency_key)
         body_hash = domain.request_hash(
             {
                 "activity_id": str(activity_id),
@@ -347,7 +352,7 @@ class PracticeService:
             "aided": bool(aid_kinds),
             "first_attempt": first,
             "submitted_at": now.isoformat(),
-            "feedback": _feedback(act),
+            "feedback": post_submit_feedback(act),
             "lesson_completed": completed,
             "review_objectives": review_objectives,
         }
@@ -439,7 +444,7 @@ class PracticeService:
 def _attempt_detail(attempt: Attempt, act: Any) -> dict[str, Any]:
     """Un intento propio ya enviado con lo que se muestra después de enviar (retomar la
     autoevaluación después de recargar). Las comprobaciones (CS-07) no pasan por aquí."""
-    return _attempt_summary(attempt) | {"mode": attempt.mode, "feedback": _feedback(act)}
+    return _attempt_summary(attempt) | {"mode": attempt.mode, "feedback": post_submit_feedback(act)}
 
 
 def _state(progress: LessonProgress | None) -> str:
@@ -448,7 +453,7 @@ def _state(progress: LessonProgress | None) -> str:
     return "completed" if progress.completed_at else "in_progress"
 
 
-def _feedback(act: Any) -> dict[str, Any]:
+def post_submit_feedback(act: Any) -> dict[str, Any]:
     """Lo que se muestra después de enviar: explicación, clave y, en producciones, el
     ejemplo comentado y la rúbrica para la autoevaluación."""
     solution = act.solution or {}
@@ -465,7 +470,7 @@ def _feedback(act: Any) -> dict[str, Any]:
     return out
 
 
-def _check_key(raw: str) -> str:
+def check_idempotency_key(raw: str) -> str:
     try:
         return str(uuid.UUID(raw))
     except (ValueError, AttributeError, TypeError) as exc:

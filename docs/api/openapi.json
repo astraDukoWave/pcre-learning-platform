@@ -1026,6 +1026,304 @@
         }
       }
     },
+    "/api/v1/assessments/{form_id}": {
+      "get": {
+        "tags": [
+          "assessment"
+        ],
+        "summary": "Form",
+        "operationId": "form_api_v1_assessments__form_id__get",
+        "parameters": [
+          {
+            "name": "form_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Form Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssessmentFormOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/assessments/{form_id}/start": {
+      "post": {
+        "tags": [
+          "assessment"
+        ],
+        "summary": "Start",
+        "operationId": "start_api_v1_assessments__form_id__start_post",
+        "parameters": [
+          {
+            "name": "form_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Form Id"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 80,
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssessmentRunOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/assessment-runs/{run_id}": {
+      "get": {
+        "tags": [
+          "assessment"
+        ],
+        "summary": "Run",
+        "operationId": "run_api_v1_assessment_runs__run_id__get",
+        "parameters": [
+          {
+            "name": "run_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Run Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssessmentRunOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/assessment-runs/{run_id}/answers/{activity_id}": {
+      "put": {
+        "tags": [
+          "assessment"
+        ],
+        "summary": "Save Answer",
+        "operationId": "save_answer_api_v1_assessment_runs__run_id__answers__activity_id__put",
+        "parameters": [
+          {
+            "name": "run_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Run Id"
+            }
+          },
+          {
+            "name": "activity_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Activity Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AnswerIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnswerSavedOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/assessment-runs/{run_id}/submit": {
+      "post": {
+        "tags": [
+          "assessment"
+        ],
+        "summary": "Submit",
+        "operationId": "submit_api_v1_assessment_runs__run_id__submit_post",
+        "parameters": [
+          {
+            "name": "run_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Run Id"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 80,
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssessmentRunOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/users/{user_id}/diagnostic-reset": {
+      "post": {
+        "tags": [
+          "assessment"
+        ],
+        "summary": "Reset Diagnostic",
+        "operationId": "reset_diagnostic_api_v1_admin_users__user_id__diagnostic_reset_post",
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "User Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DiagnosticResetOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/admin/content/revisions": {
       "get": {
         "tags": [
@@ -1771,6 +2069,42 @@
         ],
         "title": "AidOut"
       },
+      "AnswerIn": {
+        "properties": {
+          "response": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Response"
+          },
+          "audio_failed": {
+            "type": "boolean",
+            "title": "Audio Failed",
+            "default": false
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "AnswerIn"
+      },
+      "AnswerSavedOut": {
+        "properties": {
+          "activity_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Activity Id"
+          },
+          "saved_at": {
+            "type": "string",
+            "title": "Saved At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "activity_id",
+          "saved_at"
+        ],
+        "title": "AnswerSavedOut"
+      },
       "ApproveIn": {
         "properties": {
           "content_hash": {
@@ -1798,6 +2132,267 @@
           "content_hash"
         ],
         "title": "ApproveIn"
+      },
+      "AssessmentFormOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "slug": {
+            "type": "string",
+            "title": "Slug"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "form_kind": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "initial",
+                  "checkpoint",
+                  "final"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Form Kind"
+          },
+          "duration_minutes": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Duration Minutes"
+          },
+          "unit": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/UnitRefOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "runs": {
+            "items": {
+              "$ref": "#/components/schemas/RunRefOut"
+            },
+            "type": "array",
+            "title": "Runs"
+          },
+          "open_run_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Open Run Id"
+          },
+          "can_start": {
+            "type": "boolean",
+            "title": "Can Start"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "slug",
+          "title",
+          "form_kind",
+          "duration_minutes",
+          "unit",
+          "label",
+          "runs",
+          "open_run_id",
+          "can_start"
+        ],
+        "title": "AssessmentFormOut"
+      },
+      "AssessmentFormRefOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "slug": {
+            "type": "string",
+            "title": "Slug"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "form_kind": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "initial",
+                  "checkpoint",
+                  "final"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Form Kind"
+          },
+          "duration_minutes": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Duration Minutes"
+          },
+          "unit": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/UnitRefOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "slug",
+          "title",
+          "form_kind",
+          "duration_minutes",
+          "unit"
+        ],
+        "title": "AssessmentFormRefOut"
+      },
+      "AssessmentRunOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "run_number": {
+            "type": "integer",
+            "title": "Run Number"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "in_progress",
+              "submitted"
+            ],
+            "title": "Status"
+          },
+          "comparable": {
+            "type": "boolean",
+            "title": "Comparable"
+          },
+          "started_at": {
+            "type": "string",
+            "title": "Started At"
+          },
+          "submitted_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Submitted At"
+          },
+          "form": {
+            "$ref": "#/components/schemas/AssessmentFormRefOut"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "passages": {
+            "items": {
+              "$ref": "#/components/schemas/PassageOut"
+            },
+            "type": "array",
+            "title": "Passages"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/StudentActivityOut"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "answers": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/SavedAnswerOut"
+            },
+            "type": "object",
+            "title": "Answers"
+          },
+          "summary": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RunSummaryOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "results": {
+            "items": {
+              "$ref": "#/components/schemas/ItemResultOut"
+            },
+            "type": "array",
+            "title": "Results"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "run_number",
+          "status",
+          "comparable",
+          "started_at",
+          "submitted_at",
+          "form",
+          "label",
+          "passages",
+          "items",
+          "answers",
+          "summary",
+          "results"
+        ],
+        "title": "AssessmentRunOut"
       },
       "AttemptDetailOut": {
         "properties": {
@@ -2277,6 +2872,19 @@
         ],
         "title": "DeleteMeIn"
       },
+      "DiagnosticResetOut": {
+        "properties": {
+          "reset": {
+            "type": "integer",
+            "title": "Reset"
+          }
+        },
+        "type": "object",
+        "required": [
+          "reset"
+        ],
+        "title": "DiagnosticResetOut"
+      },
       "FindingIn": {
         "properties": {
           "category": {
@@ -2457,6 +3065,72 @@
           "expires_at"
         ],
         "title": "InvitationInfoOut"
+      },
+      "ItemResultOut": {
+        "properties": {
+          "activity_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Activity Id"
+          },
+          "answered": {
+            "type": "boolean",
+            "title": "Answered"
+          },
+          "attempt_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Attempt Id"
+          },
+          "evaluation_status": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Evaluation Status"
+          },
+          "correct": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Correct"
+          },
+          "result": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Result"
+          },
+          "feedback": {
+            "$ref": "#/components/schemas/AttemptFeedbackOut"
+          }
+        },
+        "type": "object",
+        "required": [
+          "activity_id",
+          "answered",
+          "attempt_id",
+          "evaluation_status",
+          "correct",
+          "result",
+          "feedback"
+        ],
+        "title": "ItemResultOut"
       },
       "ItemStateRefOut": {
         "properties": {
@@ -3091,6 +3765,34 @@
         "title": "MePatch",
         "description": "Lista explícita de campos editables por el alumno."
       },
+      "ObjectiveResultOut": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "title": "Code"
+          },
+          "correct": {
+            "type": "integer",
+            "title": "Correct"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          },
+          "not_evaluable": {
+            "type": "integer",
+            "title": "Not Evaluable"
+          }
+        },
+        "type": "object",
+        "required": [
+          "code",
+          "correct",
+          "total",
+          "not_evaluable"
+        ],
+        "title": "ObjectiveResultOut"
+      },
       "PassageOut": {
         "properties": {
           "id": {
@@ -3721,6 +4423,121 @@
           "created_at"
         ],
         "title": "RevisionRowOut"
+      },
+      "RunRefOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "run_number": {
+            "type": "integer",
+            "title": "Run Number"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "in_progress",
+              "submitted"
+            ],
+            "title": "Status"
+          },
+          "comparable": {
+            "type": "boolean",
+            "title": "Comparable"
+          },
+          "started_at": {
+            "type": "string",
+            "title": "Started At"
+          },
+          "submitted_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Submitted At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "run_number",
+          "status",
+          "comparable",
+          "started_at",
+          "submitted_at"
+        ],
+        "title": "RunRefOut"
+      },
+      "RunSummaryOut": {
+        "properties": {
+          "objectives": {
+            "items": {
+              "$ref": "#/components/schemas/ObjectiveResultOut"
+            },
+            "type": "array",
+            "title": "Objectives"
+          },
+          "closed_correct": {
+            "type": "integer",
+            "title": "Closed Correct"
+          },
+          "closed_total": {
+            "type": "integer",
+            "title": "Closed Total"
+          },
+          "productions_answered": {
+            "type": "integer",
+            "title": "Productions Answered"
+          },
+          "productions_total": {
+            "type": "integer",
+            "title": "Productions Total"
+          },
+          "not_evaluable_audio": {
+            "type": "integer",
+            "title": "Not Evaluable Audio"
+          }
+        },
+        "type": "object",
+        "required": [
+          "objectives",
+          "closed_correct",
+          "closed_total",
+          "productions_answered",
+          "productions_total",
+          "not_evaluable_audio"
+        ],
+        "title": "RunSummaryOut"
+      },
+      "SavedAnswerOut": {
+        "properties": {
+          "response": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Response"
+          },
+          "audio_failed": {
+            "type": "boolean",
+            "title": "Audio Failed"
+          },
+          "saved_at": {
+            "type": "string",
+            "title": "Saved At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "response",
+          "audio_failed",
+          "saved_at"
+        ],
+        "title": "SavedAnswerOut"
       },
       "SelfAssessmentIn": {
         "properties": {

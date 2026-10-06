@@ -106,6 +106,11 @@ def _unit_from_body(s: Session, item: ContentItem, body: dict[str, Any]) -> Unit
     return s.scalar(select(Unit).where(Unit.path_id == item.path_id, Unit.slug == slug))
 
 
+def unit_ref(s: Session, item: ContentItem, body: dict[str, Any]) -> dict[str, Any] | None:
+    """Unidad del ítem según el cuerpo de la revisión (lo que ve el alumno)."""
+    return _unit(_unit_from_body(s, item, body))
+
+
 def item_dto(
     s: Session,
     item: ContentItem,

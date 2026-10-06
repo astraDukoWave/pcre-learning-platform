@@ -99,3 +99,15 @@ register(
         "review_schedule", ("user_id",), export=True, note="repasos programados por objetivo"
     )
 )
+register(
+    UserDataTable(
+        "assessment_runs",
+        ("user_id",),
+        export=True,
+        note=(
+            "corridas de comprobación con su resumen por objetivo. Sus respuestas guardadas "
+            "(`assessment_answers`) se borran en cascada con la corrida; al enviar se vuelven "
+            "intentos, que sí se exportan."
+        ),
+    )
+)
