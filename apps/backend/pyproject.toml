@@ -1,13 +1,65 @@
-[tool.black]
-line-length = 88
-target-version = ['py311']
+[project]
+name = "pcre-backend"
+version = "0.1.0"
+description = "PCRE Learning Platform: backend FastAPI (monolito modular)"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "fastapi>=0.118",
+    "uvicorn[standard]>=0.37",
+    "pydantic>=2.11",
+    "pydantic-settings>=2.10",
+    "sqlalchemy>=2.0.43",
+    "psycopg[binary]>=3.2",
+    "alembic>=1.16",
+]
 
-[tool.isort]
-profile = "black"
-line_length = 88
+[dependency-groups]
+dev = [
+    "pytest>=8.4",
+    "pytest-socket>=0.7",
+    "httpx>=0.28",
+    "ruff>=0.13",
+    "mypy>=1.18",
+    "import-linter>=2.5",
+    "actionlint-py>=1.7",
+    "httpx2>=2.13.1",
+]
+
+[tool.uv]
+package = false
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+extend-exclude = ["alembic/versions/bc0bb9a48e10_initial_migration.py", "alembic/versions/816c80672425_add_users_table.py"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "S", "SIM", "RUF", "PL", "N"]
+ignore = ["N818", "PLR0913", "PLR2004", "S101", "RUF001", "RUF002", "RUF003", "PLC0415", "PLR0911", "PLR0912", "PLR0915"]
+
+[tool.ruff.lint.isort]
+known-third-party = ["alembic"]
+known-first-party = ["app"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S105", "S106", "S108", "S603", "S607", "PLR2004"]
+"alembic/**" = ["N999"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+plugins = ["pydantic.mypy"]
+mypy_path = "."
+explicit_package_bases = true
+exclude = ["alembic/versions/"]
+
+[[tool.mypy.overrides]]
+module = ["app.modules.legacy.*"]
+disallow_untyped_defs = false
+disallow_any_generics = false
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-python_files = ["test_*.py"]
-python_classes = ["Test*"]
-python_functions = ["test_*"]
+pythonpath = ["."]
+addopts = "-q --disable-socket --allow-unix-socket --allow-hosts=127.0.0.1,localhost,::1"
+filterwarnings = ["error::DeprecationWarning:app.*"]
