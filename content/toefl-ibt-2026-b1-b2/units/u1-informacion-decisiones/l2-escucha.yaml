@@ -7,7 +7,7 @@ unit: u1-informacion-decisiones
 position: 2
 skill: listening
 title: "Escuchar avisos y responder a preguntas"
-status: draft
+status: ready-for-review
 objectives: [U1.L]
 objective_es: "Identificarás el propósito de un aviso breve y la instrucción que te toca seguir, y elegirás la respuesta adecuada a una pregunta o petición que escuchas."
 sources:

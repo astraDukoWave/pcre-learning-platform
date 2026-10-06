@@ -8,7 +8,7 @@ unit: u1-informacion-decisiones
 form_kind: checkpoint
 position: 6
 title: "Checkpoint de la unidad 1"
-status: draft
+status: ready-for-review
 duration_minutes: 15
 objectives: [U1.R, U1.L, U1.W, U1.S]
 sources:

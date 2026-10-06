@@ -7,7 +7,7 @@ slug: diagnostico-inicial
 form_kind: initial
 position: 1
 title: "Diagnóstico inicial"
-status: draft
+status: ready-for-review
 duration_minutes: 25
 objectives: [U1.R, U2.R, U3.R, U5.R, U7.R, U8.R, U1.L, U2.L, U4.L, U6.L, U1.W, U2.W, U3.W, U5.W, U1.S, U4.S]
 sources:

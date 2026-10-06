@@ -120,6 +120,14 @@ jobs:
             echo "::error::docs/contenido/cobertura.md no está al día: corre 'make content-lint' y commitea."
             exit 1
           fi
+      - name: Paquetes de revisión al día
+        working-directory: apps/backend
+        run: |
+          uv run --locked python ../../scripts/content/review_packet.py --all
+          if ! git diff --exit-code -- ../../docs/contenido/revision; then
+            echo "::error::docs/contenido/revision/ no está al día: corre 'make content-lint' y commitea."
+            exit 1
+          fi
 
   frontend:
     name: frontend

@@ -90,13 +90,13 @@
 
 | Ítem | Tipo | Unidad | Actividades | Estado del archivo |
 |---|---|---|---|---|
-| `diagnostico-inicial` | form:initial | ruta | 16 | draft |
-| `u1-checkpoint` | form:checkpoint | u1-informacion-decisiones | 9 | draft |
-| `u1-escenario` | scenario | u1-informacion-decisiones | 1 | draft |
-| `u1-l1-lectura` | lesson | u1-informacion-decisiones | 10 | draft |
-| `u1-l2-escucha` | lesson | u1-informacion-decisiones | 8 | draft |
-| `u1-l3-escritura` | lesson | u1-informacion-decisiones | 8 | draft |
-| `u1-l4-habla` | lesson | u1-informacion-decisiones | 6 | draft |
+| `diagnostico-inicial` | form:initial | ruta | 16 | ready-for-review |
+| `u1-checkpoint` | form:checkpoint | u1-informacion-decisiones | 9 | ready-for-review |
+| `u1-escenario` | scenario | u1-informacion-decisiones | 1 | ready-for-review |
+| `u1-l1-lectura` | lesson | u1-informacion-decisiones | 10 | ready-for-review |
+| `u1-l2-escucha` | lesson | u1-informacion-decisiones | 8 | ready-for-review |
+| `u1-l3-escritura` | lesson | u1-informacion-decisiones | 8 | ready-for-review |
+| `u1-l4-habla` | lesson | u1-informacion-decisiones | 6 | ready-for-review |
 
 ## Pendiente
 
