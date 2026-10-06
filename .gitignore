@@ -46,3 +46,11 @@ docker-compose.override.yml
 *.save
 *.save.*
 *~
+
+# PCRE
+.import_linter_cache/
+.mypy_cache/
+.ruff_cache/
+apps/frontend/dist/
+test-results/
+playwright-report/

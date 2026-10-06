@@ -20,40 +20,30 @@ contenido).
 
 ## Estado del código
 
-**Hoy** (`main` @ `133c5e3`) el código es el prototipo de la fase 1: un
-backend de lectura con un curso de ejemplo, sin autenticación, sin
-frontend, sin pruebas y sin CI. MVP-01 lo reemplaza; su CS-01 reescribe la
-sección "Comandos" de este archivo con los comandos reales.
+MVP-01 en curso (ver `STATE.md`). Desde CS-01 el backend usa Python 3.12 con `uv`,
+pytest contra PostgreSQL real, ruff, mypy e import-linter; la CI corre en cada PR y
+`ci-gate` es el check que importa. El prototipo de la fase 1 se retiró (sus tablas
+siguen congeladas en `app/modules/legacy/models.py`).
 
-**Comandos objetivo** (existen desde MVP-01 CS-01; no los des por hechos
-antes):
-
-```bash
-make setup         # uv sync + npm ci
-make db-up         # PostgreSQL local (sesión cloud: service postgresql start)
-make migrate       # alembic upgrade head
-make dev           # backend :8000 + Vite :5173
-make test          # pytest (requiere PostgreSQL; sin red ni llaves)
-make lint          # ruff + ESLint
-make typecheck     # mypy + tsc
-make content-lint  # lint de contenido + docs/contenido/cobertura.md
-make openapi       # docs/api/openapi.json + tipos del frontend
-make e2e           # Playwright (en la CI; local si hay navegadores)
-make verify        # todo lo anterior salvo e2e: el check previo a un PR
-```
-
-**Prototipo legado** (solo hasta CS-01; requiere Docker, por ejemplo en
-GitHub Codespaces):
+## Comandos
 
 ```bash
-cd apps/backend
-cp .env.example .env            # solo si no existe
-docker compose up -d --build    # Compose v2
-docker compose exec backend alembic upgrade head
+make setup             # uv sync (+ npm ci desde CS-02)
+make db-up             # PostgreSQL local: VM cloud (service) o docker compose (db)
+make migrate           # alembic upgrade head sobre DATABASE_URL (base pcre)
+make dev               # backend con recarga en :8000
+make test              # pytest contra pcre_test (sin red: pytest-socket)
+make lint              # ruff check + format, import-linter y actionlint
+make typecheck         # mypy estricto
+make migrations-check  # vacía→head, legado+seed→head, alembic check, downgrade/upgrade
+make verify            # todo lo anterior: el check previo a un PR
 ```
 
-No uses `validate-phase1-final.sh` (espera una migración que ya no es el
-head) ni amplíes permisos del socket de Docker.
+Se suman en su change set: `content-lint` (CS-04), `openapi` y frontend en `verify`
+(CS-02), `e2e` (CS-05). En la sesión cloud, el hook `SessionStart`
+(`scripts/dev/cloud-session-start.sh`) arranca PostgreSQL, crea el rol `pcre` y las bases
+`pcre`, `pcre_test` y `pcre_migcheck`, y corre `uv sync`. Fuera de la nube, `make db-up`
+usa `docker-compose.yml` (solo el servicio `db`).
 
 ## Reglas de arquitectura (no violar)
 
