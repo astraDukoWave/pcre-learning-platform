@@ -171,3 +171,24 @@ def active_paths(s: Session) -> list[LearningPath]:
 
 def add_report(s: Session, report: ContentReport) -> None:
     s.add(report)
+
+
+def reports(s: Session, status: str | None) -> list[tuple[ContentReport, str | None]]:
+    stmt = (
+        select(ContentReport, ContentRevision.body["title"].astext)
+        .join(ContentRevision, ContentRevision.id == ContentReport.revision_id)
+        .order_by(ContentReport.created_at.desc())
+    )
+    if status:
+        stmt = stmt.where(ContentReport.status == status)
+    return [(row[0], row[1]) for row in s.execute(stmt)]
+
+
+def report(s: Session, report_id: uuid.UUID) -> tuple[ContentReport, str | None] | None:
+    row = s.execute(
+        select(ContentReport, ContentRevision.body["title"].astext)
+        .join(ContentRevision, ContentRevision.id == ContentReport.revision_id)
+        .where(ContentReport.id == report_id)
+        .with_for_update(of=ContentReport)
+    ).first()
+    return (row[0], row[1]) if row else None

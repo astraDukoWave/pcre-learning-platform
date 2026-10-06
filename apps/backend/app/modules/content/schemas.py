@@ -133,3 +133,22 @@ class PublishedOut(BaseModel):
     revision_id: uuid.UUID
     item_slug: str
     version: int
+
+
+class ReportOut(BaseModel):
+    id: uuid.UUID
+    revision_id: uuid.UUID
+    item_title: str | None
+    activity_id: uuid.UUID | None
+    attempt_id: uuid.UUID | None
+    category: str
+    message: str
+    page: str | None
+    status: Literal["open", "triaged", "resolved", "wont_fix"]
+    triage_note: str | None
+    created_at: str
+
+
+class ReportPatch(Strict):
+    status: Literal["open", "triaged", "resolved", "wont_fix"]
+    triage_note: str | None = Field(default=None, max_length=1000)

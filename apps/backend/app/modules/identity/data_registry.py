@@ -111,3 +111,16 @@ register(
         ),
     )
 )
+register(
+    UserDataTable(
+        "user_feedback", ("user_id",), export=True, note="valoraciones y comentarios del producto"
+    )
+)
+register(
+    UserDataTable(
+        "product_events",
+        ("user_id",),
+        export=True,
+        note="eventos de producto (lista cerrada de REQ-16; solo ids y enumerados)",
+    )
+)

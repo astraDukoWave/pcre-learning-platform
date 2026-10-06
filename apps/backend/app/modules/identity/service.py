@@ -35,6 +35,7 @@ from app.core.security import (
 from app.db.uow import UnitOfWorkFactory
 from app.modules.identity import domain, repository
 from app.modules.identity.models import AuthSession, Invitation, PasswordResetToken, User, UserRole
+from app.modules.insights import service as insights
 
 logger = logging.getLogger("app.identity")
 
@@ -271,6 +272,7 @@ class IdentityService:
                     previous.revoke_reason = "rotated"
             user.last_login_at = now
             token, csrf, expires = self._open_session(s, user, now)
+            insights.emit(s, user.id, "login", now, role=user.role.value)
             s.flush()
             view = _view(user)
         logger.info("login", extra={"user_ref": user_ref(view.id, self.settings.log_salt)})
@@ -393,6 +395,7 @@ class IdentityService:
             inv.consumed_at = now
             inv.consumed_user_id = user.id
             session_token, csrf, expires = self._open_session(s, user, now)
+            insights.emit(s, user.id, "invitation_accepted", now, role=user.role.value)
             s.flush()
             s.refresh(user)
             view = _view(user)

@@ -16,6 +16,8 @@ from app.modules.content.schemas import (
     FindingPatch,
     PublishedOut,
     PublishIn,
+    ReportOut,
+    ReportPatch,
     RevisionDetailOut,
     RevisionRowOut,
     WithdrawIn,
@@ -116,4 +118,25 @@ def withdraw(
 ) -> RevisionDetailOut:
     return RevisionDetailOut.model_validate(
         editorial.withdraw(revision_id, by=ctx.user_id, reason=body.reason)
+    )
+
+
+reports_router = APIRouter(prefix="/api/v1/admin/content-reports", tags=["admin-content"])
+
+
+@reports_router.get("", response_model=list[ReportOut])
+def list_reports(
+    _: AdminDep,
+    editorial: EditorialDep,
+    status: Annotated[str | None, Query(pattern=r"^(open|triaged|resolved|wont_fix)$")] = None,
+) -> list[ReportOut]:
+    return [ReportOut.model_validate(r) for r in editorial.reports(status)]
+
+
+@reports_router.patch("/{report_id}", response_model=ReportOut)
+def triage_report(
+    report_id: uuid.UUID, body: ReportPatch, _: AdminDep, editorial: EditorialDep
+) -> ReportOut:
+    return ReportOut.model_validate(
+        editorial.triage_report(report_id, status=body.status, note=body.triage_note)
     )

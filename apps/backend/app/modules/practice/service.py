@@ -22,6 +22,7 @@ from app.core.logging import user_ref
 from app.db.uow import UnitOfWorkFactory
 from app.modules.content import service_delivery
 from app.modules.content.service_delivery import DeliveryService
+from app.modules.insights import service as insights
 from app.modules.practice import domain, repository
 from app.modules.practice.models import Attempt, LessonProgress, ServedAid
 from app.modules.progress import service as progress_service
@@ -119,6 +120,15 @@ class PracticeService:
                         started_at=now,
                     )
                     s.add(progress)
+                    s.flush()
+                    insights.emit(
+                        s,
+                        learner.user_id,
+                        "lesson_started",
+                        now,
+                        item_id=str(item.id),
+                        kind=item.kind,
+                    )
                     logger.info("lesson_started", extra={"item_id": str(item.id)})
                 elif progress.completed_at is None:
                     progress.pinned_revision_id = rev.id
@@ -183,6 +193,9 @@ class PracticeService:
                     index=index,
                     served_at=self.clock.now(),
                 )
+            )
+            insights.emit(
+                s, learner.user_id, "aid_used", self.clock.now(), kind=kind, activity_id=str(act.id)
             )
         logger.info("aid_used", extra={"kind": kind, "activity_id": str(activity_id)})
         remaining = max(0, len(act.hints) - index - 1) if kind == "hint" else 0
@@ -328,6 +341,25 @@ class PracticeService:
             aid.attempt_id = attempt.id
 
         completed = self._update_lesson_progress(s, learner, item, rev, now)
+        insights.emit(
+            s,
+            learner.user_id,
+            "attempt_submitted",
+            now,
+            mode=mode,
+            format=act.format,
+            evaluation_status=grade.evaluation_status,
+            activity_id=str(act.id),
+        )
+        if mode == "review":
+            insights.emit(
+                s,
+                learner.user_id,
+                "review_completed",
+                now,
+                activity_id=str(act.id),
+                repeated=not first,
+            )
 
         review_objectives: list[str] = []
         if grade.correct is not None and mode in ("practice", "review"):
@@ -376,12 +408,18 @@ class PracticeService:
             )
             s.add(progress)
             s.flush()
+            insights.emit(
+                s, learner.user_id, "lesson_started", now, item_id=str(item.id), kind=item.kind
+            )
         if progress.completed_at is not None:
             return True
         practice_ids = {a.id for a in repository.activities_of(s, rev.id) if a.pool == "practice"}
         attempted = repository.attempted_activity_ids(s, learner.user_id, rev.id)
         if domain.lesson_completed({str(i) for i in practice_ids}, {str(i) for i in attempted}):
             progress.completed_at = now
+            insights.emit(
+                s, learner.user_id, "lesson_completed", now, item_id=str(item.id), kind=item.kind
+            )
             logger.info("lesson_completed", extra={"item_id": str(item.id)})
             return True
         return False
@@ -419,6 +457,15 @@ class PracticeService:
             attempt.score = grade.score
             attempt.result = grade.result
             s.flush()
+            # La autoevaluación guardada abre el ejemplo comentado: el feedback se ve.
+            insights.emit(
+                s,
+                learner.user_id,
+                "feedback_viewed",
+                self.clock.now(),
+                attempt_id=str(attempt.id),
+                source="self",
+            )
             out = _attempt_detail(attempt, act)
         logger.info(
             "self_assessed",

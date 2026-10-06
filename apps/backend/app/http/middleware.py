@@ -19,16 +19,26 @@ logger = logging.getLogger("app.access")
 _VALID_REQUEST_ID = re.compile(r"^[A-Za-z0-9._-]{8,64}$")
 
 
-ServerErrorHook = Callable[[Scope, BaseException], None]
+# (scope, status, excepción o None si fue una respuesta 5xx controlada)
+ServerErrorHook = Callable[[Scope, int, BaseException | None], None]
 
 
 class RequestContextMiddleware:
     """También atrapa las excepciones no manejadas: responde 500 con el sobre de error y
-    el `request_id`, y avisa a `on_server_error` (registro en `error_events`)."""
+    el `request_id`. Toda respuesta 5xx (excepción o error controlado, p. ej. 503) se avisa
+    a `on_server_error` (registro en `error_events`)."""
 
     def __init__(self, app: ASGIApp, on_server_error: ServerErrorHook | None = None) -> None:
         self.app = app
         self.on_server_error = on_server_error
+
+    def _report(self, scope: Scope, status: int, exc: BaseException | None) -> None:
+        if self.on_server_error is None:
+            return
+        try:
+            self.on_server_error(scope, status, exc)
+        except Exception:  # el registro nunca tapa la respuesta
+            logger.exception("server_error_hook_failed")
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
         if scope["type"] not in ("http", "websocket"):
@@ -44,7 +54,7 @@ class RequestContextMiddleware:
         token = request_id_var.set(request_id)
         scope.setdefault("state", {})["request_id"] = request_id
         started = time.perf_counter()
-        status = {"code": 500, "started": 0}
+        status = {"code": 500, "started": 0, "reported": 0}
 
         async def send_wrapper(message: Message) -> None:
             if message["type"] == "http.response.start":
@@ -64,11 +74,8 @@ class RequestContextMiddleware:
                 exc_info=(type(exc), exc, exc.__traceback__),
                 extra={"status": 500, "error_code": "internal_error"},
             )
-            if self.on_server_error is not None:
-                try:
-                    self.on_server_error(scope, exc)
-                except Exception:  # el registro nunca tapa la respuesta
-                    logger.exception("server_error_hook_failed")
+            self._report(scope, 500, exc)
+            status["reported"] = 1
             if scope["type"] == "http" and not status["started"]:
                 body = json.dumps(
                     {
@@ -92,6 +99,8 @@ class RequestContextMiddleware:
                 )
                 await send({"type": "http.response.body", "body": body})
         finally:
+            if status["code"] >= 500 and not status["reported"]:
+                self._report(scope, status["code"], None)
             route = scope.get("route")
             route_path = getattr(route, "path", None) or "unmatched"
             if scope["type"] == "http":

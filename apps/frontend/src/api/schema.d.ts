@@ -588,6 +588,108 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/feedback": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Submit Feedback */
+        post: operations["submit_feedback_api_v1_feedback_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/pilot/summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Pilot Summary */
+        get: operations["pilot_summary_api_v1_admin_pilot_summary_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/feedback": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Feedback Overview */
+        get: operations["feedback_overview_api_v1_admin_feedback_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/errors": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Errors */
+        get: operations["errors_api_v1_admin_errors_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/content-reports": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Reports */
+        get: operations["list_reports_api_v1_admin_content_reports_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/content-reports/{report_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Triage Report */
+        patch: operations["triage_report_api_v1_admin_content_reports__report_id__patch"];
+        trace?: never;
+    };
     "/api/v1/admin/content/revisions": {
         parameters: {
             query?: never;
@@ -761,6 +863,13 @@ export interface components {
             adult: boolean;
             /** Display Name */
             display_name?: string | null;
+        };
+        /** ActiveDayOut */
+        ActiveDayOut: {
+            /** Day */
+            day: string;
+            /** Students */
+            students: number;
         };
         /** AdminInvitationIn */
         AdminInvitationIn: {
@@ -1167,6 +1276,75 @@ export interface components {
             /** Reset */
             reset: number;
         };
+        /** ErrorRowOut */
+        ErrorRowOut: {
+            /** Request Id */
+            request_id: string;
+            /** Route */
+            route: string;
+            /** Status Code */
+            status_code: number;
+            /** Error Code */
+            error_code: string;
+            /** Exception Type */
+            exception_type: string | null;
+            /** Occurred At */
+            occurred_at: string;
+        };
+        /**
+         * FeedbackIn
+         * @description Valoración de una lección o escenario (1–5, comentario opcional) o comentario
+         *     general con la página como contexto (REQ-15).
+         */
+        FeedbackIn: {
+            /**
+             * Context Type
+             * @enum {string}
+             */
+            context_type: "lesson" | "general";
+            /** Context Id */
+            context_id?: string | null;
+            /** Rating */
+            rating?: number | null;
+            /**
+             * Message
+             * @default
+             */
+            message: string;
+            /** Page */
+            page?: string | null;
+        };
+        /** FeedbackOverviewOut */
+        FeedbackOverviewOut: {
+            /** By Lesson */
+            by_lesson: components["schemas"]["LessonRatingOut"][];
+            /** Latest */
+            latest: components["schemas"]["FeedbackRowOut"][];
+        };
+        /** FeedbackRowOut */
+        FeedbackRowOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Email */
+            email: string;
+            /** Context Type */
+            context_type: string;
+            /** Context Id */
+            context_id: string | null;
+            /** Rating */
+            rating: number | null;
+            /** Message */
+            message: string;
+            /** Page */
+            page: string | null;
+            /** Created At */
+            created_at: string;
+            /** Internal */
+            internal?: boolean | null;
+        };
         /** FindingIn */
         FindingIn: {
             /** Category */
@@ -1361,6 +1539,20 @@ export interface components {
             notice: string | null;
             progress: components["schemas"]["ProgressOut"];
         };
+        /** LessonRatingOut */
+        LessonRatingOut: {
+            /**
+             * Item Id
+             * Format: uuid
+             */
+            item_id: string;
+            /** Title */
+            title: string;
+            /** Average */
+            average: number;
+            /** Count */
+            count: number;
+        };
         /** LinkOut */
         LinkOut: {
             /** Url */
@@ -1533,6 +1725,39 @@ export interface components {
             /** Applies When Not Es */
             applies_when_not_es?: string | null;
         };
+        /** PilotSummaryOut */
+        PilotSummaryOut: {
+            /** Days */
+            days: number;
+            /** Internal Excluded */
+            internal_excluded: boolean;
+            /** Active By Day */
+            active_by_day: components["schemas"]["ActiveDayOut"][];
+            /** Attempts */
+            attempts: number;
+            /** Lessons Completed */
+            lessons_completed: number;
+            /** Reviews Done */
+            reviews_done: number;
+            /** Reviews Due */
+            reviews_due: number;
+            /** Diagnostics */
+            diagnostics: number;
+            /** Checkpoints */
+            checkpoints: number;
+            /** Average Rating */
+            average_rating: number | null;
+            /** Ratings */
+            ratings: number;
+            /** Latest Comments */
+            latest_comments: components["schemas"]["FeedbackRowOut"][];
+            /** Open Reports */
+            open_reports: number;
+            /** Server Errors */
+            server_errors: number;
+            /** Latest Errors */
+            latest_errors: components["schemas"]["ErrorRowOut"][];
+        };
         /** ProductionOut */
         ProductionOut: {
             writing: components["schemas"]["ProductionStatOut"];
@@ -1609,6 +1834,50 @@ export interface components {
             item_id: string;
             /** Activity Key */
             activity_key: string;
+        };
+        /** ReportOut */
+        ReportOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Revision Id
+             * Format: uuid
+             */
+            revision_id: string;
+            /** Item Title */
+            item_title: string | null;
+            /** Activity Id */
+            activity_id: string | null;
+            /** Attempt Id */
+            attempt_id: string | null;
+            /** Category */
+            category: string;
+            /** Message */
+            message: string;
+            /** Page */
+            page: string | null;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "open" | "triaged" | "resolved" | "wont_fix";
+            /** Triage Note */
+            triage_note: string | null;
+            /** Created At */
+            created_at: string;
+        };
+        /** ReportPatch */
+        ReportPatch: {
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "open" | "triaged" | "resolved" | "wont_fix";
+            /** Triage Note */
+            triage_note?: string | null;
         };
         /** ResetConfirmIn */
         ResetConfirmIn: {
@@ -3023,6 +3292,187 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ReviewsOut"];
+                };
+            };
+        };
+    };
+    submit_feedback_api_v1_feedback_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FeedbackIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CreatedOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    pilot_summary_api_v1_admin_pilot_summary_get: {
+        parameters: {
+            query?: {
+                days?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PilotSummaryOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    feedback_overview_api_v1_admin_feedback_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FeedbackOverviewOut"];
+                };
+            };
+        };
+    };
+    errors_api_v1_admin_errors_get: {
+        parameters: {
+            query?: {
+                days?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorRowOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_reports_api_v1_admin_content_reports_get: {
+        parameters: {
+            query?: {
+                status?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReportOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    triage_report_api_v1_admin_content_reports__report_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                report_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReportPatch"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReportOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };
