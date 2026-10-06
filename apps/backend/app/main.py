@@ -7,7 +7,7 @@ from fastapi import FastAPI
 from app.bootstrap import Container, build_container
 from app.core.config import Settings, get_settings
 from app.core.logging import configure_logging
-from app.http import health
+from app.http import health, test_clock
 from app.http.csrf import OriginMiddleware
 from app.http.errors import install_error_handlers
 from app.http.middleware import (
@@ -22,6 +22,7 @@ from app.modules.content import router_student as content_student
 from app.modules.identity import router as identity_router
 from app.modules.practice import router as practice_router
 from app.modules.practice import router_assessment
+from app.modules.progress import router as progress_router
 
 JSON_BODY_LIMIT = 64 * 1024
 AUDIO_LIMITS = {"/api/v1/speaking/transcriptions": 2 * 1024 * 1024 + 64 * 1024}
@@ -47,6 +48,9 @@ def create_app(settings: Settings | None = None, *, container: Container | None 
     app.include_router(content_student.router)
     app.include_router(practice_router.router)
     app.include_router(router_assessment.router)
+    app.include_router(progress_router.router)
+    if settings.test_clock_active:
+        app.include_router(test_clock.router)
     app.include_router(content_admin.router)
     # Siempre al final: el fallback de la SPA atrapa lo que no reclamó ninguna ruta.
     mount_frontend(app, settings)

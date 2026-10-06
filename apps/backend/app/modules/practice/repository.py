@@ -300,3 +300,28 @@ def diagnostic_runs_to_reset(s: Session, user_id: uuid.UUID) -> list[AssessmentR
             .with_for_update()
         )
     )
+
+
+def enrolled_or_first_path(s: Session, user_id: uuid.UUID) -> uuid.UUID | None:
+    enrolled = s.scalar(
+        select(Enrollment.path_id)
+        .where(Enrollment.user_id == user_id)
+        .order_by(Enrollment.enrolled_at.desc())
+        .limit(1)
+    )
+    if enrolled is not None:
+        return enrolled
+    has_published = (
+        select(ContentItem.id)
+        .where(
+            ContentItem.path_id == LearningPath.id,
+            ContentItem.published_revision_id.is_not(None),
+        )
+        .exists()
+    )
+    return s.scalar(
+        select(LearningPath.id)
+        .where(LearningPath.status == "active", has_published)
+        .order_by(LearningPath.code)
+        .limit(1)
+    )

@@ -18,11 +18,13 @@ from app.modules.practice.schemas import (
     AttemptOut,
     AttemptSummaryOut,
     LessonOut,
+    NextReviewOut,
     PathOut,
     PathStateOut,
     SelfAssessmentIn,
 )
 from app.modules.practice.service import Learner, PracticeService
+from app.modules.progress.service import ProgressService, Viewer
 
 router = APIRouter(prefix="/api/v1", tags=["practice"])
 
@@ -110,3 +112,16 @@ def my_attempts(
 ) -> list[AttemptSummaryOut]:
     rows = practice.list_attempts(learner_from(ctx), limit, before)
     return [AttemptSummaryOut.model_validate(r) for r in rows]
+
+
+@router.get("/me/reviews/next", response_model=NextReviewOut)
+def next_review(
+    ctx: AuthDep,
+    container: ContainerDep,
+    objective: Annotated[str | None, Query(pattern=r"^U[1-8]\.[RLWST](\.[0-9]+)?$")] = None,
+) -> NextReviewOut:
+    """Siguiente repaso (REQ-14): `progress` elige la actividad; la entrega es de práctica.
+    Con `objective`, la reparación inmediata opcional de ese objetivo."""
+    svc = ProgressService(container.uow, container.clock, container.settings)
+    viewer = Viewer(user_id=ctx.user_id, timezone=ctx.timezone)
+    return NextReviewOut.model_validate(svc.next_review(viewer, objective))

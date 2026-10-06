@@ -297,3 +297,29 @@ class AnswerSavedOut(BaseModel):
 
 class DiagnosticResetOut(BaseModel):
     reset: int
+
+
+# -- repasos (REQ-14): la actividad la entrega práctica; la elige `progress` --------------
+
+
+class ReviewItemRefOut(BaseModel):
+    id: uuid.UUID
+    kind: str
+    slug: str
+    title: str
+    unit: UnitRefOut | None
+
+
+class ReviewOut(BaseModel):
+    objective: str
+    due: bool
+    stage: int | None
+    repeated: bool
+    item: ReviewItemRefOut
+    activity: StudentActivityOut
+    passages: list[PassageOut]
+
+
+class NextReviewOut(BaseModel):
+    review: ReviewOut | None
+    remaining_due: int

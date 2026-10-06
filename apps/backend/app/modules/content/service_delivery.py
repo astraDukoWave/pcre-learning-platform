@@ -226,3 +226,27 @@ def _item_ref(item: ContentItem, body: dict[str, Any]) -> dict[str, Any]:
         "skill": body.get("skill"),
         "form_kind": body.get("form_kind"),
     }
+
+
+def review_activity(s: Session, activity_id: uuid.UUID) -> dict[str, Any] | None:
+    """Actividad del pool `review` con su ítem y los pasajes que usa, para un repaso. Misma
+    lista permitida que la lección (AC-08): las ayudas se anuncian y se piden aparte."""
+    act = s.get(Activity, activity_id)
+    if act is None:
+        return None
+    rev = repository.revision(s, act.revision_id)
+    item = s.get(ContentItem, rev.item_id) if rev else None
+    if rev is None or item is None or item.published_revision_id != rev.id:
+        return None
+    passage_id = (act.stimulus or {}).get("passage")
+    return {
+        "item": {
+            "id": str(item.id),
+            "kind": item.kind,
+            "slug": item.slug,
+            "title": rev.body["title"],
+            "unit": unit_ref(s, item, rev.body),
+        },
+        "activity": student_activity(act, "review"),
+        "passages": [p for p in rev.body.get("passages", []) if p.get("id") == passage_id],
+    }
