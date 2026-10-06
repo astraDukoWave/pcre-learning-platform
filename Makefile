@@ -13,7 +13,7 @@ TEST_DATABASE_URL ?= postgresql+psycopg://pcre:pcre@$(DB_HOST)/pcre_test
 MIGCHECK_DATABASE_URL ?= postgresql+psycopg://pcre:pcre@$(DB_HOST)/pcre_migcheck
 UV_RUN := cd $(BACKEND) && uv run --locked
 
-.PHONY: help setup db-up db-reset migrate dev dev-backend dev-frontend test lint typecheck migrations-check openapi frontend-check contract-check content-lint content-import verify
+.PHONY: help setup db-up db-reset migrate dev dev-backend dev-frontend test lint typecheck migrations-check openapi frontend-check contract-check content-lint content-import e2e verify
 
 help:
 	@grep -E '^[a-z-]+:.*?## ' $(MAKEFILE_LIST) | awk -F':.*?## ' '{printf "  %-18s %s\n", $$1, $$2}'
@@ -44,8 +44,8 @@ test: ## pytest contra PostgreSQL (sin red ni llaves)
 	$(UV_RUN) env DATABASE_URL=$(TEST_DATABASE_URL) APP_ENV=test pytest
 
 lint: ## ruff (check y format), import-linter y actionlint
-	$(UV_RUN) ruff check .
-	$(UV_RUN) ruff format --check .
+	$(UV_RUN) ruff check . ../../e2e ../../scripts
+	$(UV_RUN) ruff format --check . ../../e2e ../../scripts
 	$(UV_RUN) lint-imports
 	$(UV_RUN) actionlint -no-color ../../.github/workflows/*.yml
 
@@ -70,6 +70,10 @@ content-lint: ## Lint del contenido y regenera docs/contenido/cobertura.md
 
 content-import: ## Importa borradores a DATABASE_URL (nunca aprueba ni publica)
 	$(UV_RUN) python -m app.cli content import --dir ../../content
+
+e2e: ## E2E con Playwright contra el build servido por FastAPI (en la CI; local con Chromium)
+	cd $(FRONTEND) && npm run build
+	$(UV_RUN) --group e2e pytest ../../e2e -p no:cacheprovider
 
 verify: lint typecheck test migrations-check content-lint frontend-check contract-check ## Todo lo anterior: el check previo a un PR
 	@echo "make verify: OK"

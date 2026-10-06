@@ -44,7 +44,10 @@ make content-import    # importa borradores a DATABASE_URL (nunca aprueba ni pub
 make verify            # todo lo anterior: el check previo a un PR
 ```
 
-Se suma en su change set: `e2e` (CS-05). La release phase de Heroku corre
+`make e2e` (Playwright en Python) corre en la CI; en la sesión cloud, con
+`PW_CHROMIUM_EXECUTABLE=/opt/pw-browsers/chromium-1194/chrome-linux/chrome`.
+`python -m app.cli dev-seed` (solo dev/test) crea cuentas de prueba y publica el contenido
+con el revisor `fixture:dev`. La release phase de Heroku corre
 `python -m app.cli release` (migración + importación de `CONTENT_DIR`). La imagen de
 producción se prueba con `scripts/ci/image-smoke.sh` (job `image`; necesita Docker y
 acceso a los repositorios de Debian). En la sesión cloud, el hook `SessionStart`

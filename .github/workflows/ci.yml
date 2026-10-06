@@ -44,9 +44,9 @@ jobs:
       - name: Dependencias
         run: uv sync --locked
       - name: ruff check
-        run: uv run --locked ruff check .
+        run: uv run --locked ruff check . ../../e2e ../../scripts
       - name: ruff format
-        run: uv run --locked ruff format --check .
+        run: uv run --locked ruff format --check . ../../e2e ../../scripts
       - name: mypy
         run: uv run --locked mypy app tests import_contracts.py ../../scripts/openapi/export.py ../../scripts/ci/heroku_cmd.py
       - name: import-linter
@@ -168,6 +168,56 @@ jobs:
       - name: OpenAPI y tipos sin diferencias
         run: scripts/ci/contract-check.sh
 
+  e2e:
+    name: e2e
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: pcre
+          POSTGRES_PASSWORD: pcre
+          POSTGRES_DB: pcre_e2e
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U pcre -d pcre_e2e"
+          --health-interval 5s --health-timeout 5s --health-retries 20
+    env:
+      E2E_DATABASE_URL: postgresql+psycopg://pcre:pcre@127.0.0.1:5432/pcre_e2e
+    steps:
+      - uses: actions/checkout@v5
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+          cache-dependency-glob: apps/backend/uv.lock
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: apps/frontend/package-lock.json
+      - name: Dependencias
+        run: |
+          (cd apps/backend && uv sync --locked --group e2e)
+          (cd apps/frontend && npm ci --no-audit --no-fund)
+      - name: Build del frontend
+        working-directory: apps/frontend
+        run: npm run build
+      - name: Chromium de Playwright
+        working-directory: apps/backend
+        run: uv run --locked --group e2e playwright install --with-deps chromium
+      - name: E2E (proveedores falsos, base de prueba)
+        working-directory: apps/backend
+        run: uv run --locked --group e2e pytest ../../e2e -p no:cacheprovider
+      - name: Trazas, capturas y log del servidor
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-traces
+          path: test-results/
+          retention-days: 7
+
   image:
     name: image
     runs-on: ubuntu-latest
@@ -187,7 +237,7 @@ jobs:
   ci-gate:
     name: ci-gate
     if: always()
-    needs: [backend, migrations, content, frontend, contract, image, workflows]
+    needs: [backend, migrations, content, frontend, contract, e2e, image, workflows]
     runs-on: ubuntu-latest
     timeout-minutes: 2
     steps:
