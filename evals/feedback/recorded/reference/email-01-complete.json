@@ -1,0 +1,12 @@
+{
+  "status": "evaluable",
+  "reason": null,
+  "observations": [
+    {
+      "criterion": "register",
+      "evidence": "Thank you,",
+      "observation_es": "El cierre es correcto, aunque muy breve para un correo a una institución.",
+      "suggestion_es": "Puedes cerrar con «Thank you for your help. Best regards,» para sonar más completo."
+    }
+  ]
+}

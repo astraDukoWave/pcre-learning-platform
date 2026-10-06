@@ -1,0 +1,9 @@
+id: int-01-complete
+task: u1-interview
+category: correcta
+learner_text: Sure. I'm a nurse and I work at a clinic in Puebla. In my free time I like to cook. For
+  example, last Sunday I made enchiladas for my family and everybody loved them.
+expected_status: evaluable
+must_not_flag:
+- I'm a nurse
+must_mention_criteria: []

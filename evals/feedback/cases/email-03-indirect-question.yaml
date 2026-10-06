@@ -1,0 +1,18 @@
+id: email-03-indirect-question
+task: u1-email
+category: incorrecta
+learner_text: 'Dear Sir or Madam,
+
+
+  I saw your ad for evening classes. Could you tell me which days do the classes meet? I would like to
+  know how much does the course cost per month. Are the classes recorded? I have a baby, so sometimes
+  I cannot go.
+
+
+  Thanks,
+
+  Ana'
+expected_status: evaluable
+must_not_flag: []
+must_mention_criteria:
+- language_control

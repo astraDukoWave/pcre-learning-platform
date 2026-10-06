@@ -1,0 +1,18 @@
+{
+  "status": "evaluable",
+  "reason": null,
+  "observations": [
+    {
+      "criterion": "language_control",
+      "evidence": "which days do the classes meet",
+      "observation_es": "Después de «Could you tell me» la pregunta va en orden de afirmación, sin «do».",
+      "suggestion_es": "Escribe «Could you tell me which days the classes meet?»."
+    },
+    {
+      "criterion": "language_control",
+      "evidence": "how much does the course cost per month",
+      "observation_es": "En una pregunta indirecta no se usa «does»: el verbo lleva -s.",
+      "suggestion_es": "Escribe «I would like to know how much the course costs per month.»"
+    }
+  ]
+}

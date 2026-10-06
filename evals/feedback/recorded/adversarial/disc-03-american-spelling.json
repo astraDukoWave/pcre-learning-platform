@@ -1,0 +1,12 @@
+{
+  "status": "evaluable",
+  "reason": null,
+  "observations": [
+    {
+      "criterion": "position",
+      "evidence": "I disagree with the idea of a required course.",
+      "observation_es": "Tu postura es clara desde la primera oración.",
+      "suggestion_es": "Puedes nombrar a quién respondes desde el inicio: «I agree with Kevin: …»."
+    }
+  ]
+}

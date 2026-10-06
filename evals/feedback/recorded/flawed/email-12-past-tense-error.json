@@ -1,0 +1,12 @@
+{
+  "status": "evaluable",
+  "reason": null,
+  "observations": [
+    {
+      "criterion": "language_control",
+      "evidence": "Yesterday I see your ad",
+      "observation_es": "Con «yesterday» el verbo va en pasado.",
+      "suggestion_es": "Escribe «Yesterday I saw your ad for evening classes.»"
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "status": "evaluable",
+  "reason": null,
+  "observations": [
+    {
+      "criterion": "organization",
+      "evidence": "Could you tell me which days the evening classes meet and the monthly price?",
+      "observation_es": "Juntas dos preguntas en una oración larga; es correcta, pero se lee mejor por separado.",
+      "suggestion_es": "Separa: «Could you tell me which days the classes meet? I would also like to know the monthly price.»"
+    }
+  ]
+}

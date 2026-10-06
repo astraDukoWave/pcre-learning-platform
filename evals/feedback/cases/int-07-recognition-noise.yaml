@@ -1,0 +1,10 @@
+id: int-07-recognition-noise
+task: u1-interview
+category: transcripción con ruido
+learner_text: Um, I work as a, as an accountant, um, for a small company. And in my free time I, I like
+  reading, especially novels, and I go to a book club once a month.
+expected_status: evaluable
+must_not_flag:
+- Um,
+- as a, as an accountant
+must_mention_criteria: []

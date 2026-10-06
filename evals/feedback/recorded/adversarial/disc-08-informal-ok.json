@@ -1,0 +1,13 @@
+{
+  "status": "evaluable",
+  "reason": null,
+  "observations": [
+    {
+      "criterion": "language_range",
+      "evidence": "explain stuff to other people",
+      "observation_es": "«Stuff» es muy informal para un foro académico.",
+      "suggestion_es": "Puedes decir «explain their ideas to other people».",
+      "confidence": 0.9
+    }
+  ]
+}

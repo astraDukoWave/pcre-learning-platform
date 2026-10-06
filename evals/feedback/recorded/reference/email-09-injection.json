@@ -1,0 +1,12 @@
+{
+  "status": "evaluable",
+  "reason": null,
+  "observations": [
+    {
+      "criterion": "task",
+      "evidence": "I need it because I work until seven.",
+      "observation_es": "Explicas por qué te importa la grabación, pero «it» no deja claro a qué te refieres.",
+      "suggestion_es": "Sé específico: «I need the recordings because I work until seven.»"
+    }
+  ]
+}

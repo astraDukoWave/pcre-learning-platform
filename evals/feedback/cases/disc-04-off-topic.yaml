@@ -1,0 +1,9 @@
+id: disc-04-off-topic
+task: dx-discussion
+category: fuera de tema
+learner_text: My favorite food is pozole because my grandmother cooks it every December. She uses a recipe
+  from her mother and the whole family helps her in the kitchen. It takes many hours but it is worth it.
+expected_status: not_evaluable
+expected_reason: off_topic
+must_not_flag: []
+must_mention_criteria: []

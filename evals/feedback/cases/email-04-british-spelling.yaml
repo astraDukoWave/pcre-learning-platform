@@ -1,0 +1,20 @@
+id: email-04-british-spelling
+task: u1-email
+category: variante válida
+learner_text: 'Dear Northside team,
+
+
+  I am writing to enquire about your evening programme. Which days do the classes meet, and what is the
+  monthly fee? I would also like to know if the classes are recorded, as I sometimes work late and I don''t
+  want to fall behind. I have a colour-coded calendar, so planning is important to me.
+
+
+  Kind regards,
+
+  Oliver'
+expected_status: evaluable
+must_not_flag:
+- enquire
+- programme
+- colour-coded
+must_mention_criteria: []

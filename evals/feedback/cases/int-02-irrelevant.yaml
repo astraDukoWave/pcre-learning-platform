@@ -1,0 +1,9 @@
+id: int-02-irrelevant
+task: u1-interview
+category: incorrecta
+learner_text: The weather in my city is very hot in May. Sometimes it rains in the afternoon and the streets
+  are full of water. I don't like the traffic when it rains.
+expected_status: evaluable
+must_not_flag: []
+must_mention_criteria:
+- relevance

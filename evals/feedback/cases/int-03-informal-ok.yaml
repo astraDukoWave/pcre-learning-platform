@@ -1,0 +1,11 @@
+id: int-03-informal-ok
+task: u1-interview
+category: variante válida
+learner_text: Yeah, so I'm a designer at a small studio. When I'm not working I'm kinda into cycling,
+  like I go out with friends every Saturday morning, and we usually stop for coffee after.
+expected_status: evaluable
+must_not_flag:
+- Yeah
+- kinda
+- I'm a designer
+must_mention_criteria: []
