@@ -1,3 +1,4 @@
+import { lazy, Suspense } from "react";
 import { createBrowserRouter, type RouteObject } from "react-router";
 import { ContentList } from "../features/admin/content/ContentList";
 import { RevisionDetail } from "../features/admin/content/RevisionDetail";
@@ -16,12 +17,19 @@ import { Home } from "../pages/Home";
 import { Login } from "../pages/Login";
 import { NotFound } from "../pages/NotFound";
 import { Onboarding } from "../pages/Onboarding";
-import { Privacy } from "../pages/Privacy";
 import { Profile } from "../pages/Profile";
 import { ResetPassword } from "../pages/ResetPassword";
 import { Welcome } from "../pages/Welcome";
 import { Layout } from "./Layout";
 import { RouteError } from "./RouteError";
+
+// Las páginas legales cargan `react-markdown` aparte: no pesan en el bundle inicial.
+const LegalPage = lazy(() => import("../pages/LegalPage").then((m) => ({ default: m.LegalPage })));
+const legal = (doc: "privacidad" | "terminos" | "como-funciona") => (
+  <Suspense fallback={<p>Cargando…</p>}>
+    <LegalPage doc={doc} />
+  </Suspense>
+);
 
 const auth = (element: React.ReactNode) => <RequireAuth>{element}</RequireAuth>;
 const admin = (element: React.ReactNode) => <RequireAuth admin>{element}</RequireAuth>;
@@ -35,7 +43,9 @@ export const routes: RouteObject[] = [
       { path: "entrar", element: <Login /> },
       { path: "aceptar", element: <AcceptInvite /> },
       { path: "restablecer", element: <ResetPassword /> },
-      { path: "privacidad", element: <Privacy /> },
+      { path: "privacidad", element: legal("privacidad") },
+      { path: "terminos", element: legal("terminos") },
+      { path: "como-funciona", element: legal("como-funciona") },
       { path: "bienvenida", element: auth(<Onboarding />) },
       { path: "inicio", element: auth(<Home />) },
       { path: "perfil", element: auth(<Profile />) },

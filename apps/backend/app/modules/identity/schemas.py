@@ -112,3 +112,10 @@ class LinkOut(BaseModel):
 
 class AdminUserPatch(Strict):
     is_internal: bool
+
+
+class LegalOut(BaseModel):
+    """Versión vigente del aviso (la que se acepta) y contacto de privacidad (REQ-17)."""
+
+    consent_version: str
+    privacy_contact_email: str

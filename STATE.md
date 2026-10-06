@@ -100,6 +100,10 @@ Ninguna.
   log `diagnostic_reset` con el `user_ref` del admin. Un ítem cuyo audio no cargó se guarda
   con `audio_failed` y queda "no evaluable (audio)" fuera del denominador (EDGE-07).
 
+- **NI-04 · `GET /api/v1/legal`** (CS-10). REQ-17 pide mostrar en el aviso el contacto de
+  `PRIVACY_CONTACT_EMAIL`, que vive en la configuración del servidor. Ruta pública de solo
+  lectura con `consent_version` y ese contacto; no estaba en la tabla de rutas.
+
 ## Loop humano vigente
 
 1. Lanzar la sesión cloud con el prompt del §2 de `claude/prompts-arranque.md`

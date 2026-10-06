@@ -92,3 +92,9 @@
   cursor: pointer;
   min-height: 44px;
 }
+
+.legal {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
