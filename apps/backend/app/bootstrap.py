@@ -9,9 +9,14 @@ from sqlalchemy import Engine
 
 from app.core.clock import Clock, OffsetClock, SystemClock
 from app.core.config import Settings
+from app.core.security import Passwords
 from app.db.engine import create_db_engine
 from app.db.session import make_sessionmaker
 from app.db.uow import UnitOfWorkFactory
+from app.modules.identity.domain import SlidingWindowLimiter
+
+# Login: 5 intentos por minuto y 20 por hora, por email y por IP (§7).
+LOGIN_LIMITS = ((5, 60), (20, 3600))
 
 
 @dataclass
@@ -20,6 +25,10 @@ class Container:
     uow: UnitOfWorkFactory
     clock: Clock
     engine: Engine | None = None
+    passwords: Passwords = field(default_factory=Passwords)
+    login_limiter: SlidingWindowLimiter = field(
+        default_factory=lambda: SlidingWindowLimiter(LOGIN_LIMITS)
+    )
     extras: dict[str, Any] = field(default_factory=dict)
 
 

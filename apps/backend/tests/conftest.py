@@ -28,6 +28,7 @@ from sqlalchemy.orm import Session
 from app.bootstrap import Container
 from app.core.clock import FakeClock
 from app.core.config import BACKEND_DIR, Settings
+from app.core.security import Passwords
 from app.db.engine import create_db_engine
 from app.db.session import make_sessionmaker
 from app.db.uow import UnitOfWorkFactory
@@ -97,9 +98,12 @@ def clock() -> FakeClock:
     return FakeClock()
 
 
+FAST_PASSWORDS = Passwords(fast=True)
+
+
 @pytest.fixture
 def container(settings: Settings, uow: UnitOfWorkFactory, clock: FakeClock) -> Container:
-    return Container(settings=settings, uow=uow, clock=clock)
+    return Container(settings=settings, uow=uow, clock=clock, passwords=FAST_PASSWORDS)
 
 
 @pytest.fixture
@@ -115,3 +119,6 @@ def client(app: FastAPI) -> Iterator[TestClient]:
 
 def backend_path(*parts: str) -> Path:
     return BACKEND_DIR.joinpath(*parts)
+
+
+pytest_plugins = ["tests.helpers"]

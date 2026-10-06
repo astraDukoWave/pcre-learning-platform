@@ -37,7 +37,8 @@ def spa(container: Container, dist: Path, media: Path) -> Iterator[TestClient]:
     settings = container.settings.model_copy(update={"frontend_dist": dist, "media_dir": media})
     container.settings = settings
     app = create_app(settings, container=container)
-    with TestClient(app, base_url="https://testserver") as client:
+    origin = {"Origin": "http://localhost:5173"}
+    with TestClient(app, base_url="https://testserver", headers=origin) as client:
         yield client
 
 
