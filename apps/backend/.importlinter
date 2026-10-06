@@ -1,0 +1,28 @@
+[importlinter]
+root_packages =
+    app
+include_external_packages = True
+contract_types =
+    pcre_layers: import_contracts.PcreLayersContract
+
+[importlinter:contract:domain-purity]
+name = Regla 1: domain sin frameworks, base de datos ni adaptadores
+type = pcre_layers
+rule = domain_purity
+
+[importlinter:contract:service-no-http]
+name = Regla 2: service sin FastAPI, Starlette ni routers
+type = pcre_layers
+rule = service_no_http
+
+[importlinter:contract:router-no-persistence]
+name = Regla 3: router sin models ni repository
+type = pcre_layers
+rule = router_no_persistence
+
+[importlinter:contract:cross-module]
+name = Regla 4: entre módulos solo service, domain o ports
+type = pcre_layers
+rule = cross_module
+allow =
+    app.modules.identity.data_registry -> *.models

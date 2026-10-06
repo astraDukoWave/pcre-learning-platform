@@ -1,0 +1,34 @@
+"""Único punto de composición: construye adaptadores y servicios desde `Settings`."""
+
+from __future__ import annotations
+
+from dataclasses import dataclass, field
+from typing import Any
+
+from sqlalchemy import Engine
+
+from app.core.clock import Clock, OffsetClock, SystemClock
+from app.core.config import Settings
+from app.db.engine import create_db_engine
+from app.db.session import make_sessionmaker
+from app.db.uow import UnitOfWorkFactory
+
+
+@dataclass
+class Container:
+    settings: Settings
+    uow: UnitOfWorkFactory
+    clock: Clock
+    engine: Engine | None = None
+    extras: dict[str, Any] = field(default_factory=dict)
+
+
+def build_container(settings: Settings) -> Container:
+    engine = create_db_engine(settings)
+    clock: Clock = OffsetClock() if settings.test_clock_active else SystemClock()
+    return Container(
+        settings=settings,
+        uow=UnitOfWorkFactory(make_sessionmaker(engine)),
+        clock=clock,
+        engine=engine,
+    )
