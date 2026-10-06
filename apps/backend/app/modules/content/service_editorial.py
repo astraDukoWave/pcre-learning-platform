@@ -416,6 +416,16 @@ class EditorialService:
                 a.id for a in repository.activities_of(s, rev.id)
             }:
                 raise NotFound()
+            if attempt_id is not None:
+                # Solo un intento propio (y de esa actividad): un recurso ajeno o inexistente
+                # responde 404 sin revelar si existe (NFR-01, EDGE-06).
+                owner = repository.attempt_owner(s, attempt_id)
+                if (
+                    owner is None
+                    or owner[0] != user_id
+                    or (activity_id is not None and owner[1] != activity_id)
+                ):
+                    raise NotFound()
             report = ContentReport(
                 id=uuid.uuid4(),
                 user_id=user_id,
