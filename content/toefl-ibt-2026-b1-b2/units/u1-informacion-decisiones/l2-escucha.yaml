@@ -49,11 +49,11 @@ activities:
       - "Escucha qué palabra marca un cambio."
     support_es: "«Instead of nine» significa «en lugar de las nueve»."
     options:
-      - {id: a, text: "To explain a change in the library's closing time."}
-      - {id: b, text: "To invite students to try the new study rooms.", why_es: "Las salas de estudio no son nuevas: el aviso dice que siguen abiertas hasta las ocho."}
-      - {id: c, text: "To ask students to help with the repair work.", why_es: "La reparación es la causa del cambio; no se pide ayuda."}
+      - {id: a, text: "To invite students to try the new study rooms.", why_es: "Las salas de estudio no son nuevas: el aviso dice que siguen abiertas hasta las ocho."}
+      - {id: b, text: "To ask students to help with the repair work.", why_es: "La reparación es la causa del cambio; no se pide ayuda."}
+      - {id: c, text: "To explain a change in the library's closing time."}
       - {id: d, text: "To remind students that their books are due today.", why_es: "Se habla de devolver libros, pero no de una fecha límite."}
-    correct: [a]
+    correct: [c]
     explanation_es: "El aviso dice que la biblioteca «will close at six p.m. today instead of nine»: el propósito es avisar el cambio de hora y su causa (la reparación)."
   - key: u1.l2.p2
     format: choice
@@ -69,11 +69,11 @@ activities:
       - "La instrucción empieza con «If you have books to return…»."
     support_es: "«Next to the main entrance» significa «junto a la entrada principal»."
     options:
-      - {id: a, text: "Leave them in the box next to the main entrance."}
-      - {id: b, text: "Take them to the second floor before six.", why_es: "En el segundo piso hay reparaciones."}
+      - {id: a, text: "Take them to the second floor before six.", why_es: "En el segundo piso hay reparaciones."}
+      - {id: b, text: "Leave them in the box next to the main entrance."}
       - {id: c, text: "Bring them to the study rooms on the first floor.", why_es: "Las salas siguen abiertas, pero no son para devolver libros."}
       - {id: d, text: "Wait until the library opens again tomorrow.", why_es: "El aviso no dice que haya que esperar."}
-    correct: [a]
+    correct: [b]
     explanation_es: "«If you have books to return, please use the box next to the main entrance»: el verbo de la instrucción es use."
   - key: u1.l2.p3
     format: choice
@@ -94,7 +94,7 @@ activities:
       - {id: c, text: "Yes, I have been to the airport many times.", why_es: "«Do you know» aquí pide la hora, no si conoces el aeropuerto."}
       - {id: d, text: "The airport has two terminals.", why_es: "Es un dato del aeropuerto, no la hora del autobús."}
     correct: [a]
-    explanation_es: "«Do you know what time…?» pide una hora. Solo la opción a la da (ten fifteen)."
+    explanation_es: "«Do you know what time…?» pide una hora. Solo una respuesta la da (ten fifteen)."
   - key: u1.l2.p4
     format: choice
     task_family: listen_choose_response
@@ -109,11 +109,11 @@ activities:
       - "«Would you mind…?» pregunta si te molesta hacer algo."
     support_es: "Te piden cerrar la ventana porque hace un poco de frío."
     options:
-      - {id: a, text: "Not at all. I'll close it now."}
-      - {id: b, text: "Yes, the window is open.", why_es: "Con «Would you mind…?», responder «Yes» significaría que sí te molesta."}
-      - {id: c, text: "No, it isn't cold outside today.", why_es: "Habla del clima de afuera y no responde a la petición."}
-      - {id: d, text: "I don't mind the cold weather.", why_es: "Habla de tu gusto por el frío, no de cerrar la ventana."}
-    correct: [a]
+      - {id: a, text: "Yes, the window is open.", why_es: "Con «Would you mind…?», responder «Yes» significaría que sí te molesta."}
+      - {id: b, text: "No, it isn't cold outside today.", why_es: "Habla del clima de afuera y no responde a la petición."}
+      - {id: c, text: "I don't mind the cold weather.", why_es: "Habla de tu gusto por el frío, no de cerrar la ventana."}
+      - {id: d, text: "Not at all. I'll close it now."}
+    correct: [d]
     explanation_es: "Para aceptar una petición con «Would you mind…?» se dice «Not at all» (no me molesta) y se ofrece hacerlo."
   - key: u1.l2.r1
     format: choice
@@ -126,11 +126,11 @@ activities:
       audio: u1-l2-aviso-feria
       transcript: "Good morning, everyone, and welcome to the Career Fair. Please note that the talk about job interviews has moved from Room 3 to the main hall, and it will now start at eleven instead of ten thirty. If you want a free review of your résumé, sign up at the information desk before noon. Lunch will be served in the cafeteria from one o'clock. Enjoy the fair."
     options:
-      - {id: a, text: "The talk about job interviews has a new room and a later start."}
-      - {id: b, text: "The career fair will finish at noon.", why_es: "Noon es el límite para apuntarse a la revisión del currículum."}
+      - {id: a, text: "The career fair will finish at noon.", why_es: "Noon es el límite para apuntarse a la revisión del currículum."}
+      - {id: b, text: "The talk about job interviews has a new room and a later start."}
       - {id: c, text: "Lunch will be served in the main hall.", why_es: "La comida es en la cafetería; el salón principal es para la plática."}
       - {id: d, text: "The résumé reviews have been canceled.", why_es: "Siguen: hay que apuntarse antes del mediodía."}
-    correct: [a]
+    correct: [b]
     explanation_es: "«The talk… has moved from Room 3 to the main hall, and it will now start at eleven instead of ten thirty»: cambian el lugar y la hora."
   - key: u1.l2.r2
     format: choice
@@ -143,11 +143,11 @@ activities:
       audio: u1-l2-aviso-feria
       transcript: "Good morning, everyone, and welcome to the Career Fair. Please note that the talk about job interviews has moved from Room 3 to the main hall, and it will now start at eleven instead of ten thirty. If you want a free review of your résumé, sign up at the information desk before noon. Lunch will be served in the cafeteria from one o'clock. Enjoy the fair."
     options:
-      - {id: a, text: "Sign up at the information desk before noon."}
-      - {id: b, text: "Go to Room 3 at ten thirty.", why_es: "Room 3 y las diez y media eran el lugar y la hora anteriores de la plática."}
+      - {id: a, text: "Go to Room 3 at ten thirty.", why_es: "Room 3 y las diez y media eran el lugar y la hora anteriores de la plática."}
+      - {id: b, text: "Sign up at the information desk before noon."}
       - {id: c, text: "Bring their résumé to the cafeteria at one.", why_es: "A la una empieza la comida en la cafetería."}
       - {id: d, text: "Send their résumé by email before the fair.", why_es: "El aviso no menciona el correo."}
-    correct: [a]
+    correct: [b]
     explanation_es: "«If you want a free review of your résumé, sign up at the information desk before noon»: sign up es la instrucción y before noon, el límite."
   - key: u1.l2.r3
     format: choice
@@ -165,7 +165,7 @@ activities:
       - {id: c, text: "Once a week is enough for me.", why_es: "Habla de frecuencia, no de costo."}
       - {id: d, text: "Yes, I go there every month.", why_es: "«How much» no se responde con sí o no."}
     correct: [a]
-    explanation_es: "«How much is…?» pregunta un precio: la opción a da una cantidad."
+    explanation_es: "«How much is…?» pregunta un precio: la respuesta adecuada da una cantidad."
   - key: u1.l2.r4
     format: choice
     task_family: listen_choose_response
@@ -177,9 +177,9 @@ activities:
       audio: u1-l2-respuesta-4
       transcript: "Sorry, I didn't catch your name. Could you say it again?"
     options:
-      - {id: a, text: "Sure, it's Mariana. M-A-R-I-A-N-A."}
-      - {id: b, text: "I didn't catch it either.", why_es: "La otra persona pregunta por tu nombre: tú sí lo sabes."}
-      - {id: c, text: "My name is very common in Mexico.", why_es: "Comenta el nombre, pero no lo repite."}
+      - {id: a, text: "I didn't catch it either.", why_es: "La otra persona pregunta por tu nombre: tú sí lo sabes."}
+      - {id: b, text: "My name is very common in Mexico.", why_es: "Comenta el nombre, pero no lo repite."}
+      - {id: c, text: "Sure, it's Mariana. M-A-R-I-A-N-A."}
       - {id: d, text: "Yes, I can say it.", why_es: "Responde de forma literal y no repite el nombre."}
-    correct: [a]
+    correct: [c]
     explanation_es: "«I didn't catch your name» significa que no se entendió el nombre; la respuesta adecuada lo repite y, si ayuda, lo deletrea."

@@ -106,11 +106,12 @@ def test_invalid_content_writes_nothing(
 def test_activities_split_public_and_private_columns(imported: Path, db: Session) -> None:
     act = db.scalar(select(Activity).where(Activity.activity_key == "u1.l1.p1"))
     assert act is not None
+    # Las opciones se guardan en un orden determinista por actividad, no en el del archivo.
     assert act.options == {
         "options": [
+            {"id": "c", "text": "Neither course, option 1"},
             {"id": "a", "text": "Course A, option 1"},
             {"id": "b", "text": "Course B, option 1"},
-            {"id": "c", "text": "Neither course, option 1"},
         ],
         "multiple": False,
     }

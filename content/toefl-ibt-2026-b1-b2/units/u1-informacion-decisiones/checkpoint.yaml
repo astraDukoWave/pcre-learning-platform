@@ -34,11 +34,11 @@ activities:
     prompt_en: "Which class is the best fit for Daniel?"
     stimulus: {passage: cp1}
     options:
-      - {id: a, text: "Beginner Yoga on Monday or Wednesday."}
-      - {id: b, text: "Advanced Yoga on Tuesday or Thursday.", why_es: "Daniel dice que es nuevo en yoga."}
+      - {id: a, text: "Advanced Yoga on Tuesday or Thursday.", why_es: "Daniel dice que es nuevo en yoga."}
+      - {id: b, text: "Beginner Yoga on Monday or Wednesday."}
       - {id: c, text: "Any morning class before work.", why_es: "Las clases se cambian de la mañana a la tarde."}
       - {id: d, text: "None, because the classes start before he can arrive.", why_es: "Sale a las 6:00 y camina 20 minutos: llega a las 6:20, antes de las 6:30."}
-    correct: [a]
+    correct: [b]
     explanation_es: "Daniel es principiante y puede llegar a las 6:20 p.m.; Beginner Yoga es lunes y miércoles de 6:30 a 7:30 p.m."
   - key: u1.cp.r2
     format: choice
@@ -49,11 +49,11 @@ activities:
     prompt_en: "How much will Daniel's sister pay for her first class?"
     stimulus: {passage: cp1}
     options:
-      - {id: a, text: "Nothing, because she would be his free guest for the month."}
-      - {id: b, text: "8 dollars, because all guests pay per class.", why_es: "Solo pagan los invitados después del primero del mes."}
+      - {id: a, text: "8 dollars, because all guests pay per class.", why_es: "Solo pagan los invitados después del primero del mes."}
+      - {id: b, text: "Nothing, because she would be his free guest for the month."}
       - {id: c, text: "15 dollars, the price for one class.", why_es: "Quince es el número máximo de personas por clase."}
       - {id: d, text: "It depends on whether she brings her own mat.", why_es: "Las colchonetas no tienen costo en el aviso."}
-    correct: [a]
+    correct: [b]
     explanation_es: "«Members can bring one guest per month for free» y la hermana nunca ha ido: sería su invitada gratuita del mes."
   - key: u1.cp.r3
     format: word_completion

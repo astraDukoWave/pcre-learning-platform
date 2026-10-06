@@ -64,11 +64,11 @@ activities:
       - "Compara los días de cada curso con «weekday evenings»."
     support_es: "Valeria trabaja de lunes a viernes hasta las 5 p.m. y los sábados cuida a su sobrino."
     options:
-      - {id: a, text: "Course A, because it meets on three weekday evenings."}
-      - {id: b, text: "Course B, because it is on Saturday, when she does not work.", why_es: "Valeria no trabaja el sábado, pero ese día cuida a su sobrino."}
-      - {id: c, text: "Both courses, because she can choose any day.", why_es: "Su nota limita los días: solo puede entre semana por la noche."}
-      - {id: d, text: "Neither course, because both start before 5 p.m.", why_es: "Course A empieza a las 7:00 p.m., después de su trabajo."}
-    correct: [a]
+      - {id: a, text: "Course B, because it is on Saturday, when she does not work.", why_es: "Valeria no trabaja el sábado, pero ese día cuida a su sobrino."}
+      - {id: b, text: "Both courses, because she can choose any day.", why_es: "Su nota limita los días: solo puede entre semana por la noche."}
+      - {id: c, text: "Neither course, because both start before 5 p.m.", why_es: "Course A empieza a las 7:00 p.m., después de su trabajo."}
+      - {id: d, text: "Course A, because it meets on three weekday evenings."}
+    correct: [d]
     explanation_es: "Valeria solo puede estudiar entre semana por la noche. Course A es lunes, miércoles y jueves de 7:00 a 8:30 p.m.; Course B es el sábado, el día en que cuida a su sobrino."
   - key: u1.l1.p2
     format: choice
@@ -82,11 +82,11 @@ activities:
       - "Busca la palabra «miss» en la descripción de Course A."
     support_es: "«Miss a class» significa faltar a una clase."
     options:
-      - {id: a, text: "Watch a recording of the class at home."}
-      - {id: b, text: "Borrow a book from the center's library.", why_es: "La biblioteca aparece en Course B, no en Course A."}
-      - {id: c, text: "Join the Saturday group for that week.", why_es: "El anuncio no ofrece cambiar de grupo."}
+      - {id: a, text: "Borrow a book from the center's library.", why_es: "La biblioteca aparece en Course B, no en Course A."}
+      - {id: b, text: "Join the Saturday group for that week.", why_es: "El anuncio no ofrece cambiar de grupo."}
+      - {id: c, text: "Watch a recording of the class at home."}
       - {id: d, text: "Repeat the placement interview.", why_es: "La entrevista es para estudiantes nuevos, antes de la primera clase."}
-    correct: [a]
+    correct: [c]
     explanation_es: "Course A «includes recordings of every class, so you can review a lesson at home if you miss it»."
   - key: u1.l1.p3
     format: choice
@@ -100,11 +100,11 @@ activities:
       - "Busca «fee» en la descripción de Course B."
     support_es: "«Fee» es la cuota o el costo."
     options:
-      - {id: a, text: "70 dollars"}
-      - {id: b, text: "95 dollars", why_es: "Es el costo de Course A."}
+      - {id: a, text: "95 dollars", why_es: "Es el costo de Course A."}
+      - {id: b, text: "70 dollars"}
       - {id: c, text: "18 dollars", why_es: "Dieciocho es el máximo de estudiantes por grupo, no un precio."}
       - {id: d, text: "28 dollars", why_es: "El 28 es el día en que cierran las inscripciones."}
-    correct: [a]
+    correct: [b]
     explanation_es: "En Course B: «The fee is 70 dollars a month». Los otros números del texto son otro curso, un límite de personas y una fecha."
   - key: u1.l1.p4
     format: choice
@@ -119,11 +119,11 @@ activities:
       - "Compara el tamaño de los grupos."
     support_es: "Valeria dice que aprende mejor en grupos pequeños porque le gusta preguntar."
     options:
-      - {id: a, text: "Its small groups give her more chances to ask questions."}
-      - {id: b, text: "It is the only course with a library.", why_es: "La biblioteca es de Course B."}
+      - {id: a, text: "It is the only course with a library.", why_es: "La biblioteca es de Course B."}
+      - {id: b, text: "Its small groups give her more chances to ask questions."}
       - {id: c, text: "Its classes are longer than the Saturday classes.", why_es: "Cada clase de Course A dura 1.5 horas; la de Course B, 4 horas."}
       - {id: d, text: "It does not need a placement interview.", why_es: "La entrevista es para todos los estudiantes nuevos."}
-    correct: [a]
+    correct: [b]
     explanation_es: "Valeria «learns best in small groups because she likes to ask questions», y Course A tiene un máximo de ocho estudiantes frente a dieciocho en Course B."
   - key: u1.l1.p5
     format: word_completion
@@ -152,10 +152,10 @@ activities:
     prompt_en: "Which option fits Tomás's schedule?"
     stimulus: {passage: p2}
     options:
-      - {id: a, text: "The Lunch Club, because it ends before he starts work."}
-      - {id: b, text: "Online Evenings, because he can join from home.", why_es: "Las clases en línea son de 8 a 9 p.m., cuando Tomás está trabajando."}
-      - {id: c, text: "Both options, because he works only in the afternoon.", why_es: "Trabaja hasta las 10 p.m., así que la noche no le sirve."}
-    correct: [a]
+      - {id: a, text: "Online Evenings, because he can join from home.", why_es: "Las clases en línea son de 8 a 9 p.m., cuando Tomás está trabajando."}
+      - {id: b, text: "Both options, because he works only in the afternoon.", why_es: "Trabaja hasta las 10 p.m., así que la noche no le sirve."}
+      - {id: c, text: "The Lunch Club, because it ends before he starts work."}
+    correct: [c]
     explanation_es: "Tomás trabaja de 2 p.m. a 10 p.m. El Lunch Club termina a la 1:30 p.m.; Online Evenings es de 8 a 9 p.m., en su horario de trabajo."
   - key: u1.l1.r2
     format: choice
@@ -181,11 +181,11 @@ activities:
     prompt_en: "What does Online Evenings offer that the Lunch Club does not mention?"
     stimulus: {passage: p2}
     options:
-      - {id: a, text: "A short written quiz at the end of every class."}
-      - {id: b, text: "Conversation practice in pairs.", why_es: "Las conversaciones en parejas son del Lunch Club."}
-      - {id: c, text: "Free classes for everyone.", why_es: "Online Evenings cuesta 60 dollars al mes."}
+      - {id: a, text: "Conversation practice in pairs.", why_es: "Las conversaciones en parejas son del Lunch Club."}
+      - {id: b, text: "Free classes for everyone.", why_es: "Online Evenings cuesta 60 dollars al mes."}
+      - {id: c, text: "A short written quiz at the end of every class."}
       - {id: d, text: "Groups of ten people.", why_es: "Los grupos de diez son del Lunch Club."}
-    correct: [a]
+    correct: [c]
     explanation_es: "Solo Online Evenings dice «Every class ends with a short written quiz»."
   - key: u1.l1.r4
     format: choice
@@ -196,11 +196,11 @@ activities:
     prompt_en: "Apart from the schedule, which detail suggests the Lunch Club suits Tomás better?"
     stimulus: {passage: p2}
     options:
-      - {id: a, text: "He wants to practice speaking with people face to face."}
-      - {id: b, text: "He has a computer at home for video classes.", why_es: "Tomás dice que solo tiene su teléfono."}
-      - {id: c, text: "He is a student at Riverside.", why_es: "Tomás dice que no es estudiante de Riverside."}
+      - {id: a, text: "He has a computer at home for video classes.", why_es: "Tomás dice que solo tiene su teléfono."}
+      - {id: b, text: "He is a student at Riverside.", why_es: "Tomás dice que no es estudiante de Riverside."}
+      - {id: c, text: "He wants to practice speaking with people face to face."}
       - {id: d, text: "He prefers written quizzes to conversation.", why_es: "Dice lo contrario: quiere hablar, no escribir."}
-    correct: [a]
+    correct: [c]
     explanation_es: "Tomás quiere «practice speaking with people face to face», y el Lunch Club es presencial con conversaciones en parejas."
   - key: u1.l1.r5
     format: word_completion
