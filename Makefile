@@ -6,19 +6,21 @@ SHELL := /bin/bash
 -include .env
 
 BACKEND := apps/backend
+FRONTEND := apps/frontend
 DB_HOST ?= 127.0.0.1:5432
 export DATABASE_URL ?= postgresql+psycopg://pcre:pcre@$(DB_HOST)/pcre
 TEST_DATABASE_URL ?= postgresql+psycopg://pcre:pcre@$(DB_HOST)/pcre_test
 MIGCHECK_DATABASE_URL ?= postgresql+psycopg://pcre:pcre@$(DB_HOST)/pcre_migcheck
 UV_RUN := cd $(BACKEND) && uv run --locked
 
-.PHONY: help setup db-up db-reset migrate dev test lint typecheck migrations-check verify
+.PHONY: help setup db-up db-reset migrate dev dev-backend dev-frontend test lint typecheck migrations-check openapi frontend-check contract-check verify
 
 help:
 	@grep -E '^[a-z-]+:.*?## ' $(MAKEFILE_LIST) | awk -F':.*?## ' '{printf "  %-18s %s\n", $$1, $$2}'
 
-setup: ## Instala dependencias (uv sync; npm ci cuando exista el frontend)
+setup: ## Instala dependencias (uv sync y npm ci)
 	cd $(BACKEND) && uv sync --locked
+	cd $(FRONTEND) && npm ci --no-audit --no-fund
 
 db-up: ## Arranca PostgreSQL y crea rol y bases (idempotente)
 	scripts/dev/db.sh up
@@ -29,8 +31,14 @@ db-reset: ## Vacía la base de desarrollo y la migra a head
 migrate: ## alembic upgrade head sobre DATABASE_URL
 	$(UV_RUN) alembic upgrade head
 
-dev: ## Backend con recarga en :8000
+dev: ## Backend :8000 + Vite :5173 (proxy de /api, /ws y /media)
+	$(MAKE) -j2 dev-backend dev-frontend
+
+dev-backend:
 	$(UV_RUN) uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
+
+dev-frontend:
+	cd $(FRONTEND) && npm run dev
 
 test: ## pytest contra PostgreSQL (sin red ni llaves)
 	$(UV_RUN) env DATABASE_URL=$(TEST_DATABASE_URL) APP_ENV=test pytest
@@ -42,10 +50,20 @@ lint: ## ruff (check y format), import-linter y actionlint
 	$(UV_RUN) actionlint -no-color ../../.github/workflows/*.yml
 
 typecheck: ## mypy estricto
-	$(UV_RUN) mypy app tests import_contracts.py
+	$(UV_RUN) mypy app tests import_contracts.py ../../scripts/openapi/export.py ../../scripts/ci/heroku_cmd.py
 
 migrations-check: ## Migraciones: vacía→head, legado→head, alembic check, downgrade/upgrade
 	DATABASE_URL=$(MIGCHECK_DATABASE_URL) scripts/dev/migrations-check.sh
 
-verify: lint typecheck test migrations-check ## Todo lo anterior: el check previo a un PR
+openapi: ## Exporta docs/api/openapi.json y regenera los tipos del frontend
+	$(UV_RUN) python ../../scripts/openapi/export.py
+	cd $(FRONTEND) && npm run gen:api
+
+frontend-check: ## Frontend: typecheck, ESLint, Vitest y build
+	cd $(FRONTEND) && npm run typecheck && npm run lint && npm test && npm run build
+
+contract-check: ## OpenAPI y tipos sin diferencias con el código
+	scripts/ci/contract-check.sh
+
+verify: lint typecheck test migrations-check frontend-check contract-check ## Todo lo anterior: el check previo a un PR
 	@echo "make verify: OK"

@@ -1,0 +1,29 @@
+.note {
+  border-left: 3px solid var(--note);
+  padding: var(--space-2) var(--space-3);
+  margin: var(--space-3) 0;
+  background: color-mix(in srgb, var(--note) 6%, var(--surface));
+}
+
+.ok {
+  border-left-color: var(--ok);
+  background: color-mix(in srgb, var(--ok) 6%, var(--surface));
+}
+
+.title {
+  font-weight: 700;
+  margin-bottom: var(--space-1);
+  color: var(--note);
+}
+
+.ok .title {
+  color: var(--ok);
+}
+
+.icon {
+  font-weight: 400;
+}
+
+.body > :last-child {
+  margin-bottom: 0;
+}

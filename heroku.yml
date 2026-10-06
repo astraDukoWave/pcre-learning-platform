@@ -1,0 +1,11 @@
+# Heroku (Cedar, stack container). El deploy lo hace .github/workflows/deploy.yml tras la
+# aprobación del environment `production` (G1); nadie despliega a mano desde una sesión.
+build:
+  docker:
+    web: Dockerfile
+release:
+  image: web
+  command:
+    - alembic upgrade head
+run:
+  web: uvicorn app.main:app --host 0.0.0.0 --port $PORT --workers 1 --proxy-headers --forwarded-allow-ips '*' --ws-max-size 1048576 --ws-max-queue 8 --ws-per-message-deflate false

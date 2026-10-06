@@ -36,11 +36,15 @@ make test              # pytest contra pcre_test (sin red: pytest-socket)
 make lint              # ruff check + format, import-linter y actionlint
 make typecheck         # mypy estricto
 make migrations-check  # vacía→head, legado+seed→head, alembic check, downgrade/upgrade
+make openapi           # docs/api/openapi.json + apps/frontend/src/api/schema.d.ts
+make frontend-check    # tsc, ESLint, Vitest y build del frontend
+make contract-check    # OpenAPI y tipos sin diferencias con el código
 make verify            # todo lo anterior: el check previo a un PR
 ```
 
-Se suman en su change set: `content-lint` (CS-04), `openapi` y frontend en `verify`
-(CS-02), `e2e` (CS-05). En la sesión cloud, el hook `SessionStart`
+Se suman en su change set: `content-lint` (CS-04) y `e2e` (CS-05). La imagen de
+producción se prueba con `scripts/ci/image-smoke.sh` (job `image`; necesita Docker y
+acceso a los repositorios de Debian). En la sesión cloud, el hook `SessionStart`
 (`scripts/dev/cloud-session-start.sh`) arranca PostgreSQL, crea el rol `pcre` y las bases
 `pcre`, `pcre_test` y `pcre_migcheck`, y corre `uv sync`. Fuera de la nube, `make db-up`
 usa `docker-compose.yml` (solo el servicio `db`).

@@ -11,6 +11,7 @@ dependencies = [
     "sqlalchemy>=2.0.43",
     "psycopg[binary]>=3.2",
     "alembic>=1.16",
+    "pyyaml>=6.0",
 ]
 
 [dependency-groups]
@@ -23,6 +24,7 @@ dev = [
     "import-linter>=2.5",
     "actionlint-py>=1.7",
     "httpx2>=2.13.1",
+    "types-pyyaml>=6.0.12.20260906",
 ]
 
 [tool.uv]

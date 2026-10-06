@@ -48,7 +48,7 @@ jobs:
       - name: ruff format
         run: uv run --locked ruff format --check .
       - name: mypy
-        run: uv run --locked mypy app tests import_contracts.py
+        run: uv run --locked mypy app tests import_contracts.py ../../scripts/openapi/export.py ../../scripts/ci/heroku_cmd.py
       - name: import-linter
         run: uv run --locked lint-imports
       - name: pytest
@@ -98,10 +98,73 @@ jobs:
         working-directory: apps/backend
         run: uv run --locked actionlint -color ../../.github/workflows/*.yml
 
+  frontend:
+    name: frontend
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: apps/frontend
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: apps/frontend/package-lock.json
+      - name: Dependencias
+        run: npm ci --no-audit --no-fund
+      - name: typecheck
+        run: npm run typecheck
+      - name: ESLint
+        run: npm run lint
+      - name: Vitest
+        run: npm test
+      - name: build
+        run: npm run build
+
+  contract:
+    name: contract
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+          cache-dependency-glob: apps/backend/uv.lock
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: apps/frontend/package-lock.json
+      - name: Dependencias
+        run: |
+          (cd apps/backend && uv sync --locked)
+          (cd apps/frontend && npm ci --no-audit --no-fund)
+      - name: OpenAPI y tipos sin diferencias
+        run: scripts/ci/contract-check.sh
+
+  image:
+    name: image
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+          cache-dependency-glob: apps/backend/uv.lock
+      - name: Dependencias (lectura de heroku.yml)
+        working-directory: apps/backend
+        run: uv sync --locked
+      - name: Build, release y run.web de heroku.yml, sondas y grep del bundle
+        run: scripts/ci/image-smoke.sh
+
   ci-gate:
     name: ci-gate
     if: always()
-    needs: [backend, migrations, workflows]
+    needs: [backend, migrations, frontend, contract, image, workflows]
     runs-on: ubuntu-latest
     timeout-minutes: 2
     steps:
