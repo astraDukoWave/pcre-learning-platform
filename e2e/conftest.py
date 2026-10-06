@@ -208,8 +208,14 @@ def playwright() -> Iterator[Playwright]:
 @pytest.fixture(scope="session")
 def browser(playwright: Playwright) -> Iterator[Browser]:
     executable = os.environ.get("PW_CHROMIUM_EXECUTABLE") or None
-    # Micrófono falso (solo para los contextos con permiso) y audio sin gesto previo.
-    args = ["--use-fake-device-for-media-stream", "--autoplay-policy=no-user-gesture-required"]
+    # Micrófono falso con el permiso concedido (en Chrome Headless Shell, el de la CI, sin
+    # `fake-ui` getUserMedia no funciona) y audio sin gesto previo. La denegación se simula
+    # por página (`deny_microphone`).
+    args = [
+        "--use-fake-device-for-media-stream",
+        "--use-fake-ui-for-media-stream",
+        "--autoplay-policy=no-user-gesture-required",
+    ]
     browser = playwright.chromium.launch(executable_path=executable, args=args)
     yield browser
     browser.close()
@@ -231,8 +237,8 @@ class Contexts:
         self.browser, self.server, self.name, self.viewport = browser, server, name, viewport
         self.opened: list[tuple[str, BrowserContext]] = []
 
-    def new_page(self, who: str, permissions: list[str] | None = None) -> Page:
-        kwargs = {"base_url": self.server.url, "permissions": permissions or []}
+    def new_page(self, who: str) -> Page:
+        kwargs = {"base_url": self.server.url}
         if self.viewport:
             kwargs["viewport"] = self.viewport  # type: ignore[assignment]
         context = self.browser.new_context(**kwargs)  # type: ignore[arg-type]
@@ -309,9 +315,18 @@ def cli_invite(server: Server, email: str) -> str:
     return f"/aceptar#t={found.group(1)}"
 
 
-def new_student(contexts: Contexts, email: str, permissions: list[str] | None = None) -> Page:
+def new_student(contexts: Contexts, email: str) -> Page:
     """Cuenta nueva por invitación: cada prueba con su alumno, sin depender del orden."""
     link = cli_invite(contexts.server, email)
-    page = contexts.new_page(email.split("@", maxsplit=1)[0], permissions)
+    page = contexts.new_page(email.split("@", maxsplit=1)[0])
     accept(page, link)
     return page
+
+
+def deny_microphone(page: Page) -> None:
+    """Desde la siguiente navegación, getUserMedia rechaza como cuando la persona niega el
+    permiso (`NotAllowedError`), igual en Chromium y en Chrome Headless Shell."""
+    page.context.add_init_script(
+        "navigator.mediaDevices.getUserMedia = () => "
+        "Promise.reject(new DOMException('Permission denied', 'NotAllowedError'));"
+    )

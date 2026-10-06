@@ -6,7 +6,7 @@ from __future__ import annotations
 
 import re
 
-from conftest import Contexts, new_student
+from conftest import Contexts, deny_microphone, new_student
 from playwright.sync_api import Page, expect
 
 PATH = "/ruta"
@@ -124,7 +124,7 @@ def test_listening_counts_plays_and_serves_the_transcript(contexts: Contexts) ->
 
 def test_speaking_records_locally_and_handles_a_denied_microphone(contexts: Contexts) -> None:
     title = "Presentarte y hablar de tu rutina"
-    page = new_student(contexts, "formatos.habla@example.com", permissions=["microphone"])
+    page = new_student(contexts, "formatos.habla@example.com")
     uploads: list[str] = []
     page.on("request", lambda r: uploads.append(r.url) if r.method == "POST" else None)
     open_item(page, title)
@@ -139,6 +139,7 @@ def test_speaking_records_locally_and_handles_a_denied_microphone(contexts: Cont
     assert all("/api/v1/" in u for u in uploads), uploads  # el audio no se sube
 
     denied = new_student(contexts, "formatos.sinmicro@example.com")
+    deny_microphone(denied)
     open_item(denied, title)
     press(denied, "Grabar")
     press(denied, "Grabar ya")
