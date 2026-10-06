@@ -57,7 +57,7 @@ anotan en el registro; cualquier otra desviación queda `pending-human`.
 | Ciclo | CS | Rama | PR | SHA mergeado | Run de CI | Evidencia | Fecha |
 |---|---|---|---|---|---|---|---|
 | — | paquete G0 | `docs/sdd-mvp-specs` | [#2](https://github.com/astraDukoWave/pcre-learning-platform/pull/2) | `a642934` | sin CI (la crea CS-01) | aprobación de Jonathan (G0) | 5 oct 2026 |
-| MVP-01 | CS-01 · base y CI | `ci/mvp01-cs01-base` | [#3](https://github.com/astraDukoWave/pcre-learning-platform/pull/3) | se completa al mergear | se completa al terminar | `make verify` exit 0 en el PR | 6 oct 2026 |
+| MVP-01 | CS-01 · base y CI | `ci/mvp01-cs01-base` | [#3](https://github.com/astraDukoWave/pcre-learning-platform/pull/3) | `1e47bdb` (head `c078788`) | [37393819247](https://github.com/astraDukoWave/pcre-learning-platform/actions/runs/37393819247) ✅ backend, migrations, workflows, ci-gate | `make verify` exit 0 `[verified-this-session]` · CI `[ci-run]` | 6 oct 2026 |
 
 ## Desviaciones
 
