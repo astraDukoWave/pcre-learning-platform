@@ -59,11 +59,22 @@ anotan en el registro; cualquier otra desviación queda `pending-human`.
 | — | paquete G0 | `docs/sdd-mvp-specs` | [#2](https://github.com/astraDukoWave/pcre-learning-platform/pull/2) | `a642934` | sin CI (la crea CS-01) | aprobación de Jonathan (G0) | 5 oct 2026 |
 | MVP-01 | CS-01 · base y CI | `ci/mvp01-cs01-base` | [#3](https://github.com/astraDukoWave/pcre-learning-platform/pull/3) | `1e47bdb` (head `c078788`) | [37393819247](https://github.com/astraDukoWave/pcre-learning-platform/actions/runs/37393819247) ✅ backend, migrations, workflows, ci-gate | `make verify` exit 0 `[verified-this-session]` · CI `[ci-run]` | 6 oct 2026 |
 | MVP-01 | CS-02 · frontend e imagen | `feat/mvp01-cs02-frontend-image` | [#4](https://github.com/astraDukoWave/pcre-learning-platform/pull/4) | `c61fa9b` (head `e518a4e`) | [37394717138](https://github.com/astraDukoWave/pcre-learning-platform/actions/runs/37394717138) ✅ 7 jobs + ci-gate | `make verify` exit 0; imagen con sondas AC-17 y grep AC-18 en el job `image` `[ci-run]` | 6 oct 2026 |
-| MVP-01 | CS-03 · identidad | `feat/mvp01-cs03-identity` | [#5](https://github.com/astraDukoWave/pcre-learning-platform/pull/5) | se completa al mergear | se completa al terminar | `make verify` exit 0 (129 pruebas de backend); verificador independiente antes del merge | 6 oct 2026 |
+| MVP-01 | CS-03 · identidad | `feat/mvp01-cs03-identity` | [#5](https://github.com/astraDukoWave/pcre-learning-platform/pull/5) | `e0ce77b` (head `fcff1d2`) | [37396602133](https://github.com/astraDukoWave/pcre-learning-platform/actions/runs/37396602133) ✅ 7 jobs + ci-gate | `make verify` exit 0 (137 pruebas); [verificador independiente](https://github.com/astraDukoWave/pcre-learning-platform/pull/5#issuecomment-6006957824): 0 bloqueantes, 5 menores corregidos en `fcff1d2` | 6 oct 2026 |
+| MVP-01 | CS-04 · contenido y editorial | `feat/mvp01-cs04-content` | [#6](https://github.com/astraDukoWave/pcre-learning-platform/pull/6) | se completa al mergear | se completa al terminar | `make verify` exit 0 (188 pruebas); verificador independiente antes del merge | 6 oct 2026 |
 
 ## Desviaciones
 
 Ninguna.
+
+## Notas de interpretación (no cambian alcance; confirmación opcional de Jonathan)
+
+- **NI-01 · Bloque PCRE en el DTO de la lección** (verificador de CS-04, PR #6). La lección
+  muestra su explicación breve PCRE (patrón, concepto, reglas, dos ejemplos y tarea de
+  aplicación) antes de practicar: el contrato §5 la exige como contenido de la lección.
+  AC-08 se aplica a lo que es de cada ítem: su `explanation_es`, su clave, variantes,
+  pistas, apoyo, transcripción, ejemplo (`example`, la ayuda de REQ-11) y rúbrica, que solo
+  viajan después de enviar o por `POST /aids`. Regla editorial asociada: el patrón y los
+  ejemplos de la explicación no deben resolver un ítem (lista de revisión, contrato §12).
 
 ## Loop humano vigente
 

@@ -39,10 +39,13 @@ make migrations-check  # vacía→head, legado+seed→head, alembic check, downg
 make openapi           # docs/api/openapi.json + apps/frontend/src/api/schema.d.ts
 make frontend-check    # tsc, ESLint, Vitest y build del frontend
 make contract-check    # OpenAPI y tipos sin diferencias con el código
+make content-lint      # lint del contenido + docs/contenido/cobertura.md
+make content-import    # importa borradores a DATABASE_URL (nunca aprueba ni publica)
 make verify            # todo lo anterior: el check previo a un PR
 ```
 
-Se suman en su change set: `content-lint` (CS-04) y `e2e` (CS-05). La imagen de
+Se suma en su change set: `e2e` (CS-05). La release phase de Heroku corre
+`python -m app.cli release` (migración + importación de `CONTENT_DIR`). La imagen de
 producción se prueba con `scripts/ci/image-smoke.sh` (job `image`; necesita Docker y
 acceso a los repositorios de Debian). En la sesión cloud, el hook `SessionStart`
 (`scripts/dev/cloud-session-start.sh`) arranca PostgreSQL, crea el rol `pcre` y las bases

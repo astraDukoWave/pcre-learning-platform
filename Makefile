@@ -13,7 +13,7 @@ TEST_DATABASE_URL ?= postgresql+psycopg://pcre:pcre@$(DB_HOST)/pcre_test
 MIGCHECK_DATABASE_URL ?= postgresql+psycopg://pcre:pcre@$(DB_HOST)/pcre_migcheck
 UV_RUN := cd $(BACKEND) && uv run --locked
 
-.PHONY: help setup db-up db-reset migrate dev dev-backend dev-frontend test lint typecheck migrations-check openapi frontend-check contract-check verify
+.PHONY: help setup db-up db-reset migrate dev dev-backend dev-frontend test lint typecheck migrations-check openapi frontend-check contract-check content-lint content-import verify
 
 help:
 	@grep -E '^[a-z-]+:.*?## ' $(MAKEFILE_LIST) | awk -F':.*?## ' '{printf "  %-18s %s\n", $$1, $$2}'
@@ -65,5 +65,11 @@ frontend-check: ## Frontend: typecheck, ESLint, Vitest y build
 contract-check: ## OpenAPI y tipos sin diferencias con el código
 	scripts/ci/contract-check.sh
 
-verify: lint typecheck test migrations-check frontend-check contract-check ## Todo lo anterior: el check previo a un PR
+content-lint: ## Lint del contenido y regenera docs/contenido/cobertura.md
+	$(UV_RUN) python -m app.cli content lint --dir ../../content --coverage ../../docs/contenido/cobertura.md
+
+content-import: ## Importa borradores a DATABASE_URL (nunca aprueba ni publica)
+	$(UV_RUN) python -m app.cli content import --dir ../../content
+
+verify: lint typecheck test migrations-check content-lint frontend-check contract-check ## Todo lo anterior: el check previo a un PR
 	@echo "make verify: OK"
