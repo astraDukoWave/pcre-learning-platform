@@ -14,4 +14,5 @@ learner_text: 'Dear Northside,
 expected_status: evaluable
 must_not_flag: []
 must_mention_criteria:
-- task
+- organization
+max_observations: 3

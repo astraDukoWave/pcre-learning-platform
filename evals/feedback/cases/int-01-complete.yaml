@@ -5,5 +5,6 @@ learner_text: Sure. I'm a nurse and I work at a clinic in Puebla. In my free tim
   example, last Sunday I made enchiladas for my family and everybody loved them.
 expected_status: evaluable
 must_not_flag:
-- I'm a nurse
+- I'm
 must_mention_criteria: []
+max_observations: 3

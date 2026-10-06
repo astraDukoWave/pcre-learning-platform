@@ -9,3 +9,4 @@ must_not_flag:
 - program
 - center
 must_mention_criteria: []
+max_observations: 3

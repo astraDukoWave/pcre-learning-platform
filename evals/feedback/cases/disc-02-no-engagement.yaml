@@ -8,3 +8,4 @@ expected_status: evaluable
 must_not_flag: []
 must_mention_criteria:
 - engagement
+max_observations: 3

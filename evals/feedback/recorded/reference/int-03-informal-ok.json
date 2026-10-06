@@ -3,10 +3,10 @@
   "reason": null,
   "observations": [
     {
-      "criterion": "coherence",
-      "evidence": "like I go out with friends every Saturday morning",
-      "observation_es": "El ejemplo es claro; «like» funciona como relleno al hablar.",
-      "suggestion_es": "Para sonar más claro, prueba «For example, I go out with friends every Saturday morning»."
+      "criterion": "development",
+      "evidence": "we usually stop for coffee after",
+      "observation_es": "Das un ejemplo concreto de tu tiempo libre; falta decir por qué te gusta.",
+      "suggestion_es": "Agrega una razón: «… because it is a good way to relax and see my friends.»"
     }
   ]
 }

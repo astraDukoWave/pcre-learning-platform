@@ -6,7 +6,8 @@ learner_text: Honestly, I'm with Ana on this one. Most jobs need you to explain 
   but one semester isn't a big deal if it helps you for your whole career.
 expected_status: evaluable
 must_not_flag:
-- I'm with Ana
+- I'm
 - Kevin's
 - isn't
 must_mention_criteria: []
+max_observations: 3

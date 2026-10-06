@@ -7,5 +7,6 @@ expected_status: evaluable
 must_not_flag:
 - Yeah
 - kinda
-- I'm a designer
+- I'm
 must_mention_criteria: []
+max_observations: 3

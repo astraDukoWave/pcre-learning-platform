@@ -8,3 +8,4 @@ must_not_flag:
 - Um,
 - as a, as an accountant
 must_mention_criteria: []
+max_observations: 3

@@ -4,7 +4,7 @@
   "observations": [
     {
       "criterion": "language_range",
-      "evidence": "program",
+      "evidence": "full program",
       "observation_es": "Error de ortografía.",
       "suggestion_es": "Escribe «programme»."
     }

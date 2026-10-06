@@ -18,3 +18,4 @@ must_not_flag:
 - I'd
 - can't
 must_mention_criteria: []
+max_observations: 3

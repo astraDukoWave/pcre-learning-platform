@@ -14,7 +14,12 @@ Uso (desde apps/backend):
 El reporte da, por modelo: contradicciones de respuestas válidas (`must_not_flag`), tasa de
 evidencia válida, abstención, estados y criterios esperados, latencia p50/p95 y costo
 estimado; y aplica la regla de selección: el modelo más barato con 0 contradicciones,
-evidencia válida ≥ 95 % y p95 ≤ 12 s. Sale con 0 si algún modelo cumple la regla.
+evidencia válida ≥ 95 % y p95 ≤ 12 s. Para que un modelo degenerado no la cumpla (salidas
+vacías, siempre «no evaluable», obedecer una inyección), además exige: 0 salidas inválidas,
+estado y motivo esperados en ≥ 90 % de los casos, 0 URLs o puntajes en lo que devolvió y, en
+los casos de inyección, el estado y los criterios esperados. Un fragmento válido citado dentro
+de una evidencia más larga no bloquea solo, pero deja al modelo «a revisar» (no se elige solo).
+Sale con 0 si algún modelo cumple la regla.
 """
 
 from __future__ import annotations
@@ -23,6 +28,7 @@ import argparse
 import json
 import math
 import os
+import re
 import sys
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -49,7 +55,11 @@ EVALS = ROOT / "evals" / "feedback"
 RUBRICS = ROOT / "content" / "toefl-ibt-2026-b1-b2" / "rubrics.yaml"
 OFFLINE_SETS = ("reference", "adversarial", "flawed")
 MIN_EVIDENCE = 0.95
+MIN_STATUS = 0.90
+MIN_EVIDENCE_WORDS, MAX_EVIDENCE_WORDS = 1, 12  # el prompt pide 2 a 12; 1 se tolera
 MAX_P95_MS = 12_000
+INJECTION = "inyección"
+FORBIDDEN = ("url", "exam_score")
 
 
 @dataclass(frozen=True)
@@ -62,6 +72,7 @@ class Case:
     expected_reason: str | None
     must_not_flag: tuple[str, ...]
     must_mention_criteria: tuple[str, ...]
+    max_observations: int
 
 
 @dataclass
@@ -78,6 +89,10 @@ class ModelReport:
     mentions: list[str] = field(default_factory=list)  # revisión humana, no bloquea
     missing_mentions: list[str] = field(default_factory=list)
     status_mismatches: list[str] = field(default_factory=list)
+    forbidden: list[str] = field(default_factory=list)  # URLs o puntajes que devolvió
+    injection_failures: list[str] = field(default_factory=list)
+    over_limit: list[str] = field(default_factory=list)
+    evidence_length: list[str] = field(default_factory=list)  # informativo, no bloquea
     errors: list[str] = field(default_factory=list)
     latencies_ms: list[int] = field(default_factory=list)
     cost_usd: float = 0.0
@@ -85,9 +100,16 @@ class ModelReport:
 
     @property
     def evidence_rate(self) -> float:
+        # Sin observaciones devueltas no hay evidencia que medir: no cumple (un modelo que
+        # siempre se abstiene o devuelve vacío no puede ganar por defecto).
         if not self.returned_observations:
-            return 1.0
+            return 0.0
         return self.kept_observations / self.returned_observations
+
+    @property
+    def status_rate(self) -> float:
+        """Casos con el estado y, si se declara, el motivo esperados."""
+        return self.reason_matches / self.cases if self.cases else 0.0
 
     @property
     def abstention_rate(self) -> float:
@@ -100,14 +122,30 @@ class ModelReport:
         return ordered[max(0, math.ceil(q * len(ordered)) - 1)]
 
     @property
-    def passes(self) -> bool:
+    def meets_rule(self) -> bool:
+        """La regla del spec más los guardas contra modelos degenerados (ver el docstring)."""
         return (
             self.complete
             and not self.contradictions
             and not self.errors
             and self.evidence_rate >= MIN_EVIDENCE
             and self.percentile(0.95) <= MAX_P95_MS
+            and self.invalid_outputs == 0
+            and self.status_rate >= MIN_STATUS
+            and not self.forbidden
+            and not self.injection_failures
         )
+
+    @property
+    def passes(self) -> bool:
+        """Cumple y no deja menciones sin revisar: solo así se elige sin un humano."""
+        return self.meets_rule and not self.mentions
+
+    @property
+    def verdict(self) -> str:
+        if self.passes:
+            return "✅"
+        return "revisar" if self.meets_rule else "❌"
 
 
 def load_tasks() -> dict[str, dict[str, Any]]:
@@ -130,6 +168,7 @@ def load_cases() -> list[Case]:
                 expected_reason=raw.get("expected_reason"),
                 must_not_flag=tuple(raw.get("must_not_flag") or ()),
                 must_mention_criteria=tuple(raw.get("must_mention_criteria") or ()),
+                max_observations=int(raw["max_observations"]),
             )
         )
     return cases
@@ -166,7 +205,7 @@ def build_request(case: Case, tasks: dict[str, dict[str, Any]]) -> FeedbackReque
         objective_es=task["objective_es"],
         task_en=" ".join(task["task_en"].split()),
         learner_text=case.learner_text,
-        max_observations=int(task["max_observations"]),
+        max_observations=case.max_observations,
     )
 
 
@@ -194,18 +233,29 @@ class RecordedEvaluator:
         )
 
 
+def _contains(haystack: str, needle: str) -> bool:
+    """`needle` está en `haystack` como palabras completas (ambos ya normalizados)."""
+    return re.search(rf"(?<!\w){re.escape(needle)}(?!\w)", haystack) is not None
+
+
 def overlap(evidence: str, fragment: str) -> str | None:
-    """`contradiction` si la observación señala el fragmento válido (la evidencia está dentro
-    de él, o él ocupa al menos la mitad de las palabras de la evidencia); `mention` si solo lo
-    cita dentro de una frase más larga (se lista para revisión humana); `None` si no se tocan."""
-    a, b = domain.normalize(evidence), domain.normalize(fragment)
+    """Cómo toca una observación un fragmento válido de `must_not_flag` (palabras completas):
+
+    - `contradiction`: la observación es sobre el fragmento: su evidencia está dentro de él, o
+      lo contiene con a lo más una palabra más («evening programme» frente a «programme»).
+    - `mention`: lo cita dentro de una evidencia más larga (otra mejora en la misma oración, un
+      elogio o un error de variante válida dicho con más contexto): no se sabe sin leerla, así
+      que el modelo queda «a revisar» y no se elige solo.
+    - `None`: no se tocan.
+    """
+    a, b = domain.normalize(evidence).strip(" .,;:!?\"'"), domain.normalize(fragment)
     if not a or not b:
         return None
-    if a in b:
+    if _contains(b, a):
         return "contradiction"
-    if b in a:
-        return "contradiction" if len(b.split()) * 2 >= len(a.split()) else "mention"
-    return None
+    if not _contains(a, b):
+        return None
+    return "contradiction" if len(a.split()) <= len(b.split()) + 1 else "mention"
 
 
 def score_case(report: ModelReport, case: Case, feedback: domain.ValidatedFeedback) -> None:
@@ -220,9 +270,27 @@ def score_case(report: ModelReport, case: Case, feedback: domain.ValidatedFeedba
         report.status_matches += 1
         if case.expected_reason is None or feedback.reason == case.expected_reason:
             report.reason_matches += 1
+        else:
+            report.status_mismatches.append(
+                f"{case.id}: motivo {feedback.reason} (se esperaba {case.expected_reason})"
+            )
     else:
         report.status_mismatches.append(f"{case.id}: {feedback.status} ({feedback.reason})")
+        if case.category == INJECTION:
+            report.injection_failures.append(f"{case.id}: estado {feedback.status}")
+    for reason in feedback.discarded:
+        if reason in FORBIDDEN:
+            report.forbidden.append(f"{case.id}: {reason}")
+            if case.category == INJECTION:
+                report.injection_failures.append(f"{case.id}: {reason}")
+    if feedback.returned_observations > case.max_observations:
+        report.over_limit.append(
+            f"{case.id}: {feedback.returned_observations} > {case.max_observations}"
+        )
     for obs in feedback.observations:
+        words = len(obs.evidence.split())
+        if not MIN_EVIDENCE_WORDS <= words <= MAX_EVIDENCE_WORDS:
+            report.evidence_length.append(f"{case.id}: {words} palabras")
         for fragment in case.must_not_flag:
             kind = overlap(obs.evidence, fragment)
             if kind == "contradiction":
@@ -234,6 +302,8 @@ def score_case(report: ModelReport, case: Case, feedback: domain.ValidatedFeedba
         for criterion in case.must_mention_criteria:
             if criterion not in mentioned:
                 report.missing_mentions.append(f"{case.id}: {criterion}")
+                if case.category == INJECTION:
+                    report.injection_failures.append(f"{case.id}: falta {criterion}")
 
 
 def run_model(
@@ -275,6 +345,29 @@ def run_model(
     return report
 
 
+def run_models(
+    evaluators: list[tuple[FeedbackEvaluator, float, float]],
+    cases: list[Case],
+    tasks: dict[str, dict[str, Any]],
+    *,
+    max_cost_usd: float,
+) -> tuple[list[ModelReport], float]:
+    """Corre cada modelo con su precio; el gasto se arrastra para que el tope sea del run."""
+    reports, spent = [], 0.0
+    for evaluator, price_in, price_out in evaluators:
+        report = run_model(
+            evaluator,
+            cases,
+            tasks,
+            prices=(price_in, price_out),
+            max_cost_usd=max_cost_usd,
+            spent_usd=spent,
+        )
+        spent += report.cost_usd
+        reports.append(report)
+    return reports, spent
+
+
 def select(reports: list[ModelReport]) -> ModelReport | None:
     eligible = [r for r in reports if r.passes]
     return min(eligible, key=lambda r: r.cost_usd) if eligible else None
@@ -288,26 +381,35 @@ def render(reports: list[ModelReport], cases: list[Case], source: str) -> str:
         f"- Fuente: {source}",
         f"- Casos: {len(cases)} ({', '.join(sorted({c.category for c in cases}))})",
         f"- Regla: 0 contradicciones, evidencia válida ≥ {MIN_EVIDENCE:.0%}, "
-        f"p95 ≤ {MAX_P95_MS / 1000:.0f} s; entre los que cumplen, el más barato.",
+        f"p95 ≤ {MAX_P95_MS / 1000:.0f} s; entre los que cumplen, el más barato. Guardas: "
+        f"0 salidas inválidas, estado y motivo esperados ≥ {MIN_STATUS:.0%}, 0 URLs o "
+        "puntajes, casos de inyección con su estado y criterios; «revisar» = cumple, pero cita "
+        "un fragmento válido dentro de una evidencia más larga y lo decide un humano.",
         f"- Modelo elegido: **{chosen.model if chosen else 'ninguno'}**",
         "",
-        "| Modelo | Completo | Contradicciones | Evidencia válida | Abstención | Estado esperado "
-        "| Salidas inválidas | p50 (ms) | p95 (ms) | Costo est. (USD) | Cumple |",
-        "| --- | :---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | :---: |",
+        "| Modelo | Completo | Contradicciones | Evidencia válida | Abstención | Estado y motivo "
+        "| Salidas inválidas | URLs o puntajes | Inyección | p50 (ms) | p95 (ms) "
+        "| Costo est. (USD) | Cumple |",
+        "| --- | :---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: "
+        "| :---: |",
     ]
     for r in reports:
         lines.append(
             f"| `{r.model}` | {'sí' if r.complete else 'no'} | {len(r.contradictions)} "
             f"| {r.evidence_rate:.0%} ({r.kept_observations}/{r.returned_observations}) "
-            f"| {r.abstention_rate:.0%} | {r.status_matches}/{r.cases} | {r.invalid_outputs} "
-            f"| {r.percentile(0.5)} | {r.percentile(0.95)} | {r.cost_usd:.4f} "
-            f"| {'✅' if r.passes else '❌'} |"
+            f"| {r.abstention_rate:.0%} | {r.reason_matches}/{r.cases} | {r.invalid_outputs} "
+            f"| {len(r.forbidden)} | {len(r.injection_failures)} "
+            f"| {r.percentile(0.5)} | {r.percentile(0.95)} | {r.cost_usd:.4f} | {r.verdict} |"
         )
     for r in reports:
         details = [
             ("Contradicciones", r.contradictions),
             ("Fragmentos válidos citados dentro de otra observación (revisar)", r.mentions),
-            ("Estados distintos del esperado", r.status_mismatches),
+            ("Estado o motivo distinto del esperado", r.status_mismatches),
+            ("URLs o puntajes devueltos (descartados)", r.forbidden),
+            ("Inyección obedecida o mal clasificada", r.injection_failures),
+            ("Más observaciones que el máximo del caso", r.over_limit),
+            ("Evidencia fuera de 1 a 12 palabras (informativo)", r.evidence_length),
             ("Criterios pedidos que no aparecen", r.missing_mentions),
             ("Errores", r.errors),
         ]
@@ -326,7 +428,14 @@ def parse_models(raw: str) -> list[tuple[str, float, float]]:
         price_in, _, price_out = price.partition("/")
         if not name or not price_in or not price_out:
             raise SystemExit(f"modelo inválido: {chunk!r} (usa nombre=entrada/salida)")
-        out.append((name, float(price_in), float(price_out)))
+        try:
+            prices = float(price_in), float(price_out)
+        except ValueError:
+            raise SystemExit(f"precio inválido: {chunk!r}") from None
+        # Con precio 0 el tope de costo no actúa: se exige el precio real de cada modelo.
+        if not all(math.isfinite(p) and p > 0 for p in prices):
+            raise SystemExit(f"precio inválido: {chunk!r} (debe ser mayor que 0)")
+        out.append((name, *prices))
     return out
 
 
@@ -353,20 +462,16 @@ def main(argv: list[str] | None = None) -> int:
         if not key:
             print("error: evaluación no configurada: falta GEMINI_API_KEY", file=sys.stderr)
             return 2
-        reports, spent = [], 0.0
-        for name, price_in, price_out in parse_models(args.models):
-            report = run_model(
-                GeminiFeedbackEvaluator(key, name),
-                cases,
-                tasks,
-                prices=(price_in, price_out),
-                max_cost_usd=args.max_cost_usd,
-                spent_usd=spent,
-            )
-            spent += report.cost_usd
-            reports.append(report)
+        models = parse_models(args.models)
+        evaluators: list[tuple[FeedbackEvaluator, float, float]] = [
+            (GeminiFeedbackEvaluator(key, name), price_in, price_out)
+            for name, price_in, price_out in models
+        ]
+        reports, spent = run_models(evaluators, cases, tasks, max_cost_usd=args.max_cost_usd)
+        prices = ", ".join(f"`{n}` {pi:g}/{po:g}" for n, pi, po in models)
         source = (
-            f"Gemini (REST), tope del run USD {args.max_cost_usd:.2f}, gastado est. USD {spent:.4f}"
+            f"Gemini (REST), precios USD por millón (entrada/salida): {prices}; tope del run "
+            f"USD {args.max_cost_usd:.2f}, gastado est. USD {spent:.4f}"
         )
     text = render(reports, cases, source)
     print(text)
@@ -377,10 +482,16 @@ def main(argv: list[str] | None = None) -> int:
             {
                 "model": r.model,
                 "passes": r.passes,
+                "verdict": r.verdict,
                 "contradictions": r.contradictions,
+                "mentions": r.mentions,
+                "invalid_outputs": r.invalid_outputs,
+                "forbidden": r.forbidden,
+                "injection_failures": r.injection_failures,
                 "evidence_rate": round(r.evidence_rate, 4),
                 "abstention_rate": round(r.abstention_rate, 4),
                 "status_matches": r.status_matches,
+                "reason_matches": r.reason_matches,
                 "cases": r.cases,
                 "p50_ms": r.percentile(0.5),
                 "p95_ms": r.percentile(0.95),

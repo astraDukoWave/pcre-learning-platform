@@ -8,3 +8,4 @@ expected_status: not_evaluable
 expected_reason: off_topic
 must_not_flag: []
 must_mention_criteria: []
+max_observations: 3
