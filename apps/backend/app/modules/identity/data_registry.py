@@ -76,3 +76,26 @@ register(
         note="reportes de contenido enviados por el alumno",
     )
 )
+register(UserDataTable("enrollments", ("user_id",), export=True, note="inscripción a la ruta"))
+register(
+    UserDataTable(
+        "lesson_progress", ("user_id",), export=True, note="progreso por lección y revisión fijada"
+    )
+)
+register(UserDataTable("served_aids", ("user_id",), export=True, note="ayudas servidas"))
+register(
+    UserDataTable("attempts", ("user_id",), export=True, note="intentos: respuestas y resultados")
+)
+register(
+    UserDataTable(
+        "idempotency_records",
+        ("user_id",),
+        export=False,
+        note="registro técnico de reintentos; sin valor para el alumno",
+    )
+)
+register(
+    UserDataTable(
+        "review_schedule", ("user_id",), export=True, note="repasos programados por objetivo"
+    )
+)

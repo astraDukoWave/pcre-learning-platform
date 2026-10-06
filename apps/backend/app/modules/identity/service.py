@@ -532,6 +532,34 @@ class IdentityService:
             repository.delete_user(s, user.id)
         logger.info("account_deleted", extra={"user_ref": ref})
 
+    # -- fixtures de desarrollo -----------------------------------------------------------
+
+    def ensure_fixture_user(self, email: str, role: UserRole, password: str) -> uuid.UUID:
+        """Solo `dev-seed` en `APP_ENV` dev o test: crea (o devuelve) una cuenta de prueba."""
+        if self.settings.app_env == "prod":
+            raise ValidationFailed("dev-seed no corre en producción.", code="prod_refused")
+        normalized = _check_email(email)
+        now = self.clock.now()
+        with self.uow() as s:
+            user = repository.user_by_email(s, normalized)
+            if user is None:
+                user = User(
+                    id=uuid.uuid4(),
+                    email=normalized,
+                    password_hash=self.passwords.hash(password),
+                    role=role,
+                    consent_version=self.settings.consent_version,
+                    consent_accepted_at=now,
+                    adult_attested_at=now,
+                    onboarded_at=now,
+                    goal_purpose="unknown",
+                    target_exam="unknown",
+                    self_reported_level="unknown",
+                )
+                s.add(user)
+                s.flush()
+            return user.id
+
     # -- administración -----------------------------------------------------------------
 
     def list_users(self) -> list[AdminUserView]:

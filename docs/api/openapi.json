@@ -575,117 +575,6 @@
         }
       }
     },
-    "/api/v1/learning-paths": {
-      "get": {
-        "tags": [
-          "content"
-        ],
-        "summary": "List Paths",
-        "operationId": "list_paths_api_v1_learning_paths_get",
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "items": {
-                    "$ref": "#/components/schemas/PathOut"
-                  },
-                  "type": "array",
-                  "title": "Response List Paths Api V1 Learning Paths Get"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/learning-paths/{path_id}": {
-      "get": {
-        "tags": [
-          "content"
-        ],
-        "summary": "Path Detail",
-        "operationId": "path_detail_api_v1_learning_paths__path_id__get",
-        "parameters": [
-          {
-            "name": "path_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid",
-              "title": "Path Id"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/PathDetailOut"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/scenarios/{item_id}": {
-      "get": {
-        "tags": [
-          "content"
-        ],
-        "summary": "Scenario",
-        "operationId": "scenario_api_v1_scenarios__item_id__get",
-        "parameters": [
-          {
-            "name": "item_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid",
-              "title": "Item Id"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ItemOut"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/api/v1/content-reports": {
       "post": {
         "tags": [
@@ -727,10 +616,78 @@
         }
       }
     },
+    "/api/v1/learning-paths": {
+      "get": {
+        "tags": [
+          "practice"
+        ],
+        "summary": "List Paths",
+        "operationId": "list_paths_api_v1_learning_paths_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/PathOut"
+                  },
+                  "type": "array",
+                  "title": "Response List Paths Api V1 Learning Paths Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/learning-paths/{path_id}": {
+      "get": {
+        "tags": [
+          "practice"
+        ],
+        "summary": "Path Detail",
+        "operationId": "path_detail_api_v1_learning_paths__path_id__get",
+        "parameters": [
+          {
+            "name": "path_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Path Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PathStateOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/lessons/{item_id}": {
       "get": {
         "tags": [
-          "content"
+          "practice"
         ],
         "summary": "Lesson",
         "operationId": "lesson_api_v1_lessons__item_id__get",
@@ -752,7 +709,253 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ItemOut"
+                  "$ref": "#/components/schemas/LessonOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/scenarios/{item_id}": {
+      "get": {
+        "tags": [
+          "practice"
+        ],
+        "summary": "Scenario",
+        "operationId": "scenario_api_v1_scenarios__item_id__get",
+        "parameters": [
+          {
+            "name": "item_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Item Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LessonOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/aids": {
+      "post": {
+        "tags": [
+          "practice"
+        ],
+        "summary": "Serve Aid",
+        "operationId": "serve_aid_api_v1_aids_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AidIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AidContentOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/attempts": {
+      "post": {
+        "tags": [
+          "practice"
+        ],
+        "summary": "Submit Attempt",
+        "operationId": "submit_attempt_api_v1_attempts_post",
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 80,
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AttemptIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AttemptOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/attempts/{attempt_id}": {
+      "get": {
+        "tags": [
+          "practice"
+        ],
+        "summary": "Get Attempt",
+        "operationId": "get_attempt_api_v1_attempts__attempt_id__get",
+        "parameters": [
+          {
+            "name": "attempt_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Attempt Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AttemptSummaryOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/me/attempts": {
+      "get": {
+        "tags": [
+          "practice"
+        ],
+        "summary": "My Attempts",
+        "operationId": "my_attempts_api_v1_me_attempts_get",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "default": 50,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "before",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Before"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AttemptSummaryOut"
+                  },
+                  "title": "Response My Attempts Api V1 Me Attempts Get"
                 }
               }
             }
@@ -1430,6 +1633,67 @@
         ],
         "title": "AdminUserPatch"
       },
+      "AidContentOut": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "title": "Kind"
+          },
+          "index": {
+            "type": "integer",
+            "title": "Index"
+          },
+          "content": {
+            "type": "string",
+            "title": "Content"
+          },
+          "remaining": {
+            "type": "integer",
+            "title": "Remaining"
+          }
+        },
+        "type": "object",
+        "required": [
+          "kind",
+          "index",
+          "content",
+          "remaining"
+        ],
+        "title": "AidContentOut"
+      },
+      "AidIn": {
+        "properties": {
+          "activity_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Activity Id"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "hint",
+              "support_es",
+              "transcript",
+              "example"
+            ],
+            "title": "Kind"
+          },
+          "index": {
+            "type": "integer",
+            "maximum": 5.0,
+            "minimum": 0.0,
+            "title": "Index",
+            "default": 0
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "activity_id",
+          "kind"
+        ],
+        "title": "AidIn"
+      },
       "AidOut": {
         "properties": {
           "kind": {
@@ -1481,6 +1745,300 @@
           "content_hash"
         ],
         "title": "ApproveIn"
+      },
+      "AttemptFeedbackOut": {
+        "properties": {
+          "explanation": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Explanation"
+          },
+          "model_answer": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model Answer"
+          },
+          "model_commentary_es": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model Commentary Es"
+          },
+          "target_sentence": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target Sentence"
+          },
+          "rubric": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rubric"
+          }
+        },
+        "type": "object",
+        "title": "AttemptFeedbackOut"
+      },
+      "AttemptIn": {
+        "properties": {
+          "activity_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Activity Id"
+          },
+          "response": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Response"
+          },
+          "revision_of": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Revision Of"
+          },
+          "audio_plays": {
+            "type": "integer",
+            "maximum": 50.0,
+            "minimum": 0.0,
+            "title": "Audio Plays",
+            "default": 0
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "activity_id",
+          "response"
+        ],
+        "title": "AttemptIn"
+      },
+      "AttemptOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "activity_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Activity Id"
+          },
+          "revision_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Revision Id"
+          },
+          "mode": {
+            "type": "string",
+            "title": "Mode"
+          },
+          "evaluation_status": {
+            "type": "string",
+            "title": "Evaluation Status"
+          },
+          "evaluation_source": {
+            "type": "string",
+            "title": "Evaluation Source"
+          },
+          "score": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Score"
+          },
+          "correct": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Correct"
+          },
+          "result": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Result"
+          },
+          "aided": {
+            "type": "boolean",
+            "title": "Aided"
+          },
+          "first_attempt": {
+            "type": "boolean",
+            "title": "First Attempt"
+          },
+          "submitted_at": {
+            "type": "string",
+            "title": "Submitted At"
+          },
+          "feedback": {
+            "$ref": "#/components/schemas/AttemptFeedbackOut"
+          },
+          "lesson_completed": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lesson Completed"
+          },
+          "review_objectives": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Review Objectives"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "activity_id",
+          "revision_id",
+          "mode",
+          "evaluation_status",
+          "evaluation_source",
+          "score",
+          "correct",
+          "result",
+          "aided",
+          "first_attempt",
+          "submitted_at",
+          "feedback",
+          "lesson_completed",
+          "review_objectives"
+        ],
+        "title": "AttemptOut"
+      },
+      "AttemptSummaryOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "activity_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Activity Id"
+          },
+          "response": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Response"
+          },
+          "evaluation_status": {
+            "type": "string",
+            "title": "Evaluation Status"
+          },
+          "score": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Score"
+          },
+          "correct": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Correct"
+          },
+          "result": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Result"
+          },
+          "aided": {
+            "type": "boolean",
+            "title": "Aided"
+          },
+          "submitted_at": {
+            "type": "string",
+            "title": "Submitted At"
+          },
+          "mode": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mode"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "activity_id",
+          "response",
+          "evaluation_status",
+          "score",
+          "correct",
+          "result",
+          "aided",
+          "submitted_at"
+        ],
+        "title": "AttemptSummaryOut"
       },
       "ContentReportIn": {
         "properties": {
@@ -1761,7 +2319,75 @@
         ],
         "title": "InvitationInfoOut"
       },
-      "ItemOut": {
+      "ItemStateRefOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "kind": {
+            "type": "string",
+            "title": "Kind"
+          },
+          "slug": {
+            "type": "string",
+            "title": "Slug"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "position": {
+            "type": "integer",
+            "title": "Position"
+          },
+          "skill": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Skill"
+          },
+          "form_kind": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Form Kind"
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "not_started",
+              "in_progress",
+              "completed"
+            ],
+            "title": "State"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "kind",
+          "slug",
+          "title",
+          "position",
+          "skill",
+          "form_kind",
+          "state"
+        ],
+        "title": "ItemStateRefOut"
+      },
+      "LessonOut": {
         "properties": {
           "id": {
             "type": "string",
@@ -1951,6 +2577,27 @@
               }
             ],
             "title": "Duration Minutes"
+          },
+          "last_attempts": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/AttemptSummaryOut"
+            },
+            "type": "object",
+            "title": "Last Attempts"
+          },
+          "notice": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notice"
+          },
+          "progress": {
+            "$ref": "#/components/schemas/ProgressOut"
           }
         },
         "type": "object",
@@ -1963,67 +2610,12 @@
           "title",
           "unit",
           "objectives",
-          "activities"
+          "activities",
+          "last_attempts",
+          "notice",
+          "progress"
         ],
-        "title": "ItemOut"
-      },
-      "ItemRefOut": {
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid",
-            "title": "Id"
-          },
-          "kind": {
-            "type": "string",
-            "title": "Kind"
-          },
-          "slug": {
-            "type": "string",
-            "title": "Slug"
-          },
-          "title": {
-            "type": "string",
-            "title": "Title"
-          },
-          "position": {
-            "type": "integer",
-            "title": "Position"
-          },
-          "skill": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Skill"
-          },
-          "form_kind": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Form Kind"
-          }
-        },
-        "type": "object",
-        "required": [
-          "id",
-          "kind",
-          "slug",
-          "title",
-          "position",
-          "skill",
-          "form_kind"
-        ],
-        "title": "ItemRefOut"
+        "title": "LessonOut"
       },
       "LinkOut": {
         "properties": {
@@ -2389,51 +2981,6 @@
         ],
         "title": "PassageOut"
       },
-      "PathDetailOut": {
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid",
-            "title": "Id"
-          },
-          "code": {
-            "type": "string",
-            "title": "Code"
-          },
-          "title": {
-            "type": "string",
-            "title": "Title"
-          },
-          "label": {
-            "type": "string",
-            "title": "Label"
-          },
-          "units": {
-            "items": {
-              "$ref": "#/components/schemas/UnitOut"
-            },
-            "type": "array",
-            "title": "Units"
-          },
-          "assessments": {
-            "items": {
-              "$ref": "#/components/schemas/ItemRefOut"
-            },
-            "type": "array",
-            "title": "Assessments"
-          }
-        },
-        "type": "object",
-        "required": [
-          "id",
-          "code",
-          "title",
-          "label",
-          "units",
-          "assessments"
-        ],
-        "title": "PathDetailOut"
-      },
       "PathOut": {
         "properties": {
           "id": {
@@ -2462,6 +3009,51 @@
           "label"
         ],
         "title": "PathOut"
+      },
+      "PathStateOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "code": {
+            "type": "string",
+            "title": "Code"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "units": {
+            "items": {
+              "$ref": "#/components/schemas/UnitStateOut"
+            },
+            "type": "array",
+            "title": "Units"
+          },
+          "assessments": {
+            "items": {
+              "$ref": "#/components/schemas/ItemStateRefOut"
+            },
+            "type": "array",
+            "title": "Assessments"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "code",
+          "title",
+          "label",
+          "units",
+          "assessments"
+        ],
+        "title": "PathStateOut"
       },
       "PcreOut": {
         "properties": {
@@ -2531,6 +3123,38 @@
           "text"
         ],
         "title": "PcreRuleOut"
+      },
+      "ProgressOut": {
+        "properties": {
+          "started_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Started At"
+          },
+          "completed_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Completed At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "started_at",
+          "completed_at"
+        ],
+        "title": "ProgressOut"
       },
       "PublishIn": {
         "properties": {
@@ -2792,10 +3416,14 @@
             "title": "Checklist"
           },
           "preview_practice": {
-            "$ref": "#/components/schemas/ItemOut"
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Preview Practice"
           },
           "preview_assessment": {
-            "$ref": "#/components/schemas/ItemOut"
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Preview Assessment"
           },
           "blockers": {
             "additionalProperties": {
@@ -3110,43 +3738,6 @@
         ],
         "title": "TokenIn"
       },
-      "UnitOut": {
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid",
-            "title": "Id"
-          },
-          "slug": {
-            "type": "string",
-            "title": "Slug"
-          },
-          "title": {
-            "type": "string",
-            "title": "Title"
-          },
-          "position": {
-            "type": "integer",
-            "title": "Position"
-          },
-          "items": {
-            "items": {
-              "$ref": "#/components/schemas/ItemRefOut"
-            },
-            "type": "array",
-            "title": "Items"
-          }
-        },
-        "type": "object",
-        "required": [
-          "id",
-          "slug",
-          "title",
-          "position",
-          "items"
-        ],
-        "title": "UnitOut"
-      },
       "UnitRefOut": {
         "properties": {
           "id": {
@@ -3175,6 +3766,43 @@
           "position"
         ],
         "title": "UnitRefOut"
+      },
+      "UnitStateOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "slug": {
+            "type": "string",
+            "title": "Slug"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "position": {
+            "type": "integer",
+            "title": "Position"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ItemStateRefOut"
+            },
+            "type": "array",
+            "title": "Items"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "slug",
+          "title",
+          "position",
+          "items"
+        ],
+        "title": "UnitStateOut"
       },
       "ValidationError": {
         "properties": {

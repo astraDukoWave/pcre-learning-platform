@@ -1,5 +1,5 @@
-"""DTO HTTP de contenido. Los de alumno son listas permitidas: `response_model` descarta
-cualquier clave que el servicio no haya puesto a propósito (doble guarda de AC-08)."""
+"""DTO HTTP de contenido (panel editorial y reportes). Los DTO de alumno viven en
+`practice/schemas.py`, que compone contenido y progreso."""
 
 from __future__ import annotations
 
@@ -20,110 +20,6 @@ Format = Literal[
 
 class Strict(BaseModel):
     model_config = ConfigDict(extra="forbid")
-
-
-class AidOut(BaseModel):
-    kind: Literal["hint", "support_es", "transcript", "example"]
-    count: int
-
-
-class StimulusOut(BaseModel):
-    text_en: str | None = None
-    passage: str | None = None
-    audio_url: str | None = None
-    has_audio: bool = False
-
-
-class StudentActivityOut(BaseModel):
-    id: uuid.UUID
-    key: str
-    position: int
-    format: Format
-    task_family: str
-    pool: Literal["practice", "review", "assessment"]
-    objectives: list[str]
-    instructions_es: str
-    prompt_en: str
-    stimulus: StimulusOut | None
-    data: dict[str, Any]
-    aids: list[AidOut]
-
-
-class UnitRefOut(BaseModel):
-    id: uuid.UUID
-    slug: str
-    title: str
-    position: int
-
-
-class PcreRuleOut(BaseModel):
-    text: str
-    source: str | None = None
-    applies_when_not_es: str | None = None
-
-
-class PcreOut(BaseModel):
-    pattern: str
-    concept: str
-    rules: list[PcreRuleOut]
-    examples: list[str]
-
-
-class PassageOut(BaseModel):
-    id: str
-    title_en: str | None = None
-    text_en: str
-
-
-class ItemOut(BaseModel):
-    id: uuid.UUID
-    revision_id: uuid.UUID
-    revision_version: int
-    kind: Literal["lesson", "scenario", "assessment_form"]
-    slug: str
-    title: str
-    unit: UnitRefOut | None
-    objectives: list[str]
-    activities: list[StudentActivityOut]
-    skill: str | None = None
-    objective_es: str | None = None
-    pcre: PcreOut | None = None
-    application_task_es: str | None = None
-    passages: list[PassageOut] = Field(default_factory=list)
-    situation_es: str | None = None
-    situation_en: str | None = None
-    learner_role_en: str | None = None
-    opening_en: str | None = None
-    required_moves: list[str] = Field(default_factory=list)
-    max_seconds: int | None = None
-    form_kind: str | None = None
-    duration_minutes: int | None = None
-
-
-class PathOut(BaseModel):
-    id: uuid.UUID
-    code: str
-    title: str
-    label: str
-
-
-class ItemRefOut(BaseModel):
-    id: uuid.UUID
-    kind: str
-    slug: str
-    title: str
-    position: int
-    skill: str | None
-    form_kind: str | None
-
-
-class UnitOut(UnitRefOut):
-    items: list[ItemRefOut]
-
-
-class PathDetailOut(PathOut):
-    units: list[UnitOut]
-    assessments: list[ItemRefOut]
 
 
 class ContentReportIn(Strict):
@@ -197,8 +93,8 @@ class RevisionDetailOut(BaseModel):
     findings: list[FindingOut]
     decisions: list[dict[str, Any]]
     checklist: list[str]
-    preview_practice: ItemOut
-    preview_assessment: ItemOut
+    preview_practice: dict[str, Any]
+    preview_assessment: dict[str, Any]
     blockers: dict[str, list[str]]
 
 

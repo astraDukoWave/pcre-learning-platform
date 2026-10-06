@@ -6,7 +6,7 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-DBS=(pcre pcre_test pcre_migcheck)
+DBS=(pcre pcre_test pcre_migcheck pcre_e2e)
 
 as_postgres() {
   if [ "$(id -u)" = "0" ]; then

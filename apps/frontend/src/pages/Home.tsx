@@ -7,9 +7,8 @@ export function Home() {
   const name = me.data?.display_name;
   return (
     <Page title="Inicio" heading={name ? `Hola, ${name}` : "Inicio"}>
-      <p>Tu práctica aparecerá aquí.</p>
       <p>
-        <Link to="/perfil">Perfil</Link>
+        <Link to="/ruta">Continuar con tu ruta</Link>
       </p>
     </Page>
   );

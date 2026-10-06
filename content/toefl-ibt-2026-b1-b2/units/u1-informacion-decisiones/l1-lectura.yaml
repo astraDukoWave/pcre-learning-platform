@@ -1,0 +1,186 @@
+# U1 · L1 · Lectura (contrato curricular §13). Borrador del agente para revisión humana.
+kind: lesson
+slug: u1-l1-lectura
+unit: u1-informacion-decisiones
+position: 1
+skill: reading
+title: "Elegir un curso que encaje con tu horario"
+status: draft
+objectives: [U1.R]
+objective_es: "Localizarás horarios, costos y límites en un anuncio y harás una inferencia simple para decidir qué opción conviene a una persona."
+sources:
+  - source: ets-toefl-ibt-content
+    claim: "Read in Daily Life usa textos cotidianos breves (avisos, horarios, mensajes) con preguntas de información explícita e inferencia."
+    scope: "formato de la tarea"
+  - source: coe-cefr-global-scale
+    claim: "En B1 se entienden textos directos sobre temas cotidianos; hacia B2 se lee con autonomía según el propósito."
+    scope: "nivel del objetivo"
+pcre:
+  pattern: "from 7:00 to 8:30 p.m. · every Saturday · up to eighteen students"
+  concept: "En un anuncio, las condiciones que deciden (cuándo, cuánto cuesta, cuántas personas, qué incluye) aparecen en frases cortas con preposiciones y cantidades. Si las encuentras primero, puedes comparar dos opciones con las necesidades de una persona sin releer todo."
+  rules:
+    - text: "from … to … marca el inicio y el final de un rango (de horas o de días). Compara ese rango con el horario de la persona: si se cruza con su trabajo, la opción no encaja."
+      source: cambridge-grammar-time-prepositions
+      applies_when_not_es: "Cuando solo aparece una hora («at 7 p.m.»), es un momento, no un rango."
+    - text: "up to y a maximum of indican un límite superior: «up to eighteen students» puede ser un grupo menor, pero no mayor."
+      source: cambridge-dictionary-up-to
+      applies_when_not_es: "«Up to you» es otra expresión: significa «tú decides»."
+    - text: "Una ventaja que el anuncio menciona solo en una opción (por ejemplo, «classes are recorded») no se supone en la otra: si el texto no lo dice, no lo sabes."
+      source: ets-toefl-ibt-content
+  examples:
+    - "The gym is open from 6 a.m. to 10 p.m. on weekdays. → Puedes ir un martes a las 7 p.m., pero el texto no dice nada del domingo."
+    - "Boat tours take up to twelve people. → Un grupo de quince personas necesita dos recorridos."
+application_task_es: "Busca un anuncio real de un curso, un gimnasio o un servicio. Anota tres condiciones (horario, costo y límite) y escribe en una frase si te conviene y por qué."
+passages:
+  - id: p1
+    title_en: "Evening English at Northside Learning Center"
+    text_en: |
+      Valeria's note: I work from 9 a.m. to 5 p.m., Monday to Friday. On Saturdays I take care of my nephew, so I can only study on weekday evenings, three times a week. I learn best in small groups because I like to ask questions. Sometimes I have to stay late at work, so I need a way to catch up if I miss a class.
+
+      Course A, Conversation Plus: classes meet on Monday, Wednesday and Thursday from 7:00 to 8:30 p.m. Each group has a maximum of eight students. The fee is 95 dollars a month, and it includes recordings of every class, so you can review a lesson at home if you miss it.
+
+      Course B, Saturday Intensive: classes meet every Saturday from 9:00 a.m. to 1:00 p.m. Groups have up to eighteen students. The fee is 70 dollars a month. Students can borrow books from the center's library, but classes are not recorded.
+
+      Registration closes on the 28th. New students have a short placement interview before their first class.
+  - id: p2
+    title_en: "Language options at Riverside Community College"
+    text_en: |
+      Option 1, Lunch Club: Tuesday and Thursday, 12:30 to 1:30 p.m., in Room 4 on campus. It is free for Riverside students and costs 40 dollars a month for everyone else. Groups have ten people, and every meeting is a conversation in pairs.
+
+      Option 2, Online Evenings: Monday to Thursday, 8:00 to 9:00 p.m., with live video classes. It costs 60 dollars a month. Every class ends with a short written quiz, and teachers answer questions by email within 24 hours.
+
+      Tomás's message: I am not a Riverside student. I work at a hotel from 2 p.m. to 10 p.m., Monday to Friday, and I only have my phone, not a computer. What I really want is to practice speaking with people face to face, not to write.
+activities:
+  - key: u1.l1.p1
+    format: choice
+    task_family: read_in_daily_life
+    pool: practice
+    objectives: [U1.R]
+    instructions_es: "Lee la nota de Valeria y el anuncio. Elige la respuesta."
+    prompt_en: "Which course fits Valeria's schedule?"
+    stimulus: {passage: p1}
+    hints:
+      - "Primero marca cuándo no puede estudiar Valeria."
+      - "Compara los días de cada curso con «weekday evenings»."
+    support_es: "Valeria trabaja de lunes a viernes hasta las 5 p.m. y los sábados cuida a su sobrino."
+    options:
+      - {id: a, text: "Course A, because it meets on three weekday evenings."}
+      - {id: b, text: "Course B, because it is on Saturday, when she does not work.", why_es: "Valeria no trabaja el sábado, pero ese día cuida a su sobrino."}
+      - {id: c, text: "Both courses, because she can choose any day.", why_es: "Su nota limita los días: solo puede entre semana por la noche."}
+      - {id: d, text: "Neither course, because both start before 5 p.m.", why_es: "Course A empieza a las 7:00 p.m., después de su trabajo."}
+    correct: [a]
+    explanation_es: "Valeria solo puede estudiar entre semana por la noche. Course A es lunes, miércoles y jueves de 7:00 a 8:30 p.m.; Course B es el sábado, el día en que cuida a su sobrino."
+  - key: u1.l1.p2
+    format: choice
+    task_family: read_in_daily_life
+    pool: practice
+    objectives: [U1.R]
+    instructions_es: "Busca el dato en el anuncio."
+    prompt_en: "What can Course A students do if they miss a class?"
+    stimulus: {passage: p1}
+    hints:
+      - "Busca la palabra «miss» en la descripción de Course A."
+    support_es: "«Miss a class» significa faltar a una clase."
+    options:
+      - {id: a, text: "Watch a recording of the class at home."}
+      - {id: b, text: "Borrow a book from the center's library.", why_es: "La biblioteca aparece en Course B, no en Course A."}
+      - {id: c, text: "Join the Saturday group for that week.", why_es: "El anuncio no ofrece cambiar de grupo."}
+      - {id: d, text: "Repeat the placement interview.", why_es: "La entrevista es para estudiantes nuevos, antes de la primera clase."}
+    correct: [a]
+    explanation_es: "Course A «includes recordings of every class, so you can review a lesson at home if you miss it»."
+  - key: u1.l1.p3
+    format: choice
+    task_family: read_in_daily_life
+    pool: practice
+    objectives: [U1.R]
+    instructions_es: "Busca la cantidad exacta."
+    prompt_en: "How much does Course B cost each month?"
+    stimulus: {passage: p1}
+    hints:
+      - "Busca «fee» en la descripción de Course B."
+    support_es: "«Fee» es la cuota o el costo."
+    options:
+      - {id: a, text: "70 dollars"}
+      - {id: b, text: "95 dollars", why_es: "Es el costo de Course A."}
+      - {id: c, text: "18 dollars", why_es: "Dieciocho es el máximo de estudiantes por grupo, no un precio."}
+      - {id: d, text: "28 dollars", why_es: "El 28 es el día en que cierran las inscripciones."}
+    correct: [a]
+    explanation_es: "En Course B: «The fee is 70 dollars a month». Los otros números del texto son otro curso, un límite de personas y una fecha."
+  - key: u1.l1.p4
+    format: choice
+    task_family: read_in_daily_life
+    pool: practice
+    objectives: [U1.R]
+    instructions_es: "Esta pregunta pide una inferencia: une lo que dice Valeria con lo que ofrece el curso."
+    prompt_en: "Why might Valeria prefer Course A even though it costs more?"
+    stimulus: {passage: p1}
+    hints:
+      - "Relee qué dice Valeria sobre cómo aprende mejor."
+      - "Compara el tamaño de los grupos."
+    support_es: "Valeria dice que aprende mejor en grupos pequeños porque le gusta preguntar."
+    options:
+      - {id: a, text: "Its small groups give her more chances to ask questions."}
+      - {id: b, text: "It is the only course with a library.", why_es: "La biblioteca es de Course B."}
+      - {id: c, text: "Its classes are longer than the Saturday classes.", why_es: "Cada clase de Course A dura 1.5 horas; la de Course B, 4 horas."}
+      - {id: d, text: "It does not need a placement interview.", why_es: "La entrevista es para todos los estudiantes nuevos."}
+    correct: [a]
+    explanation_es: "Valeria «learns best in small groups because she likes to ask questions», y Course A tiene un máximo de ocho estudiantes frente a dieciocho en Course B."
+  - key: u1.l1.r1
+    format: choice
+    task_family: read_in_daily_life
+    pool: review
+    objectives: [U1.R]
+    instructions_es: "Lee el mensaje de Tomás y las opciones. Elige la respuesta."
+    prompt_en: "Which option fits Tomás's schedule?"
+    stimulus: {passage: p2}
+    options:
+      - {id: a, text: "The Lunch Club, because it ends before he starts work."}
+      - {id: b, text: "Online Evenings, because he can join from home.", why_es: "Las clases en línea son de 8 a 9 p.m., cuando Tomás está trabajando."}
+      - {id: c, text: "Both options, because he works only in the afternoon.", why_es: "Trabaja hasta las 10 p.m., así que la noche no le sirve."}
+    correct: [a]
+    explanation_es: "Tomás trabaja de 2 p.m. a 10 p.m. El Lunch Club termina a la 1:30 p.m.; Online Evenings es de 8 a 9 p.m., en su horario de trabajo."
+  - key: u1.l1.r2
+    format: choice
+    task_family: read_in_daily_life
+    pool: review
+    objectives: [U1.R]
+    instructions_es: "Busca la condición que aplica a Tomás."
+    prompt_en: "How much would the Lunch Club cost Tomás each month?"
+    stimulus: {passage: p2}
+    options:
+      - {id: a, text: "40 dollars"}
+      - {id: b, text: "Nothing, because it is free.", why_es: "Es gratis solo para estudiantes de Riverside, y Tomás dice que no lo es."}
+      - {id: c, text: "60 dollars", why_es: "Es el costo de Online Evenings."}
+      - {id: d, text: "10 dollars", why_es: "Diez es el número de personas por grupo."}
+    correct: [a]
+    explanation_es: "El Lunch Club «is free for Riverside students and costs 40 dollars a month for everyone else». Tomás escribe «I am not a Riverside student»."
+  - key: u1.l1.r3
+    format: choice
+    task_family: read_in_daily_life
+    pool: review
+    objectives: [U1.R]
+    instructions_es: "Busca lo que aparece solo en una de las opciones."
+    prompt_en: "What does Online Evenings offer that the Lunch Club does not mention?"
+    stimulus: {passage: p2}
+    options:
+      - {id: a, text: "A short written quiz at the end of every class."}
+      - {id: b, text: "Conversation practice in pairs.", why_es: "Las conversaciones en parejas son del Lunch Club."}
+      - {id: c, text: "Free classes for everyone.", why_es: "Online Evenings cuesta 60 dollars al mes."}
+      - {id: d, text: "Groups of ten people.", why_es: "Los grupos de diez son del Lunch Club."}
+    correct: [a]
+    explanation_es: "Solo Online Evenings dice «Every class ends with a short written quiz»."
+  - key: u1.l1.r4
+    format: choice
+    task_family: read_in_daily_life
+    pool: review
+    objectives: [U1.R]
+    instructions_es: "Inferencia: además del horario, ¿qué detalle de Tomás apoya la decisión?"
+    prompt_en: "Apart from the schedule, which detail suggests the Lunch Club suits Tomás better?"
+    stimulus: {passage: p2}
+    options:
+      - {id: a, text: "He wants to practice speaking with people face to face."}
+      - {id: b, text: "He has a computer at home for video classes.", why_es: "Tomás dice que solo tiene su teléfono."}
+      - {id: c, text: "He is a student at Riverside.", why_es: "Tomás dice que no es estudiante de Riverside."}
+      - {id: d, text: "He prefers written quizzes to conversation.", why_es: "Dice lo contrario: quiere hablar, no escribir."}
+    correct: [a]
+    explanation_es: "Tomás quiere «practice speaking with people face to face», y el Lunch Club es presencial con conversaciones en parejas."

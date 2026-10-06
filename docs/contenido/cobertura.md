@@ -5,12 +5,12 @@
 
 ## Resumen
 
-- Unidades con contenido: 0 de 8
-- Lecciones: 0 de 32
+- Unidades con contenido: 1 de 8
+- Lecciones: 1 de 32
 - Escenarios: 0 de 8
 - Checkpoints: 0 de 8
 - Formularios de ruta (inicial y final): 0 de 2
-- Lint: 0 errores · 0 advertencias
+- Lint: 0 errores · 1 advertencias
 
 ## Familia × pool
 
@@ -25,7 +25,7 @@
 | `listen_choose_response` | choice | pendiente | pendiente | pendiente |
 | `listen_conversation` | choice | pendiente | pendiente | pendiente |
 | `read_academic_passage` | choice | pendiente | pendiente | pendiente |
-| `read_in_daily_life` | choice | pendiente | pendiente | pendiente |
+| `read_in_daily_life` | choice | `u1.l1.p1`, `u1.l1.p2`, `u1.l1.p3`, `u1.l1.p4` | `u1.l1.r1`, `u1.l1.r2`, `u1.l1.r3`, `u1.l1.r4` | pendiente |
 | `take_an_interview` | recorded_speaking | pendiente | pendiente | pendiente |
 | `write_academic_discussion` | short_writing | pendiente | pendiente | pendiente |
 | `write_an_email` | short_writing | pendiente | pendiente | pendiente |
@@ -35,7 +35,7 @@
 | Objetivo | Descripción | practice | review | assessment | Estado |
 |---|---|---|---|---|---|
 | `U1.L` | Identificar el propósito y las instrucciones en avisos breves | 0 | 0 | 0 | pendiente |
-| `U1.R` | Localizar condiciones y datos explícitos en mensajes y horarios y hacer una inferencia simple al comparar opciones | 0 | 0 | 0 | pendiente |
+| `U1.R` | Localizar condiciones y datos explícitos en mensajes y horarios y hacer una inferencia simple al comparar opciones | 4 | 4 | 0 | pendiente |
 | `U1.S` | Presentarse y responder preguntas familiares | 0 | 0 | 0 | pendiente |
 | `U1.T` | Pedir información para resolver una gestión | 0 | 0 | 0 | pendiente |
 | `U1.W` | Construir oraciones correctas y escribir una petición clara | 0 | 0 | 0 | pendiente |
@@ -79,7 +79,7 @@
 
 | Formato | Actividades |
 |---|---|
-| `choice` | 0 |
+| `choice` | 8 |
 | `word_completion` | 0 |
 | `sentence_order` | 0 |
 | `short_writing` | 0 |
@@ -88,11 +88,13 @@
 
 ## Estado editorial por ítem (archivo)
 
-Aún no hay ítems de contenido.
+| Ítem | Tipo | Unidad | Actividades | Estado del archivo |
+|---|---|---|---|---|
+| `u1-l1-lectura` | lesson | u1-informacion-decisiones | 8 | draft |
 
 ## Pendiente
 
-- U1 · Información y decisiones cotidianas: lecciones de reading, listening, writing, speaking; escenario; checkpoint
+- U1 · Información y decisiones cotidianas: lecciones de listening, writing, speaking; escenario; checkpoint
 - U2 · Pedir y aclarar: lecciones de reading, listening, writing, speaking; escenario; checkpoint
 - U3 · Experiencias y cambios: lecciones de reading, listening, writing, speaking; escenario; checkpoint
 - U4 · Comparar y justificar: lecciones de reading, listening, writing, speaking; escenario; checkpoint
@@ -111,11 +113,11 @@ Aún no hay ítems de contenido.
 - Familia `listen_choose_response`: falta en practice, assessment
 - Familia `listen_conversation`: falta en practice, assessment
 - Familia `read_academic_passage`: falta en practice, assessment
-- Familia `read_in_daily_life`: falta en practice, assessment
+- Familia `read_in_daily_life`: falta en assessment
 - Familia `take_an_interview`: falta en practice, assessment
 - Familia `write_academic_discussion`: falta en practice, assessment
 - Familia `write_an_email`: falta en practice, assessment
 
 ## Advertencias del lint
 
-Ninguna.
+- `toefl-ibt-2026-b1-b2/units/u1-informacion-decisiones/l1-lectura.yaml`: source_pending — la fuente coe-cefr-global-scale está pendiente de consultar
