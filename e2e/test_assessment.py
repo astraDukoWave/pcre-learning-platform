@@ -8,7 +8,7 @@ from __future__ import annotations
 import re
 
 from conftest import Contexts, new_student
-from playwright.sync_api import Locator, Page, expect
+from playwright.sync_api import Locator, Page, Route, expect
 
 LABEL = "Comprobación formativa: no es un examen oficial"
 
@@ -45,12 +45,30 @@ def test_diagnostic_subset_resume_and_results(contexts: Contexts) -> None:
     page.reload()
     expect(page.get_by_text("Pregunta 2 de 16")).to_be_visible()
     page.get_by_label("Call the office to report brown water.").check()  # respuesta incorrecta
-    save_and_next(page)
 
-    # Pregunta 7 (escucha): el audio "no cargó" y queda no evaluable.
+    # Un guardado lento no mueve a la persona de la pregunta a la que ya navegó: se retiene
+    # el PUT de la pregunta 2, se va a la 7 y después se libera el guardado.
+    held: list[Route] = []
+    answers = re.compile(r".*/answers/.*")
+
+    def hold(route: Route) -> None:  # Playwright pide una función de Python, no un builtin
+        held.append(route)
+
+    page.route(answers, hold)
+    save_and_next(page)
     nav = page.get_by_role("navigation", name="Preguntas de la comprobación")
     nav.get_by_role("button", name=re.compile(r"^7")).click()
     expect(page.get_by_text("Pregunta 7 de 16")).to_be_visible()
+    for _ in range(50):  # espera explícita a que la petición quede retenida
+        if held:
+            break
+        page.wait_for_timeout(100)
+    held[0].continue_()
+    page.unroute(answers)
+    expect(nav.get_by_role("button", name=re.compile(r"^2"))).to_contain_text("✓")
+    expect(page.get_by_text("Pregunta 7 de 16")).to_be_visible()
+
+    # Pregunta 7 (escucha): el audio "no cargó" y queda no evaluable.
     page.get_by_role("button", name="No pude escuchar el audio").click()
     expect(page.get_by_text("Pregunta 8 de 16")).to_be_visible()
 
