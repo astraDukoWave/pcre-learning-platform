@@ -53,7 +53,12 @@ export const sessionMiddleware: Middleware = {
 };
 
 export function createApiClient(baseUrl: string) {
-  const client = createClient<paths>({ baseUrl, credentials: "same-origin" });
+  const client = createClient<paths>({
+    baseUrl,
+    credentials: "same-origin",
+    // `fetch` se resuelve en cada llamada (no al importar el módulo).
+    fetch: (request: Request) => globalThis.fetch(request),
+  });
   client.use(sessionMiddleware);
   return client;
 }

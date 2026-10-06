@@ -1,0 +1,18 @@
+.checks {
+  display: grid;
+  gap: var(--space-3);
+  margin: var(--space-4) 0 var(--space-5);
+}
+
+.checks label {
+  display: flex;
+  gap: var(--space-2);
+  align-items: flex-start;
+}
+
+.checks input {
+  width: 22px;
+  height: 22px;
+  margin-top: 2px;
+  flex: none;
+}
