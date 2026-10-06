@@ -36,3 +36,28 @@ def test_content_import_is_idempotent(tmp_path: Path, container: Container, db: 
 
 def test_release_migrates_and_imports_repo_content(container: Container) -> None:
     assert main(["release"], container=container) == 0
+
+
+def test_dev_seed_publishes_with_fixture_reviewer(
+    container: Container, db: Session, capsys: pytest.CaptureFixture[str]
+) -> None:
+    from app.modules.content.models import EditorialDecision
+
+    assert main(["dev-seed"], container=container) == 0
+    assert "fixture:dev" in capsys.readouterr().out
+    notes = set(db.scalars(select(EditorialDecision.note)))
+    assert notes == {"fixture:dev"}
+    published = db.scalar(
+        select(func.count())
+        .select_from(ContentRevision)
+        .where(ContentRevision.status == "published")
+    )
+    assert published and published >= 1
+
+
+def test_dev_seed_refuses_prod(container: Container) -> None:
+    prod = container.settings.model_copy(
+        update={"app_env": "prod", "app_origin": "https://x.example.com"}
+    )
+    container.settings = prod
+    assert main(["dev-seed"], container=container) == 2

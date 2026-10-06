@@ -8,6 +8,9 @@
 - `content import --dir`: importa borradores (nunca aprueba ni publica).
 - `release`: lo que corre la release phase de Heroku: `alembic upgrade head` y la
   importación de `CONTENT_DIR`. Si algo falla, termina con error y Heroku no promueve.
+- `dev-seed`: solo con `APP_ENV` dev o test (se niega en prod). Crea una cuenta admin y una
+  alumna de prueba, importa el contenido y aprueba y publica todo lo que no tenga bloqueos
+  con el revisor `fixture:dev` (visible en la bitácora del panel).
 
 Los enlaces se imprimen una sola vez; no se envían por correo.
 """
@@ -96,6 +99,42 @@ def release(container: Container) -> int:
     return content_import(container, container.settings.content_dir)
 
 
+FIXTURE_REVIEWER = "fixture:dev"
+
+
+def dev_seed(container: Container, admin_email: str, student_email: str, password: str) -> int:
+    import uuid
+
+    from app.modules.content.service_editorial import EditorialService
+
+    if container.settings.app_env == "prod":
+        print("error: dev-seed se niega a correr con APP_ENV=prod", file=sys.stderr)
+        return 2
+    identity = get_identity(container)
+    admin_id = identity.ensure_fixture_user(admin_email, UserRole.admin, password)
+    identity.ensure_fixture_user(student_email, UserRole.student, password)
+    status = content_import(container, container.settings.content_dir)
+    if status != 0:
+        return status
+    editorial = EditorialService(container.uow, container.clock)
+    published = skipped = 0
+    for row in editorial.list_revisions(status="draft"):
+        rev_id = uuid.UUID(row["id"])
+        if row["audio_pending"] or row["open_material_findings"]:
+            skipped += 1
+            continue
+        editorial.approve(
+            rev_id, by=admin_id, content_hash=row["content_hash"], note=FIXTURE_REVIEWER
+        )
+        editorial.publish(rev_id, by=admin_id, note=FIXTURE_REVIEWER)
+        published += 1
+    print(
+        f"dev-seed: admin {admin_email}, alumna {student_email}; "
+        f"{published} revisiones publicadas por {FIXTURE_REVIEWER}, {skipped} con bloqueos"
+    )
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="python -m app.cli")
     sub = parser.add_subparsers(dest="command", required=True)
@@ -107,6 +146,10 @@ def build_parser() -> argparse.ArgumentParser:
     imp = content_sub.add_parser("import", help="importa borradores")
     imp.add_argument("--dir", type=Path, required=True)
     sub.add_parser("release", help="migración + importación (release phase)")
+    seed = sub.add_parser("dev-seed", help="cuentas y contenido de prueba (dev/test)")
+    seed.add_argument("--admin-email", default="admin@example.com")
+    seed.add_argument("--student-email", default="alumna@example.com")
+    seed.add_argument("--password", default="practica-local-1")
     for name, help_text in (
         ("create-admin-invite", "invitación de administrador"),
         ("invite", "invitación de alumno"),
@@ -126,6 +169,8 @@ def main(argv: Sequence[str] | None = None, container: Container | None = None) 
         return content_import(container, args.dir)
     if args.command == "release":
         return release(container)
+    if args.command == "dev-seed":
+        return dev_seed(container, args.admin_email, args.student_email, args.password)
     handlers: dict[str, Callable[[], str]] = {
         "create-admin-invite": lambda: _invite(container, args.email, UserRole.admin),
         "invite": lambda: _invite(container, args.email, UserRole.student),
