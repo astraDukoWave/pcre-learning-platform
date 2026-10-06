@@ -33,6 +33,7 @@ export const routes: RouteObject[] = [
       { path: "perfil", element: auth(<Profile />) },
       { path: "ruta", element: auth(<PathPage />) },
       { path: "lecciones/:itemId", element: auth(<LessonPage />) },
+      { path: "escenarios/:itemId", element: auth(<LessonPage kind="scenario" />) },
       { path: "admin/usuarios", element: admin(<AdminUsers />) },
       { path: "*", element: <NotFound /> },
     ],

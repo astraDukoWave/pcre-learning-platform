@@ -39,3 +39,7 @@
   justify-content: flex-end;
   margin-top: var(--space-4);
 }
+
+.aid {
+  white-space: pre-line;
+}

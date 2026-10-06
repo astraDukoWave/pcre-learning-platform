@@ -1,4 +1,65 @@
 # Manifiesto de audio (contrato §11). Cada entrada guarda el guion completo; `file`,
 # `sha256`, proveedor y revisión se llenan cuando el workflow aprobado `content-audio.yml`
 # genera el MP3 (G2) y Jonathan lo revisa. Sin `reviewed_by`, el lint marca `pending_audio`.
-audio: []
+audio:
+- id: u1-l2-aviso-biblioteca
+  script:
+  - speaker: Narrator
+    text: Attention, please. This is an announcement for all students using the Main Library.
+    pause_after_ms: 400
+  - speaker: Narrator
+    text: Because of repair work on the second floor, the library will close at six p.m. today instead
+      of nine.
+    pause_after_ms: 400
+  - speaker: Narrator
+    text: The study rooms on the first floor will stay open until eight.
+    pause_after_ms: 400
+  - speaker: Narrator
+    text: If you have books to return, please use the box next to the main entrance.
+    pause_after_ms: 400
+  - speaker: Narrator
+    text: We are sorry for the inconvenience. Thank you.
+    pause_after_ms: 0
+- id: u1-l2-aviso-feria
+  script:
+  - speaker: Narrator
+    text: Good morning, everyone, and welcome to the Career Fair.
+    pause_after_ms: 400
+  - speaker: Narrator
+    text: Please note that the talk about job interviews has moved from Room 3 to the main hall, and it
+      will now start at eleven instead of ten thirty.
+    pause_after_ms: 400
+  - speaker: Narrator
+    text: If you want a free review of your résumé, sign up at the information desk before noon.
+    pause_after_ms: 400
+  - speaker: Narrator
+    text: Lunch will be served in the cafeteria from one o'clock. Enjoy the fair.
+    pause_after_ms: 0
+- id: u1-l2-respuesta-1
+  script:
+  - speaker: A
+    text: Excuse me, do you know what time the next bus to the airport leaves?
+- id: u1-l2-respuesta-2
+  script:
+  - speaker: B
+    text: Would you mind closing the window? It's a bit cold in here.
+- id: u1-l2-respuesta-3
+  script:
+  - speaker: A
+    text: How much is a monthly pass for the gym?
+- id: u1-l2-respuesta-4
+  script:
+  - speaker: B
+    text: Sorry, I didn't catch your name. Could you say it again?
+- id: u1-l4-repetir-1
+  script:
+  - speaker: Narrator
+    text: Hi, my name is Daniela, and I work at a travel agency.
+- id: u1-l4-repetir-2
+  script:
+  - speaker: Narrator
+    text: I usually study English for thirty minutes after dinner.
+- id: u1-l4-repetir-3
+  script:
+  - speaker: Narrator
+    text: Sorry, could you say that again, please?

@@ -1,0 +1,160 @@
+# U1 · Escenario de transferencia (contrato curricular §7). Borrador del agente para
+# revisión humana. Modo texto (MVP-01): grafo determinista `guided_dialogue`. Modo voz
+# (MVP-02): el coach usa la situación, la persona, la apertura, los movimientos requeridos
+# y las pistas de este mismo archivo. No es una tarea del examen oficial.
+kind: scenario
+slug: u1-escenario
+unit: u1-informacion-decisiones
+position: 5
+title: "Informarte para inscribirte a un curso"
+status: draft
+objectives: [U1.T]
+sources:
+  - source: coe-cefr-companion-volume
+    claim: "La obtención de bienes y servicios incluye pedir y entender información para resolver una gestión cotidiana."
+    scope: "objetivo de transferencia"
+situation_es: "Llegas a la recepción de un centro de idiomas para adultos. Quieres inscribirte a un curso por la tarde y necesitas saber el precio, si hay lugar en un grupo y qué tienes que hacer antes de la primera clase."
+situation_en: "You go to the front desk of an adult language center. You want to join an evening course, and you need to find out the price, whether there is space in a group, and what to do before the first class."
+learner_role_en: "A working adult who wants to join an evening English course."
+agent_persona_en: "A friendly receptionist at an adult language center. Speaks clearly at a B1 level, answers questions about schedules, prices and the placement interview, gives one piece of information at a time, and never asks for personal data."
+opening_en: "Good afternoon, Northside Learning Center. How can I help you?"
+required_moves:
+  - "Say what you need in one sentence"
+  - "Ask about the price"
+  - "Check if there is space in a group"
+  - "Ask what you need for the next step"
+  - "Close the conversation politely"
+coach_hints:
+  - "Start by saying what you need."
+  - "If you miss a number, ask the person to repeat it."
+  - "Before you finish, ask what you need to bring."
+max_seconds: 300
+rubric: transfer
+activities:
+  - key: u1.esc.d1
+    format: guided_dialogue
+    task_family: communicative_transfer
+    pool: practice
+    objectives: [U1.T]
+    instructions_es: "Elige qué dirías en cada turno. Al terminar verás una nota sobre cada respuesta y si conseguiste lo que buscabas."
+    start: n1
+    nodes:
+      - id: n1
+        speaker: agent
+        text_en: "Good afternoon, Northside Learning Center. How can I help you?"
+        options:
+          - id: a
+            text: "Hi. I'd like some information about the evening English classes, please."
+            next: n2
+            feedback_es: "Saludas y dices tu propósito en una frase: así la otra persona sabe cómo ayudarte."
+          - id: b
+            text: "Evening classes. Information."
+            next: n2
+            good: false
+            feedback_es: "Se entiende, pero suena brusco. Arma una frase completa: «I'd like some information about…»."
+          - id: c
+            text: "Do you have classes?"
+            next: n2
+            good: false
+            feedback_es: "Es muy general: di qué clase buscas (evening, English) para que te den la información correcta."
+      - id: n2
+        speaker: agent
+        text_en: "Sure. We have two evening groups: Monday and Wednesday, or Tuesday and Thursday, from seven to eight thirty. What would you like to know?"
+        options:
+          - id: a
+            text: "How much does it cost per month?"
+            next: n3
+            feedback_es: "Pregunta directa y correcta: how much + does + it + cost."
+          - id: b
+            text: "Could you tell me how much it costs per month?"
+            next: n3
+            feedback_es: "Pregunta indirecta: más cortés y con el orden de afirmación («how much it costs»)."
+          - id: c
+            text: "How much costs it per month?"
+            next: n3
+            good: false
+            feedback_es: "Te entienden, pero falta el auxiliar: «How much does it cost?». En la forma indirecta: «how much it costs»."
+      - id: n3
+        speaker: agent
+        text_en: "It's eighty-five dollars a month, and that includes the books. The Tuesday group is almost full, though."
+        options:
+          - id: a
+            text: "Sorry, could you repeat the price, please?"
+            next: n3r
+            feedback_es: "Pedir que repitan un número es útil: confirmas el dato antes de decidir."
+          - id: b
+            text: "OK. Is there still space in the Monday group?"
+            next: n4
+            feedback_es: "Reaccionas a la información nueva (el grupo del martes está casi lleno) y preguntas por la alternativa."
+          - id: c
+            text: "Great, I'll take the Tuesday group."
+            next: n3c
+            good: false
+            feedback_es: "«Almost full» significa que queda muy poco lugar: antes de decidir, conviene preguntar si aún hay espacio o considerar el otro grupo."
+      - id: n3r
+        speaker: agent
+        text_en: "Of course. It's eighty-five dollars a month, books included."
+        options:
+          - id: a
+            text: "Thank you. Is there still space in the Monday group?"
+            next: n4
+            feedback_es: "Agradeces y sigues con la siguiente duda: compruebas si hay lugar."
+      - id: n3c
+        speaker: agent
+        text_en: "I'm afraid there are only two places left on Tuesday, so I'd recommend the Monday group. It has more space. Is that OK?"
+        options:
+          - id: a
+            text: "Yes, Monday is fine. Thanks."
+            next: n4c
+            feedback_es: "Aceptas la alternativa que te ofrecen. La próxima vez, pregunta tú si hay lugar antes de decidir."
+      - id: n4c
+        speaker: agent
+        text_en: "Great. Before your first class, you need a short placement interview. Do you have any other questions?"
+        options:
+          - id: a
+            text: "Yes. What do I need to bring to the interview?"
+            next: n5
+            feedback_es: "Preguntas por lo que necesitas para el siguiente paso: así puedes completar la inscripción."
+          - id: b
+            text: "No, thanks. Bye."
+            next: null
+            good: false
+            feedback_es: "Terminas sin saber qué necesitas para la entrevista: te faltó la pregunta clave para resolver la gestión."
+      - id: n4
+        speaker: agent
+        text_en: "Yes, there's space in the Monday group. Before your first class, you need a short placement interview. Do you have any other questions?"
+        options:
+          - id: a
+            text: "Yes. What do I need to bring to the interview?"
+            next: n5
+            feedback_es: "Preguntas por lo que necesitas para el siguiente paso: así puedes completar la inscripción."
+          - id: b
+            text: "No, thanks. Bye."
+            next: null
+            good: false
+            feedback_es: "Terminas sin saber qué necesitas para la entrevista: te faltó la pregunta clave para resolver la gestión."
+      - id: n5
+        speaker: agent
+        text_en: "Just bring an ID. You can come for the interview any weekday between four and six."
+        options:
+          - id: a
+            text: "Perfect, thank you for your help. I'll come on Monday."
+            next: n6
+            feedback_es: "Cierras con agradecimiento y un siguiente paso concreto."
+          - id: b
+            text: "OK."
+            next: n6
+            good: false
+            feedback_es: "Funciona, pero agradecer y decir qué harás cierra mejor la conversación."
+      - id: n6
+        speaker: narrator
+        text_en: "You leave the front desk with the price, a group with space, and what to bring to the interview."
+        options: []
+    success_paths:
+      - ["n2.a", "n3.b", "n4.a"]
+      - ["n2.b", "n3.b", "n4.a"]
+      - ["n2.c", "n3.b", "n4.a"]
+      - ["n2.a", "n3r.a", "n4.a"]
+      - ["n2.b", "n3r.a", "n4.a"]
+      - ["n2.c", "n3r.a", "n4.a"]
+    explanation_es: "Para resolver la gestión necesitabas tres datos: el precio, un grupo con lugar y lo que hay que llevar a la entrevista. Cualquier camino que los consiga cumple el objetivo; la forma de preguntar y de cerrar cambia qué tan clara y cortés suena la conversación."

@@ -1,15 +1,32 @@
-import { useMutation } from "@tanstack/react-query";
-import { useState } from "react";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { useCallback, useRef, useState } from "react";
 import { api, unwrap } from "../../api/client";
 import { ApiError } from "../../api/errors";
 import { Button } from "../../components/Button";
 import { ErrorNotice } from "../../components/ErrorNotice";
 import { Notice } from "../../components/Notice";
+import { AudioPlayer } from "../activities/audio-player/AudioPlayer";
 import { ChoiceRenderer } from "../activities/choice/ChoiceRenderer";
+import { GuidedDialogueRenderer, walk } from "../activities/guided-dialogue/GuidedDialogueRenderer";
+import { RecordedSpeakingRenderer } from "../activities/recorded-speaking/RecordedSpeakingRenderer";
+import { SentenceOrderRenderer } from "../activities/sentence-order/SentenceOrderRenderer";
+import { ShortWritingRenderer } from "../activities/short-writing/ShortWritingRenderer";
+import { WordCompletionRenderer } from "../activities/word-completion/WordCompletionRenderer";
 import styles from "./ActivityCard.module.css";
 import { clearDraft, loadDraft, saveDraft } from "./drafts";
 import { Feedback } from "./Feedback";
-import type { Activity, AttemptSummary, ChoiceData, ShownResult } from "./types";
+import type {
+  Activity,
+  AttemptDetail,
+  AttemptSummary,
+  ChoiceData,
+  GuidedDialogueData,
+  RecordedSpeakingData,
+  SentenceOrderData,
+  ShortWritingData,
+  ShownResult,
+  WordCompletionData,
+} from "./types";
 
 const AID_LABELS: Record<string, string> = {
   hint: "Pista",
@@ -17,6 +34,8 @@ const AID_LABELS: Record<string, string> = {
   transcript: "Transcripción",
   example: "Ejemplo",
 };
+
+const PRODUCTIONS = new Set(["short_writing", "recorded_speaking"]);
 
 interface ServedAid {
   kind: string;
@@ -27,12 +46,39 @@ interface ServedAid {
 function fromSummary(last: AttemptSummary | undefined): ShownResult | null {
   if (!last) return null;
   return {
+    id: last.id,
     correct: last.correct ?? null,
     evaluation_status: last.evaluation_status,
     result: last.result,
     aided: last.aided,
     response: last.response,
   };
+}
+
+/** ¿La respuesta está completa para enviarse? (el servidor valida igual). */
+function isReady(activity: Activity, response: Record<string, unknown>): boolean {
+  switch (activity.format) {
+    case "choice":
+      return ((response.selected as string[] | undefined) ?? []).length > 0;
+    case "word_completion": {
+      const answers = (response.answers as Record<string, string> | undefined) ?? {};
+      return (activity.data as unknown as WordCompletionData).gaps.every((g) => (answers[g.id] ?? "").trim() !== "");
+    }
+    case "sentence_order":
+      return (
+        ((response.order as string[] | undefined) ?? []).length ===
+        (activity.data as unknown as SentenceOrderData).tokens.length
+      );
+    case "short_writing":
+      return String(response.text ?? "").trim() !== "";
+    case "recorded_speaking":
+      return typeof response.recorded === "boolean";
+    case "guided_dialogue":
+      return walk(activity.data as unknown as GuidedDialogueData, (response.path as string[] | undefined) ?? [])
+        .finished;
+    default:
+      return false;
+  }
 }
 
 export function ActivityCard({
@@ -52,20 +98,66 @@ export function ActivityCard({
   const [response, setResponse] = useState<Record<string, unknown>>(initial);
   const [shown, setShown] = useState<ShownResult | null>(() => (loadDraft(activity.id) ? null : fromSummary(last)));
   const [aids, setAids] = useState<ServedAid[]>([]);
+  const [plays, setPlays] = useState(0);
+  const [revisionOf, setRevisionOf] = useState<string | null>(null);
+  // Un reintento después de una falla de red reenvía exactamente el mismo cuerpo.
+  const pendingBody = useRef<{
+    response: string;
+    audio_plays: number;
+    revision_of: string | null;
+  } | null>(null);
+
+  const production = PRODUCTIONS.has(activity.format);
+  // Al volver a una producción ya enviada, el intento propio trae la rúbrica y el ejemplo.
+  const detail = useQuery({
+    queryKey: ["attempt", shown?.id],
+    enabled: Boolean(production && shown?.id && !shown.feedback),
+    queryFn: () =>
+      unwrap(
+        api.GET("/api/v1/attempts/{attempt_id}", {
+          params: { path: { attempt_id: shown?.id ?? "" } },
+        }),
+      ),
+  });
+  const view: ShownResult | null =
+    shown && !shown.feedback && detail.data
+      ? {
+          ...shown,
+          evaluation_status: detail.data.evaluation_status,
+          result: detail.data.result,
+          feedback: detail.data.feedback,
+        }
+      : shown;
 
   const submit = useMutation({
     mutationFn: () => {
       const draft = saveDraft(activity.id, response);
+      const serialized = JSON.stringify(response);
+      if (!pendingBody.current || pendingBody.current.response !== serialized) {
+        pendingBody.current = {
+          response: serialized,
+          audio_plays: Math.min(plays, 50),
+          revision_of: revisionOf,
+        };
+      }
+      const { audio_plays, revision_of } = pendingBody.current;
       return unwrap(
         api.POST("/api/v1/attempts", {
           params: { header: { "Idempotency-Key": draft.key } },
-          body: { activity_id: activity.id, response, audio_plays: 0 },
+          body: {
+            activity_id: activity.id,
+            response,
+            audio_plays,
+            revision_of,
+          },
         }),
       );
     },
     onSuccess: (result) => {
       clearDraft(activity.id);
+      pendingBody.current = null;
       setShown({
+        id: result.id,
         correct: result.correct ?? null,
         evaluation_status: result.evaluation_status,
         result: result.result,
@@ -80,20 +172,115 @@ export function ActivityCard({
 
   const aid = useMutation({
     mutationFn: (req: { kind: "hint" | "support_es" | "transcript" | "example"; index: number }) =>
-      unwrap(api.POST("/api/v1/aids", { body: { activity_id: activity.id, ...req } })),
+      unwrap(
+        api.POST("/api/v1/aids", {
+          body: { activity_id: activity.id, ...req },
+        }),
+      ),
     onSuccess: (data) => setAids((prev) => [...prev, data]),
   });
 
-  function update(next: Record<string, unknown>) {
-    setResponse(next);
-    saveDraft(activity.id, next);
+  const update = useCallback(
+    (next: Record<string, unknown>) => {
+      setResponse(next);
+      saveDraft(activity.id, next);
+    },
+    [activity.id],
+  );
+  const onPlay = useCallback(() => setPlays((n) => n + 1), []);
+
+  function onAssessed(d: AttemptDetail) {
+    setShown((prev) =>
+      prev
+        ? {
+            ...prev,
+            evaluation_status: d.evaluation_status,
+            result: d.result,
+            feedback: d.feedback,
+          }
+        : prev,
+    );
   }
 
-  const answered = shown !== null;
-  const selected = (response.selected as string[] | undefined) ?? [];
-  const correctOptions = answered ? ((shown.result.correct_options as string[] | undefined) ?? null) : null;
-  const ready = activity.format === "choice" ? selected.length > 0 : Object.keys(response).length > 0;
+  const answered = view !== null;
+  const disabled = answered || submit.isPending;
+  const ready = isReady(activity, response);
   const networkFailed = submit.error instanceof ApiError && submit.error.isNetwork;
+  const label = activity.prompt_en || activity.instructions_es;
+
+  function renderer() {
+    switch (activity.format) {
+      case "choice":
+        return (
+          <ChoiceRenderer
+            activityId={activity.id}
+            data={activity.data as unknown as ChoiceData}
+            selected={(response.selected as string[] | undefined) ?? []}
+            onChange={(next) => update({ selected: next })}
+            disabled={disabled}
+            correctOptions={answered ? ((view.result.correct_options as string[] | undefined) ?? null) : null}
+            legend={label}
+          />
+        );
+      case "word_completion":
+        return (
+          <WordCompletionRenderer
+            data={activity.data as unknown as WordCompletionData}
+            answers={(response.answers as Record<string, string> | undefined) ?? {}}
+            onChange={(answers) => update({ answers })}
+            disabled={disabled}
+            perGap={answered ? ((view.result.per_gap as Record<string, boolean> | undefined) ?? null) : null}
+          />
+        );
+      case "sentence_order":
+        return (
+          <SentenceOrderRenderer
+            data={activity.data as unknown as SentenceOrderData}
+            order={(response.order as string[] | undefined) ?? []}
+            onChange={(order) => update({ order })}
+            disabled={disabled}
+          />
+        );
+      case "short_writing":
+        return (
+          <ShortWritingRenderer
+            data={activity.data as unknown as ShortWritingData}
+            text={String(response.text ?? "")}
+            onChange={(text) => update({ text })}
+            disabled={disabled}
+            label={label}
+          />
+        );
+      case "recorded_speaking":
+        return (
+          <RecordedSpeakingRenderer
+            data={activity.data as unknown as RecordedSpeakingData}
+            response={response}
+            onChange={update}
+            disabled={disabled}
+            plays={plays}
+            onPlay={onPlay}
+          />
+        );
+      case "guided_dialogue": {
+        const turns =
+          (answered
+            ? (view.result.turns as { step: string; feedback_es: string; good: boolean }[] | undefined)
+            : null) ?? null;
+        return (
+          <GuidedDialogueRenderer
+            data={activity.data as unknown as GuidedDialogueData}
+            path={(response.path as string[] | undefined) ?? []}
+            onChange={(path) => update({ path })}
+            disabled={disabled}
+            turnFeedback={turns ? Object.fromEntries(turns.map((t) => [t.step, t])) : null}
+          />
+        );
+      }
+      default:
+        return <Notice tone="info">Este formato todavía no está disponible.</Notice>;
+    }
+  }
 
   return (
     <article className={styles.card} aria-labelledby={`act-${activity.id}`}>
@@ -112,20 +299,15 @@ export function ActivityCard({
           {activity.stimulus.text_en}
         </blockquote>
       ) : null}
+      {activity.stimulus?.has_audio ? (
+        <AudioPlayer src={activity.stimulus.audio_url} label="Audio de la actividad" plays={plays} onPlay={onPlay} />
+      ) : null}
 
-      {activity.format === "choice" ? (
-        <ChoiceRenderer
-          activityId={activity.id}
-          data={activity.data as unknown as ChoiceData}
-          selected={selected}
-          onChange={(next) => update({ selected: next })}
-          disabled={answered || submit.isPending}
-          correctOptions={correctOptions}
-          legend={activity.prompt_en || activity.instructions_es}
-        />
-      ) : (
-        <Notice tone="info">Este formato llega en la siguiente versión.</Notice>
-      )}
+      {revisionOf && !answered ? (
+        <Notice tone="info">Estás reformulando: se guardará como un intento nuevo ligado al anterior.</Notice>
+      ) : null}
+
+      {renderer()}
 
       {!answered && activity.aids.length > 0 ? (
         <div className={styles.aids} role="group" aria-label="Ayudas">
@@ -133,15 +315,23 @@ export function ActivityCard({
             const used = aids.filter((x) => x.kind === a.kind).length;
             const left = a.count - used;
             if (left <= 0) return null;
-            const label = a.kind === "hint" && a.count > 1 ? `${AID_LABELS[a.kind]} (${used + 1} de ${a.count})` : AID_LABELS[a.kind];
+            const text =
+              a.kind === "hint" && a.count > 1
+                ? `${AID_LABELS[a.kind]} (${used + 1} de ${a.count})`
+                : AID_LABELS[a.kind];
             return (
               <Button
                 key={a.kind}
                 variant="secondary"
                 busy={aid.isPending}
-                onClick={() => aid.mutate({ kind: a.kind, index: a.kind === "hint" ? used : 0 })}
+                onClick={() =>
+                  aid.mutate({
+                    kind: a.kind,
+                    index: a.kind === "hint" ? used : 0,
+                  })
+                }
               >
-                {label}
+                {text}
               </Button>
             );
           })}
@@ -149,7 +339,9 @@ export function ActivityCard({
       ) : null}
       {aids.map((a) => (
         <Notice key={`${a.kind}-${a.index}`} tone="info" title={AID_LABELS[a.kind]}>
-          <p>{a.content}</p>
+          <p lang={a.kind === "transcript" || a.kind === "example" ? "en" : undefined} className={styles.aid}>
+            {a.content}
+          </p>
         </Notice>
       ))}
       <ErrorNotice error={aid.error} />
@@ -160,7 +352,8 @@ export function ActivityCard({
         <ErrorNotice error={submit.error} />
       )}
 
-      {answered ? <Feedback activity={activity} shown={shown} /> : null}
+      {answered ? <Feedback activity={activity} shown={view} onUpdate={onAssessed} /> : null}
+      <ErrorNotice error={detail.error} />
 
       <div className={styles.actions}>
         {!answered ? (
@@ -169,17 +362,32 @@ export function ActivityCard({
           </Button>
         ) : (
           <>
-            <Button
-              variant="quiet"
-              onClick={() => {
-                setShown(null);
-                setAids([]);
-                update({});
-              }}
-            >
-              Intentar de nuevo
-            </Button>
-            <Button onClick={onNext}>{isLast ? "Terminar la lección" : "Siguiente actividad"}</Button>
+            {production ? (
+              <Button
+                variant="quiet"
+                onClick={() => {
+                  setRevisionOf(view.id ?? null);
+                  setShown(null);
+                  setAids([]);
+                  update(activity.format === "short_writing" ? { text: String(view.response.text ?? "") } : {});
+                }}
+              >
+                {activity.format === "short_writing" ? "Reformular" : "Responder de nuevo"}
+              </Button>
+            ) : (
+              <Button
+                variant="quiet"
+                onClick={() => {
+                  setShown(null);
+                  setAids([]);
+                  setRevisionOf(null);
+                  update({});
+                }}
+              >
+                Intentar de nuevo
+              </Button>
+            )}
+            <Button onClick={onNext}>{isLast ? "Terminar" : "Siguiente actividad"}</Button>
           </>
         )}
       </div>

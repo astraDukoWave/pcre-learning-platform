@@ -380,6 +380,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/attempts/{attempt_id}/self-assessment": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Self Assess */
+        post: operations["self_assess_api_v1_attempts__attempt_id__self_assessment_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/attempts/{attempt_id}": {
         parameters: {
             query?: never;
@@ -687,6 +704,40 @@ export interface components {
             content_hash: string;
             /** Note */
             note?: string | null;
+        };
+        /** AttemptDetailOut */
+        AttemptDetailOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Activity Id
+             * Format: uuid
+             */
+            activity_id: string;
+            /** Response */
+            response: {
+                [key: string]: unknown;
+            };
+            /** Evaluation Status */
+            evaluation_status: string;
+            /** Score */
+            score: number | null;
+            /** Correct */
+            correct: boolean | null;
+            /** Result */
+            result: {
+                [key: string]: unknown;
+            };
+            /** Aided */
+            aided: boolean;
+            /** Submitted At */
+            submitted_at: string;
+            /** Mode */
+            mode?: string | null;
+            feedback: components["schemas"]["AttemptFeedbackOut"];
         };
         /** AttemptFeedbackOut */
         AttemptFeedbackOut: {
@@ -1291,6 +1342,16 @@ export interface components {
             open_material_findings: number;
             /** Created At */
             created_at: string;
+        };
+        /**
+         * SelfAssessmentIn
+         * @description Marca de 0 a 3 por criterio de la rúbrica, enviada después de ver la rúbrica.
+         */
+        SelfAssessmentIn: {
+            /** Scores */
+            scores: {
+                [key: string]: number;
+            };
         };
         /** StimulusOut */
         StimulusOut: {
@@ -2094,6 +2155,41 @@ export interface operations {
             };
         };
     };
+    self_assess_api_v1_attempts__attempt_id__self_assessment_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                attempt_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SelfAssessmentIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AttemptDetailOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     get_attempt_api_v1_attempts__attempt_id__get: {
         parameters: {
             query?: never;
@@ -2111,7 +2207,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["AttemptSummaryOut"];
+                    "application/json": components["schemas"]["AttemptDetailOut"];
                 };
             };
             /** @description Validation Error */

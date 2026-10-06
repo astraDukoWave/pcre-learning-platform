@@ -182,6 +182,26 @@ def test_short_writing_self_assessment() -> None:
         domain.grade("short_writing", {"text": "a" * 4001}, public, {}, RUBRIC)
 
 
+def test_self_assessment_after_submit_needs_every_criterion() -> None:
+    result = {"words": 6, "within_limits": True, "self_assessment": {}}
+    done = domain.self_assess(
+        "short_writing", "pending", result, {"task": 2, "organization": 1}, RUBRIC
+    )
+    assert done.evaluation_status == "evaluated" and done.score == 0.5
+    assert done.result == {
+        "words": 6,
+        "within_limits": True,
+        "self_assessment": {"task": 2, "organization": 1},
+    }
+    for raw in ({"task": 2}, {}, None, {"task": 2, "organization": "3"}):
+        with pytest.raises(domain.InvalidResponse):
+            domain.self_assess("short_writing", "pending", result, raw, RUBRIC)
+    with pytest.raises(domain.InvalidResponse):
+        domain.self_assess("choice", "evaluated", {}, {"task": 1}, RUBRIC)
+    with pytest.raises(domain.InvalidResponse):
+        domain.self_assess("recorded_speaking", "not_evaluable", {}, {"task": 1}, RUBRIC)
+
+
 def test_recorded_speaking_could_not_record_is_not_evaluable() -> None:
     graded = domain.grade("recorded_speaking", {"recorded": False}, {}, {}, RUBRIC)
     assert graded.evaluation_status == "not_evaluable"

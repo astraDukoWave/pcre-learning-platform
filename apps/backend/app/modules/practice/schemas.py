@@ -179,12 +179,22 @@ class AttemptIn(Strict):
     audio_plays: int = Field(default=0, ge=0, le=50)
 
 
+class SelfAssessmentIn(Strict):
+    """Marca de 0 a 3 por criterio de la rúbrica, enviada después de ver la rúbrica."""
+
+    scores: dict[str, int] = Field(max_length=12)
+
+
 class AttemptFeedbackOut(BaseModel):
     explanation: str | None = None
     model_answer: str | None = None
     model_commentary_es: str | None = None
     target_sentence: str | None = None
     rubric: dict[str, Any] | None = None
+
+
+class AttemptDetailOut(AttemptSummaryOut):
+    feedback: AttemptFeedbackOut
 
 
 class AttemptOut(BaseModel):

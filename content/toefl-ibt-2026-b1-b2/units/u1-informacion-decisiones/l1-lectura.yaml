@@ -125,6 +125,24 @@ activities:
       - {id: d, text: "It does not need a placement interview.", why_es: "La entrevista es para todos los estudiantes nuevos."}
     correct: [a]
     explanation_es: "Valeria «learns best in small groups because she likes to ask questions», y Course A tiene un máximo de ocho estudiantes frente a dieciocho en Course B."
+  - key: u1.l1.p5
+    format: word_completion
+    task_family: complete_the_words
+    pool: practice
+    objectives: [U1.R]
+    instructions_es: "Completa cada palabra. Ves el inicio; escribe lo que falta o la palabra completa."
+    prompt_en: "Complete the words in Valeria's message to the center."
+    text_en: "Hello, I would like to join the evening cour{{g1}} for adults. I work until five, so I can only stu{{g2}} after six. If I miss a class, can I watch the record{{g3}} at home? I will pay the fee bef{{g4}} the 28th. Is it 95 dol{{g5}} a month?"
+    gaps:
+      - {id: g1, shown: "cour", accepted: ["course"]}
+      - {id: g2, shown: "stu", accepted: ["study"]}
+      - {id: g3, shown: "record", accepted: ["recording", "recordings"]}
+      - {id: g4, shown: "bef", accepted: ["before"]}
+      - {id: g5, shown: "dol", accepted: ["dollars"]}
+    hints:
+      - "Cada palabra aparece en el anuncio de Northside: búscala allí."
+    support_es: "Las palabras son: curso, estudiar, grabación, antes de y dólares."
+    explanation_es: "course, study, recording (o recordings), before y dollars: el resto de la oración indica qué palabra falta (después de «can only» va un verbo; después de «95» va la moneda)."
   - key: u1.l1.r1
     format: choice
     task_family: read_in_daily_life
@@ -184,3 +202,17 @@ activities:
       - {id: d, text: "He prefers written quizzes to conversation.", why_es: "Dice lo contrario: quiere hablar, no escribir."}
     correct: [a]
     explanation_es: "Tomás quiere «practice speaking with people face to face», y el Lunch Club es presencial con conversaciones en parejas."
+  - key: u1.l1.r5
+    format: word_completion
+    task_family: complete_the_words
+    pool: review
+    objectives: [U1.R]
+    instructions_es: "Completa cada palabra. Ves el inicio; escribe lo que falta o la palabra completa."
+    prompt_en: "Complete the words in Tomás's message to Riverside."
+    text_en: "Hi, I am not a stud{{g1}} at Riverside, but I would like to join the Lunch Club. I work at a hot{{g2}} from 2 p.m. to 10 p.m., so lunch is the only ti{{g3}} I can practice. Is the club open to every{{g4}} else?"
+    gaps:
+      - {id: g1, shown: "stud", accepted: ["student"]}
+      - {id: g2, shown: "hot", accepted: ["hotel"]}
+      - {id: g3, shown: "ti", accepted: ["time"]}
+      - {id: g4, shown: "every", accepted: ["everyone", "everybody"]}
+    explanation_es: "student (después de «a»), hotel (un lugar de trabajo), time («the only time I can») y everyone o everybody («everyone else», todas las demás personas)."

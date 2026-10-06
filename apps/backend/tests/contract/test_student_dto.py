@@ -72,24 +72,9 @@ def walk_keys(value: Any) -> Iterator[str]:
 
 
 @pytest.fixture
-def published(admin: Account, editorial: object, tmp_path: Path) -> dict[str, str]:
+def published(all_formats: dict[str, Any]) -> dict[str, str]:
     """Ruta de prueba con los seis formatos, aprobada y publicada completa."""
-    from tests.content.builder import add_all_formats, write_content
-
-    editorial.import_dir(write_content(tmp_path / "all", add_all_formats))  # type: ignore[attr-defined]
-    ids = {}
-    for rev in admin.client.get("/api/v1/admin/content/revisions").json():
-        admin.client.post(
-            f"/api/v1/admin/content/revisions/{rev['id']}/approve",
-            json={"content_hash": rev["content_hash"]},
-            headers=admin.headers(),
-        )
-        res = admin.client.post(
-            f"/api/v1/admin/content/revisions/{rev['id']}/publish", json={}, headers=admin.headers()
-        )
-        assert res.status_code == 200, res.text
-        ids[rev["item_slug"]] = rev["item_id"]
-    return ids
+    return {slug: v["item_id"] for slug, v in all_formats.items()}
 
 
 def student_endpoints(student: Account, ids: dict[str, str]) -> list[str]:

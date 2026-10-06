@@ -4,12 +4,14 @@ servidor), EDGE-04/05 (revisión fijada y retiro) y aislamiento (AC-06)."""
 from __future__ import annotations
 
 import uuid
+from datetime import timedelta
 from typing import Any
 
 import pytest
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
+from app.core.clock import FakeClock
 from app.modules.practice.models import Attempt, IdempotencyRecord, ServedAid
 from app.modules.progress.models import ReviewSchedule
 from tests.helpers import Account, AccountFactory
@@ -173,10 +175,15 @@ def test_lesson_completes_when_every_practice_activity_was_sent(
     assert states[L1] == "completed"
 
 
-def test_lesson_resumes_with_last_attempts(student: Account, lesson: dict[str, Any]) -> None:
+def test_lesson_resumes_with_last_attempts(
+    student: Account, lesson: dict[str, Any], clock: FakeClock
+) -> None:
     item, act = lesson[L1]["item_id"], lesson[L1]["activities"]["u1.l1.p1"]
     student.client.get(f"/api/v1/lessons/{item}")
     post_attempt(student, act, ["b"])
+    # Dos envíos reales nunca comparten instante; con el reloj falso hay que avanzarlo o el
+    # "último" queda empatado y el orden lo decide PostgreSQL.
+    clock.advance(timedelta(seconds=30))
     post_attempt(student, act, ["a"])
     dto = student.client.get(f"/api/v1/lessons/{item}").json()
     assert dto["last_attempts"][act]["response"] == {"selected": ["a"]}

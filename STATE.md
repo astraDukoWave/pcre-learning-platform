@@ -61,7 +61,8 @@ anotan en el registro; cualquier otra desviación queda `pending-human`.
 | MVP-01 | CS-02 · frontend e imagen | `feat/mvp01-cs02-frontend-image` | [#4](https://github.com/astraDukoWave/pcre-learning-platform/pull/4) | `c61fa9b` (head `e518a4e`) | [37394717138](https://github.com/astraDukoWave/pcre-learning-platform/actions/runs/37394717138) ✅ 7 jobs + ci-gate | `make verify` exit 0; imagen con sondas AC-17 y grep AC-18 en el job `image` `[ci-run]` | 6 oct 2026 |
 | MVP-01 | CS-03 · identidad | `feat/mvp01-cs03-identity` | [#5](https://github.com/astraDukoWave/pcre-learning-platform/pull/5) | `e0ce77b` (head `fcff1d2`) | [37396602133](https://github.com/astraDukoWave/pcre-learning-platform/actions/runs/37396602133) ✅ 7 jobs + ci-gate | `make verify` exit 0 (137 pruebas); [verificador independiente](https://github.com/astraDukoWave/pcre-learning-platform/pull/5#issuecomment-6006957824): 0 bloqueantes, 5 menores corregidos en `fcff1d2` | 6 oct 2026 |
 | MVP-01 | CS-04 · contenido y editorial | `feat/mvp01-cs04-content` | [#6](https://github.com/astraDukoWave/pcre-learning-platform/pull/6) | `fd27fe1` (head `cb88907`) | [37399146747](https://github.com/astraDukoWave/pcre-learning-platform/actions/runs/37399146747) ✅ 8 jobs + ci-gate | `make verify` exit 0 (195 pruebas); [verificador independiente](https://github.com/astraDukoWave/pcre-learning-platform/pull/6#issuecomment-6007370846): 1 bloqueante y 8 menores corregidos en `cb88907`; NI-01 | 6 oct 2026 |
-| MVP-01 | CS-05 · primera lección E2E | `feat/mvp01-cs05-first-lesson` | [#7](https://github.com/astraDukoWave/pcre-learning-platform/pull/7) | se completa al mergear | se completa al terminar | `make verify` exit 0 (236 pruebas); E2E local 3/3 | 6 oct 2026 |
+| MVP-01 | CS-05 · primera lección E2E | `feat/mvp01-cs05-first-lesson` | [#7](https://github.com/astraDukoWave/pcre-learning-platform/pull/7) | `e45ede1` (head `5502eb4`) | [37399904620](https://github.com/astraDukoWave/pcre-learning-platform/actions/runs/37399904620) ✅ 8 jobs + ci-gate | `make verify` exit 0 (236 pruebas); E2E local 3/3 y en la CI | 6 oct 2026 |
+| MVP-01 | CS-06 · formatos, audio y escenario | `feat/mvp01-cs06-formats-audio` | [#8](https://github.com/astraDukoWave/pcre-learning-platform/pull/8) | se completa al mergear | se completa al terminar | `make verify` exit 0 (249 pruebas backend, 21 Vitest); E2E local 5/5; `generate_audio.py --dry-run` U1: 9 guiones, 1 091 caracteres, USD 0.0327; NI-02 | 6 oct 2026 |
 
 ## Desviaciones
 
@@ -76,6 +77,15 @@ Ninguna.
   pistas, apoyo, transcripción, ejemplo (`example`, la ayuda de REQ-11) y rúbrica, que solo
   viajan después de enviar o por `POST /aids`. Regla editorial asociada: el patrón y los
   ejemplos de la explicación no deben resolver un ítem (lista de revisión, contrato §12).
+
+- **NI-02 · Autoevaluación después de enviar** (CS-06). REQ-10 pide la autoevaluación con
+  la rúbrica *después* de enviar, y AC-08 impide que la rúbrica viaje antes. El intento de
+  `short_writing` y `recorded_speaking` se crea `pending` y devuelve la rúbrica; la
+  autoevaluación se guarda con `POST /api/v1/attempts/{id}/self-assessment` (no estaba en
+  la tabla de rutas de `docs/arquitectura.md`). Solo pasa `pending → evaluated` con
+  `evaluation_source = self`; no toca la respuesta guardada; repetir con las mismas marcas
+  devuelve lo mismo y con otras marcas responde 409 (para cambiar de opinión se reformula
+  con `revision_of`). Es el mismo patrón que `POST /attempts/{id}/feedback` de MVP-02.
 
 ## Loop humano vigente
 

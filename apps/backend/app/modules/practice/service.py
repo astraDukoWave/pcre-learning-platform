@@ -378,12 +378,55 @@ class PracticeService:
             return True
         return False
 
+    def self_assess(
+        self, learner: Learner, attempt_id: uuid.UUID, scores: dict[str, Any]
+    ) -> dict[str, Any]:
+        """Cierra una producción `pending` con la autoevaluación del alumno. Repetir con las
+        mismas marcas devuelve lo mismo; con otras marcas, 409: para cambiar de opinión se
+        reformula (intento nuevo con `revision_of`)."""
+        with self.uow() as s:
+            attempt = repository.attempt_for_user(s, learner.user_id, attempt_id, lock=True)
+            if attempt is None:
+                raise NotFound()
+            found = repository.activity_with_context(s, attempt.activity_id)
+            if found is None:
+                raise NotFound()
+            act = found[0]
+            if attempt.evaluation_status == "evaluated" and attempt.evaluation_source == "self":
+                if attempt.result.get("self_assessment") == scores:
+                    return _attempt_detail(attempt, act)
+                raise Conflict(
+                    "Ya autoevaluaste este intento. Reformula para intentarlo de nuevo.",
+                    code="already_assessed",
+                )
+            try:
+                grade = domain.self_assess(
+                    act.format, attempt.evaluation_status, attempt.result, scores, act.rubric
+                )
+            except domain.InvalidResponse as exc:
+                raise ValidationFailed(
+                    f"Revisa tu autoevaluación: {exc}.", code="self_assessment_invalid"
+                ) from exc
+            attempt.evaluation_status = grade.evaluation_status
+            attempt.score = grade.score
+            attempt.result = grade.result
+            s.flush()
+            out = _attempt_detail(attempt, act)
+        logger.info(
+            "self_assessed",
+            extra={"user_ref": user_ref(learner.user_id, self.settings.log_salt)},
+        )
+        return out
+
     def get_attempt(self, learner: Learner, attempt_id: uuid.UUID) -> dict[str, Any]:
         with self.uow() as s:
             attempt = repository.attempt_for_user(s, learner.user_id, attempt_id)
             if attempt is None:
                 raise NotFound()
-            return _attempt_summary(attempt) | {"mode": attempt.mode}
+            found = repository.activity_with_context(s, attempt.activity_id)
+            if found is None:
+                raise NotFound()
+            return _attempt_detail(attempt, found[0])
 
     def list_attempts(
         self, learner: Learner, limit: int, before: datetime | None
@@ -391,6 +434,12 @@ class PracticeService:
         with self.uow() as s:
             rows = repository.recent_attempts(s, learner.user_id, limit, before)
             return [_attempt_summary(a) | {"mode": a.mode} for a in rows]
+
+
+def _attempt_detail(attempt: Attempt, act: Any) -> dict[str, Any]:
+    """Un intento propio ya enviado con lo que se muestra después de enviar (retomar la
+    autoevaluación después de recargar). Las comprobaciones (CS-07) no pasan por aquí."""
+    return _attempt_summary(attempt) | {"mode": attempt.mode, "feedback": _feedback(act)}
 
 
 def _state(progress: LessonProgress | None) -> str:

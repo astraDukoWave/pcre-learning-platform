@@ -220,6 +220,33 @@ def grade_recorded_speaking(response: dict[str, Any], rubric: dict[str, Any] | N
     )
 
 
+def self_assess(
+    fmt: str,
+    evaluation_status: str,
+    result: dict[str, Any],
+    raw: Any,
+    rubric: dict[str, Any] | None,
+) -> Grade:
+    """Autoevaluación posterior al envío (REQ-10): el alumno ve la rúbrica después de
+    enviar y marca cada criterio de 0 a 3. Solo cierra una producción `pending`; no toca la
+    respuesta guardada."""
+    if fmt not in SELF_ASSESSED:
+        raise InvalidResponse("esta actividad se corrige automáticamente")
+    if evaluation_status == "not_evaluable":
+        raise InvalidResponse("no hay grabación que evaluar")
+    scores = _self_assessment({"self_assessment": raw}, rubric)
+    criteria = {c["id"] for c in (rubric or {}).get("criteria", [])}
+    if not criteria or set(scores) != criteria:
+        raise InvalidResponse("marca todos los criterios de la rúbrica")
+    return Grade(
+        evaluation_status="evaluated",
+        evaluation_source="self",
+        score=sum(scores.values()) / (3 * len(scores)),
+        correct=None,
+        result={**result, "self_assessment": scores},
+    )
+
+
 def grade(
     fmt: str,
     response: dict[str, Any],

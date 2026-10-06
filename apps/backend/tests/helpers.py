@@ -5,6 +5,7 @@ from __future__ import annotations
 import uuid
 from collections.abc import Callable, Iterator
 from dataclasses import dataclass
+from typing import Any
 
 import pytest
 from fastapi.testclient import TestClient
@@ -151,3 +152,31 @@ def imported(editorial: object, tmp_path: object) -> object:
     root = write_content(tmp_path / "content")
     editorial.import_dir(root)  # type: ignore[attr-defined]
     return root
+
+
+@pytest.fixture
+def all_formats(admin: Account, editorial: object, tmp_path: object) -> dict[str, Any]:
+    """Ruta de prueba con los seis formatos, aprobada y publicada completa:
+    `{slug: {"item_id", "activities": {clave: id}}}`."""
+    from pathlib import Path
+
+    from tests.content.builder import add_all_formats, write_content
+
+    assert isinstance(tmp_path, Path)
+    editorial.import_dir(write_content(tmp_path / "all", add_all_formats))  # type: ignore[attr-defined]
+    ids: dict[str, Any] = {}
+    for rev in admin.client.get("/api/v1/admin/content/revisions").json():
+        admin.client.post(
+            f"/api/v1/admin/content/revisions/{rev['id']}/approve",
+            json={"content_hash": rev["content_hash"]},
+            headers=admin.headers(),
+        )
+        res = admin.client.post(
+            f"/api/v1/admin/content/revisions/{rev['id']}/publish", json={}, headers=admin.headers()
+        )
+        assert res.status_code == 200, res.text
+        ids[rev["item_slug"]] = {
+            "item_id": rev["item_id"],
+            "activities": {a["key"]: a["id"] for a in res.json()["activities"]},
+        }
+    return ids

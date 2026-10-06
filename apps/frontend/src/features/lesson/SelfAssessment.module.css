@@ -1,0 +1,44 @@
+.wrap {
+  margin-top: var(--space-4);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--grid);
+}
+
+.wrap h3 {
+  font-size: var(--step-1);
+  margin: 0 0 var(--space-2);
+}
+
+.note {
+  font-size: var(--step--1);
+  color: var(--ink-soft);
+}
+
+.criterion {
+  border: 1px solid var(--grid);
+  border-radius: var(--radius);
+  padding: var(--space-3);
+  margin: 0 0 var(--space-3);
+  display: grid;
+  gap: var(--space-2);
+}
+
+.criterion legend {
+  font-weight: 700;
+  padding: 0 var(--space-1);
+}
+
+.level {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--space-2);
+  align-items: start;
+  min-height: 44px;
+  cursor: pointer;
+}
+
+.level input {
+  width: 22px;
+  height: 22px;
+  margin-top: 2px;
+}

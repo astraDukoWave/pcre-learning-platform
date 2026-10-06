@@ -16,22 +16,45 @@ function firstUnanswered(lesson: Lesson): number {
   return index === -1 ? lesson.activities.length : index;
 }
 
-export function LessonPage() {
+/** Lección o escenario (modo texto): misma estructura de actividades con estado propio. */
+export function LessonPage({ kind = "lesson" }: { kind?: "lesson" | "scenario" }) {
   const { itemId = "" } = useParams();
   const qc = useQueryClient();
   const query = useQuery({
     queryKey: ["lesson", itemId],
-    queryFn: () => unwrap(api.GET("/api/v1/lessons/{item_id}", { params: { path: { item_id: itemId } } })),
+    queryFn: () =>
+      kind === "scenario"
+        ? unwrap(
+            api.GET("/api/v1/scenarios/{item_id}", {
+              params: { path: { item_id: itemId } },
+            }),
+          )
+        : unwrap(
+            api.GET("/api/v1/lessons/{item_id}", {
+              params: { path: { item_id: itemId } },
+            }),
+          ),
     retry: false,
   });
+  const scenario = kind === "scenario";
   const [index, setIndex] = useState<number | null>(null);
   const [completed, setCompleted] = useState(false);
 
-  if (query.isPending) return <Page title="Lección">Cargando…</Page>;
+  if (query.isPending) return <Page title={scenario ? "Escenario" : "Lección"}>Cargando…</Page>;
   if (query.isError) {
     const withdrawn = query.error instanceof ApiError && query.error.code === "lesson_withdrawn";
     return (
-      <Page title={withdrawn ? "Lección retirada" : "No encontramos esta lección"}>
+      <Page
+        title={
+          withdrawn
+            ? scenario
+              ? "Escenario retirado"
+              : "Lección retirada"
+            : scenario
+              ? "No encontramos este escenario"
+              : "No encontramos esta lección"
+        }
+      >
         {withdrawn ? <Notice tone="info">{query.error.message}</Notice> : <ErrorNotice error={query.error} />}
         <Link to="/ruta">Ir a la ruta</Link>
       </Page>
@@ -48,7 +71,28 @@ export function LessonPage() {
     <Page title={lesson.title} wide>
       <p className={styles.unit}>{lesson.unit?.title}</p>
       {lesson.notice ? <Notice tone="info">{lesson.notice}</Notice> : null}
-      <p>{lesson.objective_es}</p>
+      {lesson.objective_es ? <p>{lesson.objective_es}</p> : null}
+      {scenario ? (
+        <section className={styles.scenario} aria-label="Situación">
+          <p>{lesson.situation_es}</p>
+          {lesson.learner_role_en ? (
+            <p>
+              Tu papel: <span lang="en">{lesson.learner_role_en}</span>
+            </p>
+          ) : null}
+          {lesson.required_moves?.length ? (
+            <>
+              <p>Lo que tienes que lograr:</p>
+              <ul lang="en">
+                {(lesson.required_moves ?? []).map((m) => (
+                  <li key={m}>{m}</li>
+                ))}
+              </ul>
+            </>
+          ) : null}
+          <p className={styles.not}>Práctica en modo texto. No es una tarea del examen oficial.</p>
+        </section>
+      ) : null}
       {lesson.pcre ? (
         <details className={styles.pcre}>
           <summary>Cómo funciona: patrón, concepto, reglas y ejemplos</summary>
@@ -65,7 +109,9 @@ export function LessonPage() {
             {lesson.pcre.rules.map((r) => (
               <li key={r.text}>
                 {r.text}
-                {r.applies_when_not_es ? <span className={styles.not}> Cuándo no aplica: {r.applies_when_not_es}</span> : null}
+                {r.applies_when_not_es ? (
+                  <span className={styles.not}> Cuándo no aplica: {r.applies_when_not_es}</span>
+                ) : null}
               </li>
             ))}
           </ul>
@@ -129,7 +175,7 @@ export function LessonPage() {
               />
             </>
           ) : (
-            <Notice tone="success" title="Completaste la lección">
+            <Notice tone="success" title={scenario ? "Completaste el escenario" : "Completaste la lección"}>
               <p>Completar no significa acertar todo: los objetivos que fallaste vuelven en tus repasos.</p>
               <p>
                 <Link to="/ruta">Volver a la ruta</Link>
