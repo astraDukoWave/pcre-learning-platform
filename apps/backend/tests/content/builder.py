@@ -485,3 +485,51 @@ def add_all_formats(files: dict[str, Any]) -> None:
         }
     )
     files["units/u1/l4-habla.yaml"] = speaking
+
+
+def add_initial_form(files: dict[str, Any]) -> None:
+    """Diagnóstico inicial de la ruta de prueba: 12 cerrados, 2 escritas y 2 orales."""
+    closed = [
+        {
+            **_choice(f"dx.c{i}", "assessment", i + 60),
+            "objectives": ["U1.R"] if i <= 8 else ["U5.R"],
+            "prompt_en": f"Diagnostic question {i}: what does Inés prefer?",
+        }
+        for i in range(1, 13)
+    ]
+    writing = [
+        {
+            **_writing(f"dx.w{i}", f"Diagnostic email {i}: ask about the course."),
+            "pool": "assessment",
+        }
+        for i in (1, 2)
+    ]
+    speaking = [
+        {
+            "key": f"dx.s{i}",
+            "format": "recorded_speaking",
+            "task_family": "take_an_interview",
+            "pool": "assessment",
+            "objectives": ["U1.S"],
+            "instructions_es": "Responde la pregunta.",
+            "subtype": "interview",
+            "question_en": f"Diagnostic interview {i}: what do you do on weekdays?",
+            "response_seconds": 45,
+            "rubric": "interview",
+            "model_answer": "Respuesta modelo del diagnóstico.",
+            "model_commentary_es": "Comentario del diagnóstico.",
+        }
+        for i in (1, 2)
+    ]
+    files["assessments/inicial.yaml"] = {
+        "kind": "assessment_form",
+        "slug": "diagnostico-inicial",
+        "form_kind": "initial",
+        "position": 1,
+        "title": "Diagnóstico inicial",
+        "status": "draft",
+        "objectives": ["U1.R", "U5.R", "U1.W", "U1.S"],
+        "duration_minutes": 25,
+        "passages": [{"id": "p1", "text_en": PASSAGE.replace("Marta", "Inés")}],
+        "activities": closed + writing + speaking,
+    }

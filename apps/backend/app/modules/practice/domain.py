@@ -289,3 +289,60 @@ def lesson_completed(practice_activity_ids: set[str], attempted_ids: set[str]) -
     """Completa cuando todas las actividades del pool `practice` se enviaron al menos una
     vez. Completar no significa acertar."""
     return bool(practice_activity_ids) and practice_activity_ids <= attempted_ids
+
+
+# -- comprobaciones (REQ-12) -----------------------------------------------------------------
+
+FORMATIVE_LABEL = "Comprobación formativa: no es un examen oficial"
+
+
+@dataclass(frozen=True)
+class ScoredItem:
+    """Un ítem de una corrida al enviarla: `grade` es None si quedó sin responder."""
+
+    objectives: tuple[str, ...]
+    fmt: str
+    grade: Grade | None
+    audio_failed: bool = False
+
+
+def audio_not_evaluable(response: dict[str, Any]) -> Grade:
+    """EDGE-07: en una comprobación, un audio que no cargó deja el ítem "no evaluable
+    (audio)"; no cuenta como error ni entra al denominador."""
+    return Grade("not_evaluable", "auto", None, None, {"reason": "audio", "response": response})
+
+
+def assessment_summary(items: list[ScoredItem]) -> dict[str, Any]:
+    """Resultados por objetivo: aciertos sobre total de lo corregido automáticamente. Sin
+    respuesta cuenta en el total (no es un acierto); "no evaluable (audio)" queda aparte.
+    Las producciones se cuentan como respondidas, sin calificación automática (MVP-01)."""
+    by_objective: dict[str, dict[str, int]] = {}
+    closed_correct = closed_total = audio = answered_productions = productions = 0
+    for item in items:
+        if item.fmt in SELF_ASSESSED:
+            productions += 1
+            if item.grade is not None and item.grade.evaluation_status != "not_evaluable":
+                answered_productions += 1
+            continue
+        counted = not item.audio_failed
+        is_correct = bool(item.grade is not None and item.grade.correct)
+        if counted:
+            closed_total += 1
+            closed_correct += int(is_correct)
+        else:
+            audio += 1
+        for code in item.objectives:
+            row = by_objective.setdefault(code, {"correct": 0, "total": 0, "not_evaluable": 0})
+            if counted:
+                row["total"] += 1
+                row["correct"] += int(is_correct)
+            else:
+                row["not_evaluable"] += 1
+    return {
+        "objectives": [{"code": code, **row} for code, row in sorted(by_objective.items())],
+        "closed_correct": closed_correct,
+        "closed_total": closed_total,
+        "productions_answered": answered_productions,
+        "productions_total": productions,
+        "not_evaluable_audio": audio,
+    }

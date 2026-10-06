@@ -213,3 +213,87 @@ class AttemptOut(BaseModel):
     feedback: AttemptFeedbackOut
     lesson_completed: bool | None
     review_objectives: list[str]
+
+
+# -- comprobaciones (REQ-12) ---------------------------------------------------------------
+
+
+class AssessmentFormRefOut(BaseModel):
+    id: uuid.UUID
+    slug: str
+    title: str
+    form_kind: Literal["initial", "checkpoint", "final"] | None
+    duration_minutes: int | None
+    unit: UnitRefOut | None
+
+
+class RunRefOut(BaseModel):
+    id: uuid.UUID
+    run_number: int
+    status: Literal["in_progress", "submitted"]
+    comparable: bool
+    started_at: str
+    submitted_at: str | None
+
+
+class AssessmentFormOut(AssessmentFormRefOut):
+    label: str
+    runs: list[RunRefOut]
+    open_run_id: uuid.UUID | None
+    can_start: bool
+
+
+class SavedAnswerOut(BaseModel):
+    response: dict[str, Any]
+    audio_failed: bool
+    saved_at: str
+
+
+class ObjectiveResultOut(BaseModel):
+    code: str
+    correct: int
+    total: int
+    not_evaluable: int
+
+
+class RunSummaryOut(BaseModel):
+    objectives: list[ObjectiveResultOut]
+    closed_correct: int
+    closed_total: int
+    productions_answered: int
+    productions_total: int
+    not_evaluable_audio: int
+
+
+class ItemResultOut(BaseModel):
+    activity_id: uuid.UUID
+    answered: bool
+    attempt_id: uuid.UUID | None
+    evaluation_status: str | None
+    correct: bool | None
+    result: dict[str, Any]
+    feedback: AttemptFeedbackOut
+
+
+class AssessmentRunOut(RunRefOut):
+    form: AssessmentFormRefOut
+    label: str
+    passages: list[PassageOut]
+    items: list[StudentActivityOut]
+    answers: dict[str, SavedAnswerOut]
+    summary: RunSummaryOut | None
+    results: list[ItemResultOut]
+
+
+class AnswerIn(Strict):
+    response: dict[str, Any] = Field(default_factory=dict)
+    audio_failed: bool = False
+
+
+class AnswerSavedOut(BaseModel):
+    activity_id: uuid.UUID
+    saved_at: str
+
+
+class DiagnosticResetOut(BaseModel):
+    reset: int

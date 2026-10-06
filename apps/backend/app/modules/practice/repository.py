@@ -7,12 +7,14 @@ import uuid
 from datetime import datetime
 from typing import Any
 
-from sqlalchemy import func, select
+from sqlalchemy import func, select, text
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.orm import Session
 
 from app.modules.content.models import Activity, ContentItem, ContentRevision, LearningPath
 from app.modules.practice.models import (
+    AssessmentAnswer,
+    AssessmentRun,
     Attempt,
     Enrollment,
     IdempotencyRecord,
@@ -205,3 +207,96 @@ def recent_attempts(
     if before is not None:
         stmt = stmt.where(Attempt.submitted_at < before)
     return list(s.scalars(stmt.order_by(Attempt.submitted_at.desc()).limit(limit)))
+
+
+# -- corridas de comprobación --------------------------------------------------------------
+
+
+def lock_runs_of(s: Session, user_id: uuid.UUID, form_item_id: uuid.UUID) -> None:
+    """Serializa los inicios de corrida del mismo alumno y formulario (lock consultivo de la
+    transacción): dos "Empezar" a la vez no crean dos corridas."""
+    s.execute(
+        text("SELECT pg_advisory_xact_lock(hashtextextended(:k, 0))"),
+        {"k": f"assessment-run:{user_id}:{form_item_id}"},
+    )
+
+
+def runs_for_form(s: Session, user_id: uuid.UUID, form_item_id: uuid.UUID) -> list[AssessmentRun]:
+    return list(
+        s.scalars(
+            select(AssessmentRun)
+            .where(AssessmentRun.user_id == user_id, AssessmentRun.form_item_id == form_item_id)
+            .order_by(AssessmentRun.run_number)
+        )
+    )
+
+
+def run_for_user(
+    s: Session, user_id: uuid.UUID, run_id: uuid.UUID, *, lock: bool = False
+) -> AssessmentRun | None:
+    stmt = select(AssessmentRun).where(AssessmentRun.id == run_id, AssessmentRun.user_id == user_id)
+    if lock:
+        stmt = stmt.with_for_update()
+    return s.scalar(stmt)
+
+
+def run_states(s: Session, user_id: uuid.UUID) -> dict[uuid.UUID, str]:
+    """Estado por formulario para la ruta: en curso si hay una corrida abierta; completado
+    si alguna se envió."""
+    out: dict[uuid.UUID, str] = {}
+    for run in s.scalars(select(AssessmentRun).where(AssessmentRun.user_id == user_id)):
+        if run.status == "in_progress":
+            out[run.form_item_id] = "in_progress"
+        else:
+            out.setdefault(run.form_item_id, "completed")
+    return out
+
+
+def answers_of(s: Session, run_id: uuid.UUID) -> dict[uuid.UUID, AssessmentAnswer]:
+    rows = s.scalars(select(AssessmentAnswer).where(AssessmentAnswer.run_id == run_id))
+    return {a.activity_id: a for a in rows}
+
+
+def upsert_answer(
+    s: Session,
+    *,
+    run_id: uuid.UUID,
+    activity_id: uuid.UUID,
+    response: dict[str, Any],
+    audio_failed: bool,
+    now: datetime,
+) -> None:
+    stmt = insert(AssessmentAnswer).values(
+        id=uuid.uuid4(),
+        run_id=run_id,
+        activity_id=activity_id,
+        response=response,
+        audio_failed=audio_failed,
+        saved_at=now,
+    )
+    s.execute(
+        stmt.on_conflict_do_update(
+            constraint="uq_assessment_answers_run_activity",
+            set_={"response": response, "audio_failed": audio_failed, "saved_at": now},
+        )
+    )
+
+
+def attempts_of_run(s: Session, run_id: uuid.UUID) -> dict[uuid.UUID, Attempt]:
+    rows = s.scalars(select(Attempt).where(Attempt.assessment_run_id == run_id))
+    return {a.activity_id: a for a in rows}
+
+
+def diagnostic_runs_to_reset(s: Session, user_id: uuid.UUID) -> list[AssessmentRun]:
+    return list(
+        s.scalars(
+            select(AssessmentRun)
+            .where(
+                AssessmentRun.user_id == user_id,
+                AssessmentRun.form_kind == "initial",
+                AssessmentRun.status == "submitted",
+                AssessmentRun.reset_at.is_(None),
+            )
+            .with_for_update()
+        )
+    )

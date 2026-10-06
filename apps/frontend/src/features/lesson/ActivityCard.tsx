@@ -5,28 +5,12 @@ import { ApiError } from "../../api/errors";
 import { Button } from "../../components/Button";
 import { ErrorNotice } from "../../components/ErrorNotice";
 import { Notice } from "../../components/Notice";
+import { ActivityRenderer, isReady } from "../activities/ActivityRenderer";
 import { AudioPlayer } from "../activities/audio-player/AudioPlayer";
-import { ChoiceRenderer } from "../activities/choice/ChoiceRenderer";
-import { GuidedDialogueRenderer, walk } from "../activities/guided-dialogue/GuidedDialogueRenderer";
-import { RecordedSpeakingRenderer } from "../activities/recorded-speaking/RecordedSpeakingRenderer";
-import { SentenceOrderRenderer } from "../activities/sentence-order/SentenceOrderRenderer";
-import { ShortWritingRenderer } from "../activities/short-writing/ShortWritingRenderer";
-import { WordCompletionRenderer } from "../activities/word-completion/WordCompletionRenderer";
 import styles from "./ActivityCard.module.css";
 import { clearDraft, loadDraft, saveDraft } from "./drafts";
 import { Feedback } from "./Feedback";
-import type {
-  Activity,
-  AttemptDetail,
-  AttemptSummary,
-  ChoiceData,
-  GuidedDialogueData,
-  RecordedSpeakingData,
-  SentenceOrderData,
-  ShortWritingData,
-  ShownResult,
-  WordCompletionData,
-} from "./types";
+import type { Activity, AttemptDetail, AttemptSummary, ShownResult } from "./types";
 
 const AID_LABELS: Record<string, string> = {
   hint: "Pista",
@@ -53,32 +37,6 @@ function fromSummary(last: AttemptSummary | undefined): ShownResult | null {
     aided: last.aided,
     response: last.response,
   };
-}
-
-/** ¿La respuesta está completa para enviarse? (el servidor valida igual). */
-function isReady(activity: Activity, response: Record<string, unknown>): boolean {
-  switch (activity.format) {
-    case "choice":
-      return ((response.selected as string[] | undefined) ?? []).length > 0;
-    case "word_completion": {
-      const answers = (response.answers as Record<string, string> | undefined) ?? {};
-      return (activity.data as unknown as WordCompletionData).gaps.every((g) => (answers[g.id] ?? "").trim() !== "");
-    }
-    case "sentence_order":
-      return (
-        ((response.order as string[] | undefined) ?? []).length ===
-        (activity.data as unknown as SentenceOrderData).tokens.length
-      );
-    case "short_writing":
-      return String(response.text ?? "").trim() !== "";
-    case "recorded_speaking":
-      return typeof response.recorded === "boolean";
-    case "guided_dialogue":
-      return walk(activity.data as unknown as GuidedDialogueData, (response.path as string[] | undefined) ?? [])
-        .finished;
-    default:
-      return false;
-  }
 }
 
 export function ActivityCard({
@@ -206,81 +164,6 @@ export function ActivityCard({
   const disabled = answered || submit.isPending;
   const ready = isReady(activity, response);
   const networkFailed = submit.error instanceof ApiError && submit.error.isNetwork;
-  const label = activity.prompt_en || activity.instructions_es;
-
-  function renderer() {
-    switch (activity.format) {
-      case "choice":
-        return (
-          <ChoiceRenderer
-            activityId={activity.id}
-            data={activity.data as unknown as ChoiceData}
-            selected={(response.selected as string[] | undefined) ?? []}
-            onChange={(next) => update({ selected: next })}
-            disabled={disabled}
-            correctOptions={answered ? ((view.result.correct_options as string[] | undefined) ?? null) : null}
-            legend={label}
-          />
-        );
-      case "word_completion":
-        return (
-          <WordCompletionRenderer
-            data={activity.data as unknown as WordCompletionData}
-            answers={(response.answers as Record<string, string> | undefined) ?? {}}
-            onChange={(answers) => update({ answers })}
-            disabled={disabled}
-            perGap={answered ? ((view.result.per_gap as Record<string, boolean> | undefined) ?? null) : null}
-          />
-        );
-      case "sentence_order":
-        return (
-          <SentenceOrderRenderer
-            data={activity.data as unknown as SentenceOrderData}
-            order={(response.order as string[] | undefined) ?? []}
-            onChange={(order) => update({ order })}
-            disabled={disabled}
-          />
-        );
-      case "short_writing":
-        return (
-          <ShortWritingRenderer
-            data={activity.data as unknown as ShortWritingData}
-            text={String(response.text ?? "")}
-            onChange={(text) => update({ text })}
-            disabled={disabled}
-            label={label}
-          />
-        );
-      case "recorded_speaking":
-        return (
-          <RecordedSpeakingRenderer
-            data={activity.data as unknown as RecordedSpeakingData}
-            response={response}
-            onChange={update}
-            disabled={disabled}
-            plays={plays}
-            onPlay={onPlay}
-          />
-        );
-      case "guided_dialogue": {
-        const turns =
-          (answered
-            ? (view.result.turns as { step: string; feedback_es: string; good: boolean }[] | undefined)
-            : null) ?? null;
-        return (
-          <GuidedDialogueRenderer
-            data={activity.data as unknown as GuidedDialogueData}
-            path={(response.path as string[] | undefined) ?? []}
-            onChange={(path) => update({ path })}
-            disabled={disabled}
-            turnFeedback={turns ? Object.fromEntries(turns.map((t) => [t.step, t])) : null}
-          />
-        );
-      }
-      default:
-        return <Notice tone="info">Este formato todavía no está disponible.</Notice>;
-    }
-  }
 
   return (
     <article className={styles.card} aria-labelledby={`act-${activity.id}`}>
@@ -307,7 +190,15 @@ export function ActivityCard({
         <Notice tone="info">Estás reformulando: se guardará como un intento nuevo ligado al anterior.</Notice>
       ) : null}
 
-      {renderer()}
+      <ActivityRenderer
+        activity={activity}
+        response={response}
+        onChange={update}
+        disabled={disabled}
+        plays={plays}
+        onPlay={onPlay}
+        result={answered ? view.result : null}
+      />
 
       {!answered && activity.aids.length > 0 ? (
         <div className={styles.aids} role="group" aria-label="Ayudas">

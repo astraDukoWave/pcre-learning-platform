@@ -63,3 +63,72 @@ audio:
   script:
   - speaker: Narrator
     text: Sorry, could you say that again, please?
+- id: inicial-aviso
+  script:
+  - speaker: Narrator
+    text: Good evening, shoppers. The store will close in fifteen minutes, at nine o'clock.
+    pause_after_ms: 400
+  - speaker: Narrator
+    text: Please bring your items to the registers at the front of the store.
+    pause_after_ms: 400
+  - speaker: Narrator
+    text: The self-checkout machines are not working tonight, so please pay with a cashier.
+    pause_after_ms: 400
+  - speaker: Narrator
+    text: We will open again tomorrow at eight a.m. Thank you for shopping with us.
+    pause_after_ms: 0
+- id: inicial-respuesta
+  script:
+  - speaker: A
+    text: Just so you know, the meeting has moved to the other building.
+- id: inicial-conversacion
+  voices:
+    Lucía: aura-2-helena-en
+    Martín: aura-2-apollo-en
+  script:
+  - speaker: Lucía
+    text: Martín, have you decided where we should have the team dinner on Friday?
+    pause_after_ms: 300
+  - speaker: Martín
+    text: I was thinking about the Italian place near the office. It's close, so nobody needs to drive.
+    pause_after_ms: 300
+  - speaker: Lucía
+    text: It's close, but it's really noisy on Fridays. Last time we could hardly hear each other.
+    pause_after_ms: 300
+  - speaker: Martín
+    text: That's true. What about the Peruvian restaurant on Fifth Street? It's quieter.
+    pause_after_ms: 300
+  - speaker: Lucía
+    text: I like that one, but it's a bit expensive for the whole team.
+    pause_after_ms: 300
+  - speaker: Martín
+    text: Then why don't we ask them for a group menu? If the price per person is under thirty dollars,
+      we can go there.
+    pause_after_ms: 300
+  - speaker: Lucía
+    text: Good idea. I'll call them this afternoon.
+    pause_after_ms: 300
+  - speaker: Martín
+    text: Great. And let's book for seven thirty, so people can come straight from work.
+    pause_after_ms: 300
+- id: u1-cp-aviso
+  script:
+  - speaker: Narrator
+    text: Attention, passengers. The four fifteen train to Puebla will leave from platform six instead
+      of platform two.
+    pause_after_ms: 400
+  - speaker: Narrator
+    text: Please check your ticket and move to platform six now. The train is on time.
+    pause_after_ms: 400
+  - speaker: Narrator
+    text: Passengers with large bags can use the elevator next to the ticket office. Please keep your
+      bags with you at all times. Thank you.
+    pause_after_ms: 0
+- id: u1-cp-respuesta
+  script:
+  - speaker: B
+    text: Excuse me, do you mind if I sit here?
+- id: u1-cp-repetir
+  script:
+  - speaker: Narrator
+    text: Could you tell me where the front desk is, please?

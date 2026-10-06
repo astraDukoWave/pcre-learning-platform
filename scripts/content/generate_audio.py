@@ -152,7 +152,9 @@ def run(
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--unit", required=True, help="prefijo de unidad, p. ej. u1")
+    parser.add_argument(
+        "--unit", required=True, help="prefijo del audio: u1 … u8, o inicial / final (formularios)"
+    )
     parser.add_argument("--max-chars", type=int, default=20000)
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--path-dir", type=Path, default=ROOT / "content" / "toefl-ibt-2026-b1-b2")

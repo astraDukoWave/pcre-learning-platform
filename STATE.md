@@ -62,7 +62,8 @@ anotan en el registro; cualquier otra desviación queda `pending-human`.
 | MVP-01 | CS-03 · identidad | `feat/mvp01-cs03-identity` | [#5](https://github.com/astraDukoWave/pcre-learning-platform/pull/5) | `e0ce77b` (head `fcff1d2`) | [37396602133](https://github.com/astraDukoWave/pcre-learning-platform/actions/runs/37396602133) ✅ 7 jobs + ci-gate | `make verify` exit 0 (137 pruebas); [verificador independiente](https://github.com/astraDukoWave/pcre-learning-platform/pull/5#issuecomment-6006957824): 0 bloqueantes, 5 menores corregidos en `fcff1d2` | 6 oct 2026 |
 | MVP-01 | CS-04 · contenido y editorial | `feat/mvp01-cs04-content` | [#6](https://github.com/astraDukoWave/pcre-learning-platform/pull/6) | `fd27fe1` (head `cb88907`) | [37399146747](https://github.com/astraDukoWave/pcre-learning-platform/actions/runs/37399146747) ✅ 8 jobs + ci-gate | `make verify` exit 0 (195 pruebas); [verificador independiente](https://github.com/astraDukoWave/pcre-learning-platform/pull/6#issuecomment-6007370846): 1 bloqueante y 8 menores corregidos en `cb88907`; NI-01 | 6 oct 2026 |
 | MVP-01 | CS-05 · primera lección E2E | `feat/mvp01-cs05-first-lesson` | [#7](https://github.com/astraDukoWave/pcre-learning-platform/pull/7) | `e45ede1` (head `5502eb4`) | [37399904620](https://github.com/astraDukoWave/pcre-learning-platform/actions/runs/37399904620) ✅ 8 jobs + ci-gate | `make verify` exit 0 (236 pruebas); E2E local 3/3 y en la CI | 6 oct 2026 |
-| MVP-01 | CS-06 · formatos, audio y escenario | `feat/mvp01-cs06-formats-audio` | [#8](https://github.com/astraDukoWave/pcre-learning-platform/pull/8) | se completa al mergear | se completa al terminar | `make verify` exit 0 (249 pruebas backend, 21 Vitest); E2E local 5/5; `generate_audio.py --dry-run` U1: 9 guiones, 1 091 caracteres, USD 0.0327; NI-02 | 6 oct 2026 |
+| MVP-01 | CS-06 · formatos, audio y escenario | `feat/mvp01-cs06-formats-audio` | [#8](https://github.com/astraDukoWave/pcre-learning-platform/pull/8) | `1a592d4` (head `f2ed3da`) | [37402697350](https://github.com/astraDukoWave/pcre-learning-platform/actions/runs/37402697350) ✅ 8 jobs + ci-gate (el primer run, [37402283679](https://github.com/astraDukoWave/pcre-learning-platform/actions/runs/37402283679), falló: empate de reloj falso en una prueba y micrófono en Chrome Headless Shell; corregidos en `f2ed3da`) | `make verify` exit 0 (249 pruebas backend, 21 Vitest); E2E 5/5 local (Chromium y headless shell) y en la CI; `generate_audio.py --dry-run` U1: 9 guiones, 1 091 caracteres, USD 0.0327; NI-02 | 6 oct 2026 |
+| MVP-01 | CS-07 · comprobaciones | `feat/mvp01-cs07-assessments` | [#9](https://github.com/astraDukoWave/pcre-learning-platform/pull/9) | se completa al mergear | se completa al terminar | `make verify` exit 0 (257 pruebas backend, 22 Vitest, migraciones nuevas probadas: 4); E2E local 7/7 (Chromium y headless shell); NI-03 | 6 oct 2026 |
 
 ## Desviaciones
 
@@ -86,6 +87,16 @@ Ninguna.
   `evaluation_source = self`; no toca la respuesta guardada; repetir con las mismas marcas
   devuelve lo mismo y con otras marcas responde 409 (para cambiar de opinión se reformula
   con `revision_of`). Es el mismo patrón que `POST /attempts/{id}/feedback` de MVP-02.
+
+- **NI-03 · Rutas auxiliares de comprobaciones** (CS-07). Además de las rutas de la tabla
+  de `docs/arquitectura.md`, REQ-12 necesita dos que no estaban listadas:
+  `GET /api/v1/assessments/{form_id}` (formulario, corridas numeradas y si se puede
+  iniciar; la pantalla de inicio la usa para retomar o mostrar resultados) y
+  `POST /api/v1/admin/users/{user_id}/diagnostic-reset` ("un admin puede reiniciarlo",
+  EDGE-09). El reinicio deja la corrida en el historial con `reset_at`; no guarda quién lo
+  hizo en la tabla (toda FK a `users` es `CASCADE`, regla de `data_registry`): queda en el
+  log `diagnostic_reset` con el `user_ref` del admin. Un ítem cuyo audio no cargó se guarda
+  con `audio_failed` y queda "no evaluable (audio)" fuera del denominador (EDGE-07).
 
 ## Loop humano vigente
 

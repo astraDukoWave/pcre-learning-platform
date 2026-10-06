@@ -1,0 +1,160 @@
+# U1 · Checkpoint (contrato curricular §5): ítems nuevos del pool `assessment`, al menos 6
+# cerrados y una producción; cubre las familias de U1 en una comprobación posterior a la
+# práctica (§10). Sin pistas ni apoyos. Borrador del agente para revisión humana; el audio
+# sale de `audio/manifest.yaml` (entradas `u1-cp-*`) en el workflow aprobado (G2).
+kind: assessment_form
+slug: u1-checkpoint
+unit: u1-informacion-decisiones
+form_kind: checkpoint
+position: 6
+title: "Checkpoint de la unidad 1"
+status: draft
+duration_minutes: 15
+objectives: [U1.R, U1.L, U1.W, U1.S]
+sources:
+  - source: ets-toefl-ibt-content
+    claim: "Las familias de tareas del formato vigente se usan como referencia de formato; los ítems son originales."
+    scope: "formato de las tareas"
+passages:
+  - id: cp1
+    title_en: "Sunrise Fitness: new class schedule"
+    text_en: |
+      Starting Monday, our yoga classes will move from the morning to the evening. Beginner Yoga meets on Mondays and Wednesdays from 6:30 to 7:30 p.m., and Advanced Yoga meets on Tuesdays and Thursdays at the same time. Each class has room for up to fifteen people, so please book a place in the app at least two hours before the class.
+
+      Members can bring one guest per month for free; after that, guests pay 8 dollars per class. Mats are available at the front desk, but we recommend bringing your own.
+
+      Message from Daniel: I'm new to yoga, and I finish work at 6:00 p.m. on weekdays. My office is a twenty-minute walk from the gym. I'd like to bring my sister to try a class next week. She has never come with me before.
+activities:
+  - key: u1.cp.r1
+    format: choice
+    task_family: read_in_daily_life
+    pool: assessment
+    objectives: [U1.R]
+    instructions_es: "Lee el horario y el mensaje de Daniel. Elige la respuesta."
+    prompt_en: "Which class is the best fit for Daniel?"
+    stimulus: {passage: cp1}
+    options:
+      - {id: a, text: "Beginner Yoga on Monday or Wednesday."}
+      - {id: b, text: "Advanced Yoga on Tuesday or Thursday.", why_es: "Daniel dice que es nuevo en yoga."}
+      - {id: c, text: "Any morning class before work.", why_es: "Las clases se cambian de la mañana a la tarde."}
+      - {id: d, text: "None, because the classes start before he can arrive.", why_es: "Sale a las 6:00 y camina 20 minutos: llega a las 6:20, antes de las 6:30."}
+    correct: [a]
+    explanation_es: "Daniel es principiante y puede llegar a las 6:20 p.m.; Beginner Yoga es lunes y miércoles de 6:30 a 7:30 p.m."
+  - key: u1.cp.r2
+    format: choice
+    task_family: read_in_daily_life
+    pool: assessment
+    objectives: [U1.R]
+    instructions_es: "Une la regla del gimnasio con lo que dice Daniel."
+    prompt_en: "How much will Daniel's sister pay for her first class?"
+    stimulus: {passage: cp1}
+    options:
+      - {id: a, text: "Nothing, because she would be his free guest for the month."}
+      - {id: b, text: "8 dollars, because all guests pay per class.", why_es: "Solo pagan los invitados después del primero del mes."}
+      - {id: c, text: "15 dollars, the price for one class.", why_es: "Quince es el número máximo de personas por clase."}
+      - {id: d, text: "It depends on whether she brings her own mat.", why_es: "Las colchonetas no tienen costo en el aviso."}
+    correct: [a]
+    explanation_es: "«Members can bring one guest per month for free» y la hermana nunca ha ido: sería su invitada gratuita del mes."
+  - key: u1.cp.r3
+    format: word_completion
+    task_family: complete_the_words
+    pool: assessment
+    objectives: [U1.R]
+    instructions_es: "Completa cada palabra. Ves el inicio; escribe lo que falta o la palabra completa."
+    prompt_en: "Complete the words in the gym's reminder."
+    text_en: "Please bo{{g1}} your place in the app at least two ho{{g2}} before the class. Mats are avail{{g3}} at the front desk, but you can also bring your o{{g4}}."
+    gaps:
+      - {id: g1, shown: "bo", accepted: ["book"]}
+      - {id: g2, shown: "ho", accepted: ["hours"]}
+      - {id: g3, shown: "avail", accepted: ["available"]}
+      - {id: g4, shown: "o", accepted: ["own"]}
+    explanation_es: "book (reservar), hours (después de «two»), available (disponibles) y own («your own», la tuya)."
+  - key: u1.cp.l1
+    format: choice
+    task_family: listen_announcement
+    pool: assessment
+    objectives: [U1.L]
+    instructions_es: "Escucha el aviso y elige la respuesta."
+    prompt_en: "What is the main purpose of the announcement?"
+    stimulus:
+      audio: u1-cp-aviso
+      transcript: "Attention, passengers. The four fifteen train to Puebla will leave from platform six instead of platform two. Please check your ticket and move to platform six now. The train is on time. Passengers with large bags can use the elevator next to the ticket office. Please keep your bags with you at all times. Thank you."
+    options:
+      - {id: a, text: "To tell passengers about a platform change."}
+      - {id: b, text: "To say that the train is late.", why_es: "El aviso dice que el tren va a tiempo."}
+      - {id: c, text: "To ask passengers to buy new tickets.", why_es: "Piden revisar el boleto, no comprar otro."}
+      - {id: d, text: "To explain how to use the elevator.", why_es: "El elevador es un detalle para quien lleva maletas grandes, no el propósito."}
+    correct: [a]
+    explanation_es: "«will leave from platform six instead of platform two»: el aviso existe para comunicar el cambio de andén."
+  - key: u1.cp.l2
+    format: choice
+    task_family: listen_choose_response
+    pool: assessment
+    objectives: [U1.L]
+    instructions_es: "Escucha la pregunta y elige la mejor respuesta."
+    prompt_en: "Choose the best response."
+    stimulus:
+      audio: u1-cp-respuesta
+      transcript: "Excuse me, do you mind if I sit here?"
+    options:
+      - {id: a, text: "Not at all. Go ahead."}
+      - {id: b, text: "Yes, please sit here.", why_es: "Con «Do you mind…?», «Yes» significaría que sí te molesta."}
+      - {id: c, text: "I sit here every day.", why_es: "Habla de tu costumbre y no responde a la pregunta."}
+      - {id: d, text: "Here is my seat number.", why_es: "No responde si la persona puede sentarse."}
+    correct: [a]
+    explanation_es: "Para aceptar una pregunta con «Do you mind…?» se responde «Not at all» (no me molesta)."
+  - key: u1.cp.w1
+    format: sentence_order
+    task_family: build_a_sentence
+    pool: assessment
+    objectives: [U1.W]
+    instructions_es: "Ordena las fichas. La ficha que empieza con mayúscula va primero."
+    prompt_en: "Ask the gym if guests can bring their own mats."
+    tokens: ["Could you", "tell me", "if", "guests", "can bring", "their own mats?"]
+    accepted_orders:
+      - ["Could you", "tell me", "if", "guests", "can bring", "their own mats?"]
+    explanation_es: "Could you tell me + if (pregunta de sí o no) + guests (sujeto) + can bring (verbo) + their own mats."
+  - key: u1.cp.e1
+    format: short_writing
+    task_family: write_an_email
+    pool: assessment
+    objectives: [U1.W]
+    instructions_es: "Escribe un correo breve (entre 50 y 110 palabras) que cubra los tres puntos."
+    prompt_en: "You want to join Sunrise Fitness. Write an email to the gym. In your email: say which class you are interested in; ask if you need to book every class; ask if there is a discount for students."
+    min_words: 50
+    max_words: 110
+    rubric: email
+    model_answer: |
+      Dear Sunrise Fitness team,
+
+      I am writing because I would like to join your Beginner Yoga class on Monday and Wednesday evenings. Could you tell me if I need to book a place in the app for every class, or only for the first one? I would also like to know if there is a discount for students, because I am studying at the university this year.
+
+      Thank you for your help,
+      Paula Herrera
+    model_commentary_es: "Dice el propósito y la clase en la primera oración, hace las dos preguntas pedidas con preguntas indirectas y explica por qué pregunta por el descuento."
+  - key: u1.cp.s1
+    format: recorded_speaking
+    task_family: take_an_interview
+    pool: assessment
+    objectives: [U1.S]
+    instructions_es: "Lee la pregunta, prepárate y responde en voz alta."
+    subtype: interview
+    question_en: "What do you usually do on weekends?"
+    prep_seconds: 15
+    response_seconds: 45
+    rubric: interview
+    model_answer: "On weekends, I usually sleep a little later and have a big breakfast with my family. On Saturday afternoons, I often play soccer with friends from work. Sundays are quieter: I clean the house, prepare my food for the week, and sometimes watch a movie in English to practice."
+    model_commentary_es: "Organiza la respuesta por días, usa usually, often y sometimes antes del verbo y da detalles concretos de cada momento."
+  - key: u1.cp.s2
+    format: recorded_speaking
+    task_family: listen_and_repeat
+    pool: assessment
+    objectives: [U1.S]
+    instructions_es: "Escucha la oración y repítela tal cual."
+    subtype: listen_and_repeat
+    target_sentence: "Could you tell me where the front desk is, please?"
+    audio: u1-cp-repetir
+    response_seconds: 10
+    rubric: repeat
+    model_answer: "Could you tell me where the front desk is, please?"
+    model_commentary_es: "«where the front desk is» va en orden de afirmación; las palabras con más fuerza son tell, front desk y please."

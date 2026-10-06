@@ -12,7 +12,11 @@ const STATE_LABEL: Record<string, string> = {
   completed: "Completada",
 };
 
-const ROUTES: Record<string, string> = { lesson: "/lecciones", scenario: "/escenarios" };
+const ROUTES: Record<string, string> = {
+  lesson: "/lecciones",
+  scenario: "/escenarios",
+  assessment_form: "/comprobaciones",
+};
 
 export function usePath() {
   const paths = useQuery({ queryKey: ["paths"], queryFn: () => unwrap(api.GET("/api/v1/learning-paths")) });
@@ -49,6 +53,22 @@ export function PathPage() {
       <p>
         {path.label} · {es.app.trademark}
       </p>
+      {path.assessments.length ? (
+        <section className={styles.unit} aria-labelledby="path-forms">
+          <h2 id="path-forms">Comprobaciones de la ruta</h2>
+          {path.assessments.some((f) => f.form_kind === "initial" && f.state === "not_started") ? (
+            <p>Empieza por el diagnóstico inicial: te dice por dónde empezar y sirve para comparar después.</p>
+          ) : null}
+          <ul className={styles.items}>
+            {path.assessments.map((item) => (
+              <li key={item.id} className={styles.item}>
+                <Link to={`/comprobaciones/${item.id}`}>{item.title}</Link>
+                <span className={styles.state}>{STATE_LABEL[item.state]}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
       {path.units.map((unit) => (
         <section key={unit.id} className={styles.unit} aria-labelledby={`unit-${unit.id}`}>
           <h2 id={`unit-${unit.id}`}>

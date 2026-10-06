@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
     inputs:
       unit:
-        description: "Prefijo de la unidad (u1, u2, …)"
+        description: "Prefijo del audio: unidad (u1 … u8) o formulario de ruta (inicial, final)"
         required: true
         type: string
       max_chars:
@@ -43,7 +43,7 @@ jobs:
         run: uv sync --locked
       - name: Validar entradas
         run: |
-          [[ "${UNIT}" =~ ^u[1-8]$ ]] || { echo "::error::unit inválida: ${UNIT}"; exit 1; }
+          [[ "${UNIT}" =~ ^(u[1-8]|inicial|final)$ ]] || { echo "::error::unit inválida: ${UNIT}"; exit 1; }
           [[ "${MAX_CHARS}" =~ ^[0-9]+$ ]] || { echo "::error::max_chars inválido"; exit 1; }
       - name: Conteo y costo estimado (sin red)
         working-directory: apps/backend
