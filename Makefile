@@ -50,7 +50,7 @@ lint: ## ruff (check y format), import-linter y actionlint
 	$(UV_RUN) actionlint -no-color ../../.github/workflows/*.yml
 
 typecheck: ## mypy estricto
-	$(UV_RUN) mypy app tests import_contracts.py ../../scripts/openapi/export.py ../../scripts/ci/heroku_cmd.py ../../scripts/content/generate_audio.py
+	$(UV_RUN) mypy app tests import_contracts.py ../../scripts/openapi/export.py ../../scripts/ci/heroku_cmd.py ../../scripts/content/generate_audio.py ../../scripts/perf/smoke.py
 
 migrations-check: ## Migraciones: vacía→head, legado→head, alembic check, downgrade/upgrade
 	DATABASE_URL=$(MIGCHECK_DATABASE_URL) scripts/dev/migrations-check.sh
