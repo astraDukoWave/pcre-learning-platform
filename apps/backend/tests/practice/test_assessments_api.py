@@ -10,7 +10,6 @@ import uuid
 from pathlib import Path
 from typing import Any
 
-import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
@@ -20,57 +19,11 @@ from app.main import create_app
 from app.modules.content.service_editorial import EditorialService
 from app.modules.identity.models import UserRole
 from app.modules.practice.models import AssessmentRun, Attempt
-from tests.content.builder import add_initial_form, write_content
+from tests.content.builder import write_content
 from tests.contract.test_student_dto import FORBIDDEN_KEYS, walk_keys
-from tests.helpers import Account, AccountFactory, create_user, login
+from tests.helpers import Account, AccountFactory, create_user, login, save, start, submit
 
 LABEL = "Comprobación formativa: no es un examen oficial"
-
-
-@pytest.fixture
-def forms(admin: Account, editorial: object, tmp_path: Path) -> dict[str, Any]:
-    """Ruta de prueba con el checkpoint de U1 y el diagnóstico inicial publicados."""
-    editorial.import_dir(write_content(tmp_path / "forms", add_initial_form))  # type: ignore[attr-defined]
-    ids: dict[str, Any] = {}
-    for rev in admin.client.get("/api/v1/admin/content/revisions").json():
-        if rev["item_slug"] not in ("u1-checkpoint", "diagnostico-inicial"):
-            continue
-        admin.client.post(
-            f"/api/v1/admin/content/revisions/{rev['id']}/approve",
-            json={"content_hash": rev["content_hash"]},
-            headers=admin.headers(),
-        )
-        res = admin.client.post(
-            f"/api/v1/admin/content/revisions/{rev['id']}/publish", json={}, headers=admin.headers()
-        )
-        assert res.status_code == 200, res.text
-        ids[rev["item_slug"]] = {
-            "id": rev["item_id"],
-            "activities": {a["key"]: a["id"] for a in res.json()["activities"]},
-        }
-    return ids
-
-
-def start(acct: Account, form_id: str, key: str | None = None) -> Any:
-    return acct.client.post(
-        f"/api/v1/assessments/{form_id}/start",
-        headers={**acct.headers(), "Idempotency-Key": key or str(uuid.uuid4())},
-    )
-
-
-def save(acct: Account, run_id: str, activity_id: str, response: dict[str, Any], **kw: Any) -> Any:
-    return acct.client.put(
-        f"/api/v1/assessment-runs/{run_id}/answers/{activity_id}",
-        json={"response": response, **kw},
-        headers=acct.headers(),
-    )
-
-
-def submit(acct: Account, run_id: str, key: str | None = None) -> Any:
-    return acct.client.post(
-        f"/api/v1/assessment-runs/{run_id}/submit",
-        headers={**acct.headers(), "Idempotency-Key": key or str(uuid.uuid4())},
-    )
 
 
 def test_start_fixes_order_and_hides_aids_and_solutions(

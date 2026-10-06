@@ -193,19 +193,52 @@ def test_lesson_resumes_with_last_attempts(
 def test_attempt_and_review_are_one_transaction(
     student: Account, lesson: dict[str, Any], db: Session, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """AC-12: una falla provocada después del insert revierte intento, repaso e idempotencia."""
-    from app.modules.practice import service as practice_service
+    """AC-12: una falla provocada después de escribir el intento **y** el repaso (al guardar
+    la respuesta idempotente, el último paso) revierte intento, repaso e idempotencia."""
+    from app.modules.practice import repository as practice_repository
+    from app.modules.progress import service as progress_service
+
+    written: list[str] = []
+    real_record = progress_service.record_outcome
+
+    def spy(*args: Any, **kwargs: Any) -> Any:
+        out = real_record(*args, **kwargs)
+        written.append("review")
+        return out
 
     def boom(*args: object, **kwargs: object) -> None:
-        raise RuntimeError("falla provocada después del insert")
+        raise RuntimeError("falla provocada después del repaso")
 
-    monkeypatch.setattr(practice_service.PracticeService, "_update_lesson_progress", boom)
+    monkeypatch.setattr(progress_service, "record_outcome", spy)
+    monkeypatch.setattr(practice_repository, "store_idempotent_response", boom)
     act = lesson[L1]["activities"]["u1.l1.p4"]
     res = post_attempt(student, act, ["c"])
     assert res.status_code == 500
+    assert written == ["review"]  # el repaso sí se escribió antes de la falla
     assert count(db, Attempt, user_id=student.id) == 0
     assert count(db, ReviewSchedule, user_id=student.id) == 0
     assert count(db, IdempotencyRecord, user_id=student.id) == 0
+
+
+def test_timezone_change_keeps_recorded_days(
+    student: Account, lesson: dict[str, Any], db: Session
+) -> None:
+    """EDGE-10: los días ya registrados no cambian; los envíos nuevos usan la zona nueva."""
+    from app.modules.practice.domain import local_day
+
+    acts = lesson[L1]["activities"]
+    first = post_attempt(student, acts["u1.l1.p1"], ["a"]).json()
+    res = student.client.patch(
+        "/api/v1/me", json={"timezone": "Pacific/Kiritimati"}, headers=student.headers()
+    )
+    assert res.status_code == 200, res.text
+    second = post_attempt(student, acts["u1.l1.p2"], ["a"]).json()
+    a1 = db.get(Attempt, uuid.UUID(first["id"]))
+    a2 = db.get(Attempt, uuid.UUID(second["id"]))
+    assert a1 is not None and a2 is not None
+    assert a1.local_day == local_day(a1.submitted_at, "America/Mexico_City")
+    assert a2.local_day == local_day(a2.submitted_at, "Pacific/Kiritimati")
+    assert a1.local_day != a2.local_day  # UTC-6 y UTC+14 caen en días distintos
 
 
 def test_withdrawn_pinned_lesson_is_released_and_history_kept(
