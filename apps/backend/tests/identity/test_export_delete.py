@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import json
 import re
+import uuid
+from typing import Any
 
 from fastapi.testclient import TestClient
 from sqlalchemy import func, select
@@ -12,7 +14,7 @@ from sqlalchemy.orm import Session
 from app.bootstrap import Container
 from app.db.base import Base
 from app.modules.identity.data_registry import REGISTRY
-from tests.helpers import Account, AccountFactory
+from tests.helpers import Account, AccountFactory, save, start, submit
 
 
 def test_export_contains_only_own_data_without_secrets(
@@ -121,3 +123,81 @@ def test_delete_also_removes_old_invitations_with_the_email(
                 .where(table.c.email == "borrame@example.com")
             )
             assert count == 0, f"quedó el email en {name}"
+
+
+def _rows_left(db: Session, user_id: uuid.UUID) -> dict[str, int]:
+    left = {}
+    for name, entry in REGISTRY.items():
+        table = Base.metadata.tables[name]
+        for column in entry.user_columns:
+            n = db.scalar(select(func.count()).select_from(table).where(table.c[column] == user_id))
+            if n:
+                left[f"{name}.{column}"] = int(n)
+    return left
+
+
+def _delete(student: Account) -> None:
+    res = student.client.request(
+        "DELETE", "/api/v1/me", json={"password": student.password}, headers=student.headers()
+    )
+    assert res.status_code == 204
+
+
+def test_delete_after_real_activity_leaves_no_rows(
+    student: Account, all_formats: dict[str, Any], db: Session
+) -> None:
+    """AC-22 con actividad real (observación 2 del verificador de CS-12): progreso, ayudas,
+    intentos, repaso, idempotencia, autoevaluación, valoración, reporte y eventos."""
+    l1 = all_formats["u1-l1-lectura"]
+    write = all_formats["u1-l3-escritura"]["activities"]["u1.l3.p1"]
+    student.client.get(f"/api/v1/lessons/{l1['item_id']}")
+    student.client.post(
+        "/api/v1/aids",
+        json={"activity_id": l1["activities"]["u1.l1.p1"], "kind": "hint", "index": 0},
+        headers=student.headers(),
+    )
+    for activity, response in (
+        (l1["activities"]["u1.l1.p1"], {"selected": ["b"]}),
+        (write, {"text": " ".join(["word"] * 40)}),
+    ):
+        res = student.client.post(
+            "/api/v1/attempts",
+            json={"activity_id": activity, "response": response},
+            headers={**student.headers(), "Idempotency-Key": str(uuid.uuid4())},
+        )
+        assert res.status_code == 201, res.text
+    student.client.post(
+        f"/api/v1/attempts/{res.json()['id']}/self-assessment",
+        json={"scores": {"task": 2}},
+        headers=student.headers(),
+    )
+    student.client.post(
+        "/api/v1/feedback",
+        json={"context_type": "lesson", "context_id": l1["item_id"], "rating": 4, "message": "x"},
+        headers=student.headers(),
+    )
+    rev = student.client.get(f"/api/v1/lessons/{l1['item_id']}").json()["revision_id"]
+    report = student.client.post(
+        "/api/v1/content-reports",
+        json={"revision_id": rev, "category": "typo", "message": "coma"},
+        headers=student.headers(),
+    )
+    assert report.status_code == 201, report.text
+    before = _rows_left(db, student.id)
+    assert len(before) >= 8, before
+    _delete(student)
+    db.expire_all()
+    assert _rows_left(db, student.id) == {}
+
+
+def test_delete_after_an_assessment_run_leaves_no_rows(
+    student: Account, forms: dict[str, Any], db: Session
+) -> None:
+    form = forms["u1-checkpoint"]
+    run = start(student, form["id"]).json()
+    save(student, run["id"], form["activities"]["u1.cp.a1"], {"selected": ["a"]})
+    submit(student, run["id"])
+    assert "assessment_runs.user_id" in _rows_left(db, student.id)
+    _delete(student)
+    db.expire_all()
+    assert _rows_left(db, student.id) == {}

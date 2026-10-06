@@ -9,7 +9,7 @@ import { ActivityRenderer, isReady } from "../activities/ActivityRenderer";
 import { AudioPlayer } from "../activities/audio-player/AudioPlayer";
 import { ReportProblem } from "../feedback/ReportProblem";
 import styles from "./ActivityCard.module.css";
-import { clearDraft, loadDraft, saveDraft } from "./drafts";
+import { clearDraft, loadDraft, renewDraftKey, saveDraft } from "./drafts";
 import { Feedback } from "./Feedback";
 import type { Activity, AttemptDetail, AttemptSummary, ShownResult } from "./types";
 
@@ -117,6 +117,12 @@ export function ActivityCard({
         }),
       );
     },
+    onError: (error) => {
+      if (error instanceof ApiError && error.code === "idempotency_conflict") {
+        renewDraftKey(activity.id, response);
+        pendingBody.current = null;
+      }
+    },
     onSuccess: (result) => {
       clearDraft(activity.id);
       pendingBody.current = null;
@@ -170,6 +176,7 @@ export function ActivityCard({
   const disabled = answered || submit.isPending;
   const ready = isReady(activity, response);
   const networkFailed = submit.error instanceof ApiError && submit.error.isNetwork;
+  const keyConflict = submit.error instanceof ApiError && submit.error.code === "idempotency_conflict";
 
   return (
     <article className={styles.card} aria-labelledby={`act-${activity.id}`}>
@@ -245,6 +252,11 @@ export function ActivityCard({
 
       {networkFailed ? (
         <Notice tone="system-error">No pudimos guardar tu respuesta. La conservamos aquí; vuelve a intentarlo.</Notice>
+      ) : keyConflict ? (
+        <Notice tone="note">
+          Tu envío anterior ya se había guardado con otra respuesta. Envía de nuevo para guardar esta como un intento
+          nuevo.
+        </Notice>
       ) : (
         <ErrorNotice error={submit.error} />
       )}

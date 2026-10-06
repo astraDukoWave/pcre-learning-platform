@@ -5,6 +5,7 @@ from __future__ import annotations
 import uuid
 from collections.abc import Callable, Iterator
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any
 
 import pytest
@@ -209,3 +210,52 @@ def lesson(admin: Account, imported: object) -> dict[str, Any]:
             "activities": {a["key"]: a["id"] for a in detail["activities"]},
         }
     return ids
+
+
+@pytest.fixture
+def forms(admin: Account, editorial: object, tmp_path: object) -> dict[str, Any]:
+    """Ruta de prueba con el checkpoint de U1 y el diagnóstico inicial publicados."""
+    from tests.content.builder import add_initial_form, write_content
+
+    assert isinstance(tmp_path, Path)
+    editorial.import_dir(write_content(tmp_path / "forms", add_initial_form))  # type: ignore[attr-defined]
+    ids: dict[str, Any] = {}
+    for rev in admin.client.get("/api/v1/admin/content/revisions").json():
+        if rev["item_slug"] not in ("u1-checkpoint", "diagnostico-inicial"):
+            continue
+        admin.client.post(
+            f"/api/v1/admin/content/revisions/{rev['id']}/approve",
+            json={"content_hash": rev["content_hash"]},
+            headers=admin.headers(),
+        )
+        res = admin.client.post(
+            f"/api/v1/admin/content/revisions/{rev['id']}/publish", json={}, headers=admin.headers()
+        )
+        assert res.status_code == 200, res.text
+        ids[rev["item_slug"]] = {
+            "id": rev["item_id"],
+            "activities": {a["key"]: a["id"] for a in res.json()["activities"]},
+        }
+    return ids
+
+
+def start(acct: Account, form_id: str, key: str | None = None) -> Any:
+    return acct.client.post(
+        f"/api/v1/assessments/{form_id}/start",
+        headers={**acct.headers(), "Idempotency-Key": key or str(uuid.uuid4())},
+    )
+
+
+def save(acct: Account, run_id: str, activity_id: str, response: dict[str, Any], **kw: Any) -> Any:
+    return acct.client.put(
+        f"/api/v1/assessment-runs/{run_id}/answers/{activity_id}",
+        json={"response": response, **kw},
+        headers=acct.headers(),
+    )
+
+
+def submit(acct: Account, run_id: str, key: str | None = None) -> Any:
+    return acct.client.post(
+        f"/api/v1/assessment-runs/{run_id}/submit",
+        headers={**acct.headers(), "Idempotency-Key": key or str(uuid.uuid4())},
+    )

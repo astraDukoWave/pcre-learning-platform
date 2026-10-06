@@ -17,7 +17,7 @@
 
 | # | Ítem | Tipo | Estado | Objetivos | Actividades | Hash |
 |---|---|---|---|---|---|---|
-| 1 | Diagnóstico inicial (`diagnostico-inicial`) | comprobación | `ready-for-review` | U1.R, U2.R, U3.R, U5.R, U7.R, U8.R, U1.L, U2.L, U4.L, U6.L, U1.W, U2.W, U3.W, U5.W, U1.S, U4.S | 16 | `60f7f0c7848e` |
+| 1 | Diagnóstico inicial (`diagnostico-inicial`) | comprobación | `ready-for-review` | U1.R, U2.R, U3.R, U5.R, U7.R, U8.R, U1.L, U2.L, U4.L, U6.L, U1.W, U2.W, U3.W, U5.W, U1.S, U4.S | 16 | `feb1c9f7a3f2` |
 
 - Lint de estos archivos: 0 errores, 4 advertencias.
 - Audio: 3 guiones, 0 revisados, 3 sin revisar.
@@ -31,7 +31,7 @@
 ## 1. Diagnóstico inicial
 
 - Archivo: `content/toefl-ibt-2026-b1-b2/assessments/inicial.yaml` · comprobación (diagnóstico inicial, 25 min) · estado `ready-for-review`
-- Hash del contenido: `60f7f0c7848e…` (el panel lo muestra en «Aprobar el hash»)
+- Hash del contenido: `feb1c9f7a3f2…` (el panel lo muestra en «Aprobar el hash»)
 - Objetivos:
   - `U1.R`: Localizar condiciones y datos explícitos en mensajes y horarios y hacer una inferencia simple al comparar opciones
   - `U2.R`: Entender solicitudes y restricciones en textos cotidianos
@@ -80,8 +80,8 @@
   - Explicación: «If you have a medical need for water…, call the building office by Tuesday»: la solicitud tiene un plazo (by Tuesday).
 - **`dx.r2`** · choice · `read_in_daily_life` · pool `assessment` · U3.R
   - Consigna: According to the notice, what should residents do when the water comes back?
-  - `a` (✔ clave): Let the water run until it is clear.
-  - `b` (distractor): Fill bottles for drinking and cooking. — Eso se hace antes de que empiece la obra.
+  - `a` (distractor): Fill bottles for drinking and cooking. — Eso se hace antes de que empiece la obra.
+  - `b` (✔ clave): Let the water run until it is clear.
   - `c` (distractor): Call the office to report brown water. — El aviso explica que el color café es normal unos minutos; no pide reportarlo.
   - `d` (distractor): Turn on the washing machines in the basement. — El aviso no dice nada de las lavadoras después de la obra.
   - Explicación: «When the water comes back, it may look brown…; let it run until it is clear»: when marca el momento del paso.
@@ -95,23 +95,23 @@
   - Explicación: week («one day a week»), done («get more done», terminar más trabajo), Others (contrasta con «Some») e isolated (aislado).
 - **`dx.r4`** · choice · `read_academic_passage` · pool `assessment` · U5.R
   - Consigna: What is the main idea of the passage?
-  - `a` (✔ clave): Trees can make city streets cooler, but planting them takes planning.
-  - `b` (distractor): Cities should build fewer sidewalks in low-income neighborhoods. — Las aceras aparecen solo en la medición; el texto no propone construir menos.
-  - `c` (distractor): Young trees grow faster in dry regions. — El texto dice que en regiones secas regarlos es caro, no que crezcan más rápido.
-  - `d` (distractor): Water vapor is the main cause of summer heat. — El vapor de agua que liberan las hojas enfría el aire; no causa el calor.
+  - `a` (distractor): Cities should build fewer sidewalks in low-income neighborhoods. — Las aceras aparecen solo en la medición; el texto no propone construir menos.
+  - `b` (distractor): Young trees grow faster in dry regions. — El texto dice que en regiones secas regarlos es caro, no que crezcan más rápido.
+  - `c` (distractor): Water vapor is the main cause of summer heat. — El vapor de agua que liberan las hojas enfría el aire; no causa el calor.
+  - `d` (✔ clave): Trees can make city streets cooler, but planting them takes planning.
   - Explicación: El primer párrafo explica por qué los árboles enfrían la calle y el segundo, que no son una solución rápida: la idea principal une ambas partes.
 - **`dx.r5`** · choice · `read_academic_passage` · pool `assessment` · U5.R
   - Consigna: The word "adapted" in the last sentence is closest in meaning to
-  - `a` (✔ clave): suited
-  - `b` (distractor): imported — Traer especies de otro lugar es casi lo contrario de lo que se recomienda.
+  - `a` (distractor): imported — Traer especies de otro lugar es casi lo contrario de lo que se recomienda.
+  - `b` (✔ clave): suited
   - `c` (distractor): protected — El texto no habla de proteger a los árboles.
   - `d` (distractor): watered — El riego es el problema que se quiere evitar, no el sentido de la palabra.
   - Explicación: «Species that are adapted to the local climate» son especies que se ajustan (suited) al clima del lugar, por eso necesitan menos agua.
 - **`dx.r6`** · choice · `read_academic_passage` · pool `assessment` · U7.R
   - Consigna: Which sentence from the passage gives evidence that trees cool city streets?
-  - `a` (✔ clave): In one measurement on a summer afternoon, a sidewalk under trees was several degrees cooler than a sidewalk in full sun.
-  - `b` (distractor): For this reason, some experts argue that cities should choose species that are adapted to the local climate. — Es una recomendación de expertos, no un dato que pruebe el enfriamiento.
-  - `c` (distractor): However, trees are not a quick solution. — Es una afirmación del autor sobre los límites de la solución.
+  - `a` (distractor): For this reason, some experts argue that cities should choose species that are adapted to the local climate. — Es una recomendación de expertos, no un dato que pruebe el enfriamiento.
+  - `b` (distractor): However, trees are not a quick solution. — Es una afirmación del autor sobre los límites de la solución.
+  - `c` (✔ clave): In one measurement on a summer afternoon, a sidewalk under trees was several degrees cooler than a sidewalk in full sun.
   - `d` (distractor): On hot afternoons, a city street lined with trees can feel much cooler than a street with no trees. — Describe una sensación; el texto dice justamente que hace falta algo más que la sensación.
   - Explicación: La evidencia es una medición concreta (dos aceras comparadas); las otras opciones son sensaciones, afirmaciones o recomendaciones.
 - **`dx.l1`** · choice · `listen_announcement` · pool `assessment` · U1.L
@@ -132,18 +132,18 @@
   - Explicación: «The other building» es ambiguo si hay varios edificios: pedir aclaración («which building do you mean?») es la respuesta adecuada.
 - **`dx.l3`** · choice · `listen_conversation` · pool `assessment` · U4.L
   - Consigna: Why does Lucía not want to go to the Italian place?
-  - `a` (✔ clave): It is too noisy on Fridays.
-  - `b` (distractor): It is too far from the office. — Martín dice que está cerca.
-  - `c` (distractor): It is too expensive for the team. — El precio es el problema del restaurante peruano.
+  - `a` (distractor): It is too far from the office. — Martín dice que está cerca.
+  - `b` (distractor): It is too expensive for the team. — El precio es el problema del restaurante peruano.
+  - `c` (✔ clave): It is too noisy on Fridays.
   - `d` (distractor): It does not accept group bookings. — No se dice nada de reservas en el lugar italiano.
   - Ayudas: transcripción
   - Explicación: Lucía da su razón con un ejemplo: «it's really noisy on Fridays. Last time we could hardly hear each other».
 - **`dx.l4`** · choice · `listen_conversation` · pool `assessment` · U6.L
   - Consigna: What does Martín propose to solve the problem with the price?
-  - `a` (✔ clave): Asking the restaurant for a group menu.
-  - `b` (distractor): Going back to the Italian place. — Ya la descartaron por el ruido.
-  - `c` (distractor): Moving the dinner to another day. — Nadie propone cambiar el día.
-  - `d` (distractor): Inviting fewer people to the dinner. — No se habla de invitar a menos personas.
+  - `a` (distractor): Going back to the Italian place. — Ya la descartaron por el ruido.
+  - `b` (distractor): Moving the dinner to another day. — Nadie propone cambiar el día.
+  - `c` (distractor): Inviting fewer people to the dinner. — No se habla de invitar a menos personas.
+  - `d` (✔ clave): Asking the restaurant for a group menu.
   - Ayudas: transcripción
   - Explicación: «Why don't we ask them for a group menu?» es la propuesta; la condición es que cueste menos de treinta dólares por persona.
 - **`dx.w1`** · sentence_order · `build_a_sentence` · pool `assessment` · U1.W

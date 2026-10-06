@@ -57,11 +57,11 @@ activities:
     prompt_en: "According to the notice, what should residents do when the water comes back?"
     stimulus: {passage: dp1}
     options:
-      - {id: a, text: "Let the water run until it is clear."}
-      - {id: b, text: "Fill bottles for drinking and cooking.", why_es: "Eso se hace antes de que empiece la obra."}
+      - {id: a, text: "Fill bottles for drinking and cooking.", why_es: "Eso se hace antes de que empiece la obra."}
+      - {id: b, text: "Let the water run until it is clear."}
       - {id: c, text: "Call the office to report brown water.", why_es: "El aviso explica que el color café es normal unos minutos; no pide reportarlo."}
       - {id: d, text: "Turn on the washing machines in the basement.", why_es: "El aviso no dice nada de las lavadoras después de la obra."}
-    correct: [a]
+    correct: [b]
     explanation_es: "«When the water comes back, it may look brown…; let it run until it is clear»: when marca el momento del paso."
   - key: dx.r3
     format: word_completion
@@ -86,11 +86,11 @@ activities:
     prompt_en: "What is the main idea of the passage?"
     stimulus: {passage: dp2}
     options:
-      - {id: a, text: "Trees can make city streets cooler, but planting them takes planning."}
-      - {id: b, text: "Cities should build fewer sidewalks in low-income neighborhoods.", why_es: "Las aceras aparecen solo en la medición; el texto no propone construir menos."}
-      - {id: c, text: "Young trees grow faster in dry regions.", why_es: "El texto dice que en regiones secas regarlos es caro, no que crezcan más rápido."}
-      - {id: d, text: "Water vapor is the main cause of summer heat.", why_es: "El vapor de agua que liberan las hojas enfría el aire; no causa el calor."}
-    correct: [a]
+      - {id: a, text: "Cities should build fewer sidewalks in low-income neighborhoods.", why_es: "Las aceras aparecen solo en la medición; el texto no propone construir menos."}
+      - {id: b, text: "Young trees grow faster in dry regions.", why_es: "El texto dice que en regiones secas regarlos es caro, no que crezcan más rápido."}
+      - {id: c, text: "Water vapor is the main cause of summer heat.", why_es: "El vapor de agua que liberan las hojas enfría el aire; no causa el calor."}
+      - {id: d, text: "Trees can make city streets cooler, but planting them takes planning."}
+    correct: [d]
     explanation_es: "El primer párrafo explica por qué los árboles enfrían la calle y el segundo, que no son una solución rápida: la idea principal une ambas partes."
   - key: dx.r5
     format: choice
@@ -101,11 +101,11 @@ activities:
     prompt_en: "The word \"adapted\" in the last sentence is closest in meaning to"
     stimulus: {passage: dp2}
     options:
-      - {id: a, text: "suited"}
-      - {id: b, text: "imported", why_es: "Traer especies de otro lugar es casi lo contrario de lo que se recomienda."}
+      - {id: a, text: "imported", why_es: "Traer especies de otro lugar es casi lo contrario de lo que se recomienda."}
+      - {id: b, text: "suited"}
       - {id: c, text: "protected", why_es: "El texto no habla de proteger a los árboles."}
       - {id: d, text: "watered", why_es: "El riego es el problema que se quiere evitar, no el sentido de la palabra."}
-    correct: [a]
+    correct: [b]
     explanation_es: "«Species that are adapted to the local climate» son especies que se ajustan (suited) al clima del lugar, por eso necesitan menos agua."
   - key: dx.r6
     format: choice
@@ -116,11 +116,11 @@ activities:
     prompt_en: "Which sentence from the passage gives evidence that trees cool city streets?"
     stimulus: {passage: dp2}
     options:
-      - {id: a, text: "In one measurement on a summer afternoon, a sidewalk under trees was several degrees cooler than a sidewalk in full sun."}
-      - {id: b, text: "For this reason, some experts argue that cities should choose species that are adapted to the local climate.", why_es: "Es una recomendación de expertos, no un dato que pruebe el enfriamiento."}
-      - {id: c, text: "However, trees are not a quick solution.", why_es: "Es una afirmación del autor sobre los límites de la solución."}
+      - {id: a, text: "For this reason, some experts argue that cities should choose species that are adapted to the local climate.", why_es: "Es una recomendación de expertos, no un dato que pruebe el enfriamiento."}
+      - {id: b, text: "However, trees are not a quick solution.", why_es: "Es una afirmación del autor sobre los límites de la solución."}
+      - {id: c, text: "In one measurement on a summer afternoon, a sidewalk under trees was several degrees cooler than a sidewalk in full sun."}
       - {id: d, text: "On hot afternoons, a city street lined with trees can feel much cooler than a street with no trees.", why_es: "Describe una sensación; el texto dice justamente que hace falta algo más que la sensación."}
-    correct: [a]
+    correct: [c]
     explanation_es: "La evidencia es una medición concreta (dos aceras comparadas); las otras opciones son sensaciones, afirmaciones o recomendaciones."
   - key: dx.l1
     format: choice
@@ -167,11 +167,11 @@ activities:
       audio: inicial-conversacion
       transcript: "Lucía: Martín, have you decided where we should have the team dinner on Friday? Martín: I was thinking about the Italian place near the office. It's close, so nobody needs to drive. Lucía: It's close, but it's really noisy on Fridays. Last time we could hardly hear each other. Martín: That's true. What about the Peruvian restaurant on Fifth Street? It's quieter. Lucía: I like that one, but it's a bit expensive for the whole team. Martín: Then why don't we ask them for a group menu? If the price per person is under thirty dollars, we can go there. Lucía: Good idea. I'll call them this afternoon. Martín: Great. And let's book for seven thirty, so people can come straight from work."
     options:
-      - {id: a, text: "It is too noisy on Fridays."}
-      - {id: b, text: "It is too far from the office.", why_es: "Martín dice que está cerca."}
-      - {id: c, text: "It is too expensive for the team.", why_es: "El precio es el problema del restaurante peruano."}
+      - {id: a, text: "It is too far from the office.", why_es: "Martín dice que está cerca."}
+      - {id: b, text: "It is too expensive for the team.", why_es: "El precio es el problema del restaurante peruano."}
+      - {id: c, text: "It is too noisy on Fridays."}
       - {id: d, text: "It does not accept group bookings.", why_es: "No se dice nada de reservas en el lugar italiano."}
-    correct: [a]
+    correct: [c]
     explanation_es: "Lucía da su razón con un ejemplo: «it's really noisy on Fridays. Last time we could hardly hear each other»."
   - key: dx.l4
     format: choice
@@ -184,11 +184,11 @@ activities:
       audio: inicial-conversacion
       transcript: "Lucía: Martín, have you decided where we should have the team dinner on Friday? Martín: I was thinking about the Italian place near the office. It's close, so nobody needs to drive. Lucía: It's close, but it's really noisy on Fridays. Last time we could hardly hear each other. Martín: That's true. What about the Peruvian restaurant on Fifth Street? It's quieter. Lucía: I like that one, but it's a bit expensive for the whole team. Martín: Then why don't we ask them for a group menu? If the price per person is under thirty dollars, we can go there. Lucía: Good idea. I'll call them this afternoon. Martín: Great. And let's book for seven thirty, so people can come straight from work."
     options:
-      - {id: a, text: "Asking the restaurant for a group menu."}
-      - {id: b, text: "Going back to the Italian place.", why_es: "Ya la descartaron por el ruido."}
-      - {id: c, text: "Moving the dinner to another day.", why_es: "Nadie propone cambiar el día."}
-      - {id: d, text: "Inviting fewer people to the dinner.", why_es: "No se habla de invitar a menos personas."}
-    correct: [a]
+      - {id: a, text: "Going back to the Italian place.", why_es: "Ya la descartaron por el ruido."}
+      - {id: b, text: "Moving the dinner to another day.", why_es: "Nadie propone cambiar el día."}
+      - {id: c, text: "Inviting fewer people to the dinner.", why_es: "No se habla de invitar a menos personas."}
+      - {id: d, text: "Asking the restaurant for a group menu."}
+    correct: [d]
     explanation_es: "«Why don't we ask them for a group menu?» es la propuesta; la condición es que cueste menos de treinta dólares por persona."
   - key: dx.w1
     format: sentence_order

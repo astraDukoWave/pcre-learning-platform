@@ -1,9 +1,10 @@
 # STATE.md — ciclo activo
 
-**Fase:** MVP-01 en ejecución (sesión cloud con `/goal`, desde el 6 oct 2026).
+**Fase:** MVP-01 cerrado el 6 oct 2026 (`docs/reviews/mvp-01-verify.md` ✅ y dictamen de
+activación G1–G4); MVP-02 en ejecución en la misma sesión cloud con `/goal`.
 G0 aprobado por Jonathan el 5 oct 2026 (PR #2).
 **Change set en curso:** ver la última línea del registro
-(`docs/plans/mvp-01-nucleo-piloto-plan.md`).
+(`docs/plans/mvp-02-coach-ia-voz-plan.md` desde MVP-02 CS-01).
 **Encadenamiento** (decisión 2 = A): un `/goal` para MVP-01 y después
 MVP-02; MVP-03 espera a G6.
 
@@ -44,6 +45,9 @@ anotan en el registro; cualquier otra desviación queda `pending-human`.
   `pull_request` con 0 aprobaciones `[verified-this-session: API REST, 5 oct
   2026]`. Pendiente **H-1b**: `ci-gate` como check requerido, después del
   primer run de CI de CS-01.
+- Comprobado al cerrar MVP-01 (6 oct 2026): ruleset 24546040 `active` con `deletion`,
+  `non_fast_forward` y `pull_request`; **sin** `required_status_checks` (H-1b sigue
+  pendiente) `[verified-this-session: API REST]`.
 - Comprobado al arrancar MVP-01 (6 oct 2026): `origin/main` @ `a642934`, 0 PRs
   abiertos, ruleset con `deletion`, `non_fast_forward` y `pull_request`
   `[verified-this-session: API REST]`.
@@ -67,7 +71,8 @@ anotan en el registro; cualquier otra desviación queda `pending-human`.
 | MVP-01 | CS-08 · progreso, repasos e inicio | `feat/mvp01-cs08-progress` | [#10](https://github.com/astraDukoWave/pcre-learning-platform/pull/10) | `7c0f8c0` (head `80078f0`) | [37404920643](https://github.com/astraDukoWave/pcre-learning-platform/actions/runs/37404920643) ✅ 8 jobs + ci-gate | `make verify` exit 0 (261 pruebas backend, 22 Vitest); AC-13 con números exactos; E2E 8/8 local (Chromium y headless shell) y en la CI | 6 oct 2026 |
 | MVP-01 | CS-09 · panel editorial y piloto | `feat/mvp01-cs09-editorial-pilot` | [#11](https://github.com/astraDukoWave/pcre-learning-platform/pull/11) | `9709535` (head `4976623`) | [37410741432](https://github.com/astraDukoWave/pcre-learning-platform/actions/runs/37410741432) ✅ 8 jobs + ci-gate (el run [37410254736](https://github.com/astraDukoWave/pcre-learning-platform/actions/runs/37410254736) falló en `e2e`: un guardado lento movía de pregunta en la corrida; corregido en `4976623` con una prueba que retiene el guardado) | `make verify` exit 0 (268 pruebas backend, 22 Vitest, migraciones nuevas probadas: 5); AC-23 con fixture (internas excluidas); E2E 9/9 local y en la CI | 6 oct 2026 |
 | MVP-01 | CS-10 · seguridad, legales, accesibilidad, rendimiento y deploy | `feat/mvp01-cs10-hardening-deploy` | [#12](https://github.com/astraDukoWave/pcre-learning-platform/pull/12) | `33b14f1` (head `cd07d64`) | [37412078255](https://github.com/astraDukoWave/pcre-learning-platform/actions/runs/37412078255) ✅ 8 jobs + ci-gate | `make verify` exit 0 (271 pruebas backend, 23 Vitest); axe sin violaciones graves en las seis pantallas (escritorio y 390 × 844), recorrido con teclado y movimiento reducido; E2E 13/13 local y en la CI; smoke de rendimiento: todo p95 < 800 ms (`docs/reviews/mvp-01-perf-smoke.md`); `deploy.yml` con actionlint; AC-21: run de `deploy.yml` tras el merge **skipped** ([37412451354](https://github.com/astraDukoWave/pcre-learning-platform/actions/runs/37412451354)), CI de `main` ✅ ([37412274783](https://github.com/astraDukoWave/pcre-learning-platform/actions/runs/37412274783)); NI-04 | 6 oct 2026 |
-| MVP-01 | CS-11 · contenido U1 listo para revisión | `feat/mvp01-cs11-u1-ready` | [#13](https://github.com/astraDukoWave/pcre-learning-platform/pull/13) | se completa al mergear | se completa al terminar | segunda pasada con la lista del contrato §12 (5 ajustes); U1 y diagnóstico en `ready-for-review`; `docs/contenido/revision/{u1,inicial}.md` generados y comprobados en la CI; lint 0 errores; fuentes de coe.int y cambridge.org siguen `pending` (la sesión no llega a esos hosts) | 6 oct 2026 |
+| MVP-01 | CS-11 · contenido U1 listo para revisión | `feat/mvp01-cs11-u1-ready` | [#13](https://github.com/astraDukoWave/pcre-learning-platform/pull/13) | `4df036c` (head `536e301`) | [37412837444](https://github.com/astraDukoWave/pcre-learning-platform/actions/runs/37412837444) ✅ 8 jobs + ci-gate; `main` @ `4df036c`: [37413020925](https://github.com/astraDukoWave/pcre-learning-platform/actions/runs/37413020925) ✅ | segunda pasada con la lista del contrato §12 (5 ajustes); U1 y diagnóstico en `ready-for-review`; `docs/contenido/revision/{u1,inicial}.md` generados y comprobados en la CI; `make verify` exit 0 (274 pruebas backend); fuentes de coe.int y cambridge.org siguen `pending` (la sesión no llega a esos hosts) | 6 oct 2026 |
+| MVP-01 | CS-12 · cierre (verify + activación) | `docs/mvp01-cs12-close` | [#14](https://github.com/astraDukoWave/pcre-learning-platform/pull/14) | se completa al mergear | se completa al terminar | `make verify` exit 0 en un clon limpio de `4df036c` tras el hook de arranque (AC-01); `docs/reviews/mvp-01-verify.md`, `docs/reviews/mvp-01-activacion-cto-review.md`, README, HANDOFF, AGENTS y runbook (§12, H-6); verificador independiente: 1 bloqueante (clave siempre en `a`), 3 de cobertura o NFR-01 y 4 observaciones, corregidos en el PR (`make verify` exit 0, 284 pruebas backend, 25 Vitest; E2E 13/13 local) | 6 oct 2026 |
 
 ## Desviaciones
 
@@ -108,10 +113,13 @@ Ninguna.
 
 ## Loop humano vigente
 
-1. Lanzar la sesión cloud con el prompt del §2 de `claude/prompts-arranque.md`
-   (Proyecto privado "English StartUp").
-2. **H-1b:** cuando el PR de CS-01 muestre el check `ci-gate`, agregarlo
-   como requerido en el ruleset (pasos en el plan de MVP-01, "Tareas
-   [HUMANO]").
+No bloquea MVP-02: el agente sigue con su plan mientras tanto.
 
-*Última actualización: 6 oct 2026 (MVP-01 en ejecución).*
+1. **H-1b** — https://github.com/astraDukoWave/pcre-learning-platform/settings/rules →
+   ruleset `main` → **Require status checks to pass** → **Add checks** → `ci-gate` →
+   **Save changes**. Devuélveme: "ci-gate requerido".
+2. **G1–G4** — en orden, con `docs/reviews/mvp-01-activacion-cto-review.md` (mensajes de
+   aprobación listos para pegar) y `docs/runbook.md`. Devuélveme: las URLs y salidas que pide
+   cada mensaje.
+
+*Última actualización: 6 oct 2026 (cierre de MVP-01).*

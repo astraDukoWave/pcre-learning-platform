@@ -14,36 +14,39 @@
 - **Repo:** https://github.com/astraDukoWave/pcre-learning-platform —
   **PÚBLICO** (portafolio).
 - **Producción:** aún no existe. Destino: Heroku, una app Cedar con stack
-  `container`, un dyno web y Heroku Postgres Essential-0 (G1).
+  `container`, un dyno web Basic y Heroku Postgres Essential-0. `deploy.yml` está en
+  `main`, apagado hasta que Jonathan firme G1 (pasos en `docs/runbook.md`).
 - **Nombre:** "PCRE" (Pattern, Concept, Rules, Examples) es el nombre del
   método de explicación y el nombre de trabajo; el nombre comercial está
   abierto (LB-05). `APP_NAME` lo deja configurable.
-- **Fase actual:** G0 **aprobado** el 5 oct 2026. MVP-01 por iniciar en
-  una sesión cloud de Claude Code, que sigue con MVP-02 (decisiones en
-  `STATE.md`).
+- **Fase actual:** MVP-01 **cerrado** el 6 oct 2026 (verify ✅ y dictamen de activación
+  G1–G4 en `docs/reviews/`); MVP-02 en ejecución en la misma sesión cloud con `/goal`.
+  Gates G1–G4 sin iniciar: dependen de Jonathan.
 
 ## 2. Estado real
 
-### ✅ Existe (verificado el 5 oct 2026 sobre `main` @ `133c5e3`)
+### ✅ Existe (verificado el 6 oct 2026 sobre `main` @ `4df036c`)
 
 | Qué | Evidencia |
 |---|---|
-| Backend FastAPI de solo lectura: 1 curso, 1 clase, 3 preguntas | Árbol del repo `[verified-this-session]` |
-| Migraciones `bc0bb9a48e10` (contenido) y `816c80672425` (`users`) | `alembic/versions/` `[verified-this-session]` |
-| Modelo `User` con UUID y rol (`45b56cc`) | Historia de git `[verified-this-session]` |
+| Base reproducible: Python 3.12 + uv, Node 22, `make verify`, hook de arranque cloud | `make verify` exit 0 en un clon limpio tras el hook `[verified-this-session]` |
+| CI con 8 jobs + `ci-gate` (backend, migrations, content, frontend, contract, e2e, image, workflows) | Run [37413020925](https://github.com/astraDukoWave/pcre-learning-platform/actions/runs/37413020925) `[ci-run]` |
+| Identidad: invitaciones, sesiones opacas, CSRF, reset, exportación y borrado | `tests/identity/` `[ci-run]` |
+| Contenido como código con lint, cobertura, paquete de revisión y flujo editorial por hash | `tests/content/`, `docs/contenido/revision/` `[ci-run]` |
+| Práctica: seis formatos, ayudas, autoevaluación, comprobaciones, repaso 1/3/7 y progreso | `tests/practice/`, `tests/progress/`, E2E `[ci-run]` |
+| Panel editorial, reportes, feedback y panel del piloto | `tests/insights/`, `e2e/test_publishing.py` `[ci-run]` |
+| Seguridad (§7), accesibilidad (axe, teclado, teléfono) y rendimiento (p95 < 800 ms) | `docs/reviews/mvp-01-seguridad.md`, `e2e/test_accessibility.py`, `docs/reviews/mvp-01-perf-smoke.md` |
+| U1 (4 lecciones, escenario, checkpoint) y diagnóstico inicial en `ready-for-review` | `docs/contenido/revision/{u1,inicial}.md`; lint 0 errores |
+| `deploy.yml` aprobado y apagado; `content-audio.yml` aprobado | Runs de deploy `skipped` en `main` `[verified-this-session]` |
 
-### ❌ Hallazgos que corrige MVP-01
+### ⏸ Pendiente (humano)
 
-| Hallazgo | Dónde |
+| Qué | Dónde |
 |---|---|
-| Un GET convierte `Question.options` a lista sobre el objeto del ORM | `app/api/v1/endpoints/courses.py` |
-| Orden no determinista y `(course_id, slug)` sin unicidad | `app/models/course.py` |
-| Seed con un commit por objeto y "ya sembrado" con datos parciales | `app/db/seed.py` |
-| `hint` y `explanation` viajan con la pregunta | `app/schemas/course.py` |
-| Dependencias de 2023, incluidas `python-jose` y `passlib` sin uso | `requirements.txt` |
-| Script de validación con Compose v1 y un head viejo | `validate-phase1-final.sh` |
-| "Auth Core (bcrypt + JWT)" registrado en la memoria del proyecto | No existe en ninguna rama remota `[contradicted]` |
-| Sin pruebas, sin CI, sin frontend, sin protección de `main` | API de GitHub: 0 workflows, 0 rulesets `[verified-this-session]` |
+| H-1b: `ci-gate` como check requerido del ruleset | Plan de MVP-01, "Tareas [HUMANO]" |
+| G1 deploy · G2 audio · G3 publicación · G4 alumnos reales | `docs/reviews/mvp-01-activacion-cto-review.md` y `docs/runbook.md` |
+| H-6 prueba en iPhone y Android | `docs/runbook.md` §12 |
+| Fuentes de Cambridge y del Consejo de Europa sin consultar (la sesión no llega a esos hosts) | `content/toefl-ibt-2026-b1-b2/sources.yaml`; se confirman en G3 |
 
 ## 3. Arquitectura
 
@@ -163,7 +166,9 @@ v0.3). Nada de eso entra al repo; los specs lo citan por nombre.
 | `docs/contenido/contrato-curricular.md` | Reglas del contenido de la ruta |
 | `docs/specs/` · `docs/plans/` | Un spec y un plan por ciclo |
 | `docs/reviews/` | Dictámenes `cto-review` y reportes `verify` |
-| `.claude/settings.json` | Reglas `deny` del agente (y hook de arranque desde CS-01) |
+| `.claude/settings.json` | Reglas `deny` del agente y hook de arranque |
+| `docs/runbook.md` | Operación: Heroku, GitHub, deploy, rollback, restauración, audio, publicación, invitaciones |
+| `docs/contenido/revision/` | Paquetes de revisión por unidad (`make review-packet UNIT=u1`) |
 
 ## 9. Variables de entorno (solo placeholders — repo público)
 
@@ -196,12 +201,12 @@ VOICE_MAX_MINUTES_PER_USER_MONTH=60       # (G0)
 
 ## 10. Próxima sesión — cola
 
-1. **Arranque:** sesión cloud con el prompt `/goal` del Proyecto privado.
-2. MVP-01 CS-01 → … → CS-12; después MVP-02 CS-01 → … → CS-08.
-3. **H-1b** tras el primer run de CI de CS-01: `ci-gate` como check
-   requerido.
-4. Al cerrar cada ciclo: gates de activación G1–G5 según sus dictámenes.
+1. MVP-02 CS-01 → … → CS-08 en la sesión cloud en curso (`/goal`); su cierre deja
+   `docs/reviews/mvp-02-verify.md` y `docs/reviews/mvp-02-activacion-cto-review.md`.
+2. Jonathan: H-1b y después G1 → G2 → G3 → G4 con el dictamen de MVP-01 y el runbook.
+3. G5/G5a (IA y voz) solo después de G4 y con el dictamen de MVP-02.
+4. G6 (MVP-03) cuando U1 esté revisada y el examen de los primeros clientes confirmado.
 
 ---
 
-*Última actualización: 5 oct 2026 (G0 aprobado).*
+*Última actualización: 6 oct 2026 (cierre de MVP-01).*

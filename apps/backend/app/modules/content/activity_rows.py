@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from app.modules.content.domain import shuffled_tokens
+from app.modules.content.domain import shuffled_options, shuffled_tokens
 from app.modules.content.schema import (
     Activity,
     ChoiceActivity,
@@ -34,7 +34,9 @@ def activity_columns(act: Activity, rubrics: dict[str, Rubric]) -> dict[str, Any
 
     if isinstance(act, ChoiceActivity):
         public = {
-            "options": [{"id": o.id, "text": o.text} for o in act.options],
+            "options": shuffled_options(
+                act.key, [{"id": o.id, "text": o.text} for o in act.options]
+            ),
             "multiple": act.multiple,
         }
         solution = {
@@ -84,7 +86,10 @@ def activity_columns(act: Activity, rubrics: dict[str, Rubric]) -> dict[str, Any
                     "id": n.id,
                     "speaker": n.speaker,
                     "text_en": n.text_en,
-                    "options": [{"id": o.id, "text": o.text, "next": o.next} for o in n.options],
+                    "options": shuffled_options(
+                        f"{act.key}:{n.id}",
+                        [{"id": o.id, "text": o.text, "next": o.next} for o in n.options],
+                    ),
                 }
                 for n in act.nodes
             ],

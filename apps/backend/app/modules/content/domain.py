@@ -76,6 +76,15 @@ def describe(blockers: list[str]) -> str:
     return " ".join(BLOCKER_MESSAGES[b] for b in blockers)
 
 
+def shuffled_options[T](key: str, items: list[T]) -> list[T]:
+    """Orden determinista de opciones por actividad (y nodo): el autor escribe la clave donde
+    quiera y el alumno no ve el orden del archivo (hallazgo 1 del verificador de CS-12)."""
+    order = sorted(
+        range(len(items)), key=lambda i: hashlib.sha256(f"{key}:opt:{i}".encode()).hexdigest()
+    )
+    return [items[i] for i in order]
+
+
 def shuffled_tokens(key: str, tokens: list[str]) -> list[str]:
     """Orden de fichas determinista y distinto del canónico (el orden no delata la clave)."""
     order = sorted(

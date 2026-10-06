@@ -1,76 +1,97 @@
-# PCRE Learning Platform 
+# PCRE Learning Platform
 
-![Python](https://img.shields.io/badge/Python-3.11-blue?logo=python&logoColor=white)
-![FastAPI](https://img.shields.io/badge/FastAPI-005571?logo=fastapi&logoColor=white)
-![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-336791?logo=postgresql&logoColor=white)
-![Docker](https://img.shields.io/badge/Docker-2496ED?logo=docker&logoColor=white)
+Plataforma de práctica de inglés B1 → B2 para hispanohablantes que lo necesitan para trabajo
+o estudios. La primera ruta, `toefl-ibt-2026-b1-b2`, usa tareas del estilo TOEFL iBT (formato
+2026) como preparación independiente y formativa: no es material oficial de ETS ni promete
+puntajes.
 
-Sistema de aprendizaje de inglés con apuntes en formato PCRE (Pattern, Concept, Rules, Examples) y cuestionarios interactivos. Desarrollado con una arquitectura SaaS escalable.
+"PCRE" (Pattern, Concept, Rules, Examples) es el formato de explicación de cada lección y el
+nombre de trabajo del proyecto.
 
-## Stack tecnologico
+## Qué hace (MVP-01)
 
-### Backend (Implementado - Fase 1 & 1.5)
+- Acceso solo por invitación, con aviso de privacidad versionado, exportación y borrado de
+  cuenta.
+- Ruta con diagnóstico inicial, lecciones de lectura, escucha, escritura y habla, un escenario
+  de transferencia y un checkpoint por unidad; la Unidad 1 está escrita y lista para revisión.
+- Corrección determinista con variantes válidas, ayudas registradas, autoevaluación con
+  rúbrica, repaso espaciado (1, 3 y 7 días) y progreso con métricas definidas.
+- Contenido como código (YAML con lint, cobertura y paquete de revisión) y flujo editorial en
+  la base: aprobar por hash, publicar y retirar sin perder historial.
+- Panel del piloto: actividad, valoraciones, reportes de contenido y errores.
 
-- Framework: FastAPI (Python 3.11)
-- Base de datos: PostgreSQL 15
-- ORM & migraciones: SQLAlchemy 2.0 + Alembic
-- Validación y serialización: Pydantic v2
-- Seguridad: Modelos preparados para JWT y hashing con bcrypt
-- Infraestructura: Docker & Docker Compose
+MVP-02 (coach con IA y voz) llega apagado y con topes de gasto; MVP-03 completa las unidades
+2 a 8. El estado real vive en [`STATE.md`](STATE.md) y [`HANDOFF.md`](HANDOFF.md).
 
-### Frontend (Proxima fase)
+## Arquitectura
 
-- Next.js 15 (App Router)
-- TypeScript estricto
-- Tailwind CSS + shadcn/ui
+Monolito modular: FastAPI + PostgreSQL en `apps/backend/` sirve la API, el audio y la SPA de
+React + Vite + TypeScript (`apps/frontend/`) desde el mismo origen. Se despliega en Heroku
+(stack `container`) con `Dockerfile` y `heroku.yml`; el deploy solo corre desde GitHub
+Actions con aprobación humana.
 
-## Características del backend actual
+```
+Navegador (SPA) ── mismo origen ──► web dyno (uvicorn, 1 worker)
+                                     ├─ /api/v1 · /media · /assets
+                                     ├─ release: alembic upgrade head + importación de contenido
+                                     └─ PostgreSQL
+```
 
-- Diseño modular: Arquitectura estructurada separando modelos, esquemas y endpoints.
-- Gestion de usuarios: Modelos de usuario seguros con UUIDs autogenerados, roles (admin, student) mediante Enums nativos de PostgreSQL y restricciones de unicidad.
-- Gestion de contenidos: Esquema relacional completo para Cursos, Clases (con soporte Markdown) y Quizzes interactivos.
-- Buenas prácticas: Configuración protegida por variables de entorno y documentación automática con Swagger UI.
+- Módulos `identity`, `content`, `practice`, `progress` e `insights` con capas `domain`,
+  `service`, `ports`, `repository` y `router`; import-linter hace cumplir los límites.
+- Sesiones opacas en PostgreSQL con cookie `__Host-`, CSRF por token y `Origin`, CSP estricta.
+- OpenAPI versionado (`docs/api/openapi.json`) y tipos generados para el frontend.
 
-## Instalación y ejecución local
+Decisiones y su porqué: [`docs/arquitectura.md`](docs/arquitectura.md) (ADR-01 a ADR-15).
+Specs y planes: [`docs/specs/`](docs/specs) y [`docs/plans/`](docs/plans). Reglas del contenido:
+[`docs/contenido/contrato-curricular.md`](docs/contenido/contrato-curricular.md). Operación:
+[`docs/runbook.md`](docs/runbook.md).
 
-Sigue estos pasos para levantar el entorno de desarrollo en tu máquina.
+## Correrlo en local
 
-1) Clonar el repositorio:
+Requisitos: Python 3.12 con [uv](https://docs.astral.sh/uv/), Node 22 y PostgreSQL 16 (o
+Docker para levantarlo).
 
 ```bash
 git clone https://github.com/astraDukoWave/pcre-learning-platform.git
 cd pcre-learning-platform
+make setup          # uv sync + npm ci
+make db-up          # PostgreSQL local con las bases pcre, pcre_test y pcre_migcheck
+make migrate        # alembic upgrade head
+cd apps/backend && APP_ENV=dev uv run python -m app.cli dev-seed && cd ../..
+make dev            # backend :8000 y Vite :5173
 ```
-2) Configurar variables de entorno:
-```bash
-cd apps/backend
-cp .env.example .env
-```
-3) Levantar contenedores:
-```bash
-docker-compose up -d
-```
-4) Ejecutar migraciones y seed inicial:
-```bash
-docker-compose exec backend alembic upgrade head
-docker-compose exec backend python app/db/seed.py
-```
-5) Abrir la documentación de la API (Swagger):
-http://localhost:8000/docs
 
+`dev-seed` crea `admin@example.com` y `alumna@example.com` (contraseña `practica-local-1`) y
+publica el contenido sin bloqueos con el revisor de prueba `fixture:dev`; solo funciona fuera
+de producción. Abre http://localhost:5173.
 
-## Estructura del Proyecto
+Antes de un PR: `make verify` (lint, tipos, pruebas contra PostgreSQL, migraciones, contenido,
+frontend y contrato de la API). El E2E con Playwright corre en la CI (`make e2e` en local).
+
+## Estructura
+
 ```
-pcre-learning-platform/
-├── apps/
-│   ├── frontend/    # Aplicación Next.js (Fase 2)
-│   └── backend/     # API FastAPI (Fase Actual)
-└── docs/            # Documentación técnica y Handoff
+apps/backend/     FastAPI, módulos, migraciones Alembic y pruebas (pytest)
+apps/frontend/    React + Vite + TypeScript
+content/          rutas de contenido en YAML y manifiesto de audio
+docs/             specs, planes, arquitectura, contenido, revisiones y runbook
+e2e/              pruebas de punta a punta (Playwright, Python)
+scripts/          CI, contenido (audio, paquete de revisión), rendimiento y desarrollo
+```
+
+## Cómo se trabaja
+
+Desarrollo guiado por specs: cada ciclo tiene spec y plan aprobados; cada change set entra por
+PR con CI verde (`ci-gate`) y merge commit. Los deploys, el audio con TTS, la publicación de
+contenido y las invitaciones son acciones humanas con su gate. Guía para agentes de código:
+[`AGENTS.md`](AGENTS.md).
 
 ## Autor
 
-Desarrollado por Jonathan Muñoz(astradukowave) - Software Engineer
+Jonathan Muñoz ([astradukowave](https://github.com/astraDukoWave)).
 
 ## Licencia
 
-Privado - Uso educativo
+Sin licencia abierta por ahora: el código es visible como portafolio. La licencia del contenido
+de práctica es una decisión abierta (spec de MVP-01).

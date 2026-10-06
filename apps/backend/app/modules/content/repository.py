@@ -20,6 +20,7 @@ from app.modules.content.models import (
     Source,
     Unit,
 )
+from app.modules.practice.models import Attempt
 
 
 def path_by_code(s: Session, code: str) -> LearningPath | None:
@@ -190,5 +191,13 @@ def report(s: Session, report_id: uuid.UUID) -> tuple[ContentReport, str | None]
         .join(ContentRevision, ContentRevision.id == ContentReport.revision_id)
         .where(ContentReport.id == report_id)
         .with_for_update(of=ContentReport)
+    ).first()
+    return (row[0], row[1]) if row else None
+
+
+def attempt_owner(s: Session, attempt_id: uuid.UUID) -> tuple[uuid.UUID, uuid.UUID] | None:
+    """`(user_id, activity_id)` de un intento, para ligar un reporte solo a uno propio."""
+    row = s.execute(
+        select(Attempt.user_id, Attempt.activity_id).where(Attempt.id == attempt_id)
     ).first()
     return (row[0], row[1]) if row else None
