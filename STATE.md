@@ -58,7 +58,8 @@ anotan en el registro; cualquier otra desviación queda `pending-human`.
 |---|---|---|---|---|---|---|---|
 | — | paquete G0 | `docs/sdd-mvp-specs` | [#2](https://github.com/astraDukoWave/pcre-learning-platform/pull/2) | `a642934` | sin CI (la crea CS-01) | aprobación de Jonathan (G0) | 5 oct 2026 |
 | MVP-01 | CS-01 · base y CI | `ci/mvp01-cs01-base` | [#3](https://github.com/astraDukoWave/pcre-learning-platform/pull/3) | `1e47bdb` (head `c078788`) | [37393819247](https://github.com/astraDukoWave/pcre-learning-platform/actions/runs/37393819247) ✅ backend, migrations, workflows, ci-gate | `make verify` exit 0 `[verified-this-session]` · CI `[ci-run]` | 6 oct 2026 |
-| MVP-01 | CS-02 · frontend e imagen | `feat/mvp01-cs02-frontend-image` | [#4](https://github.com/astraDukoWave/pcre-learning-platform/pull/4) | se completa al mergear | se completa al terminar | `make verify` exit 0; imagen local con sondas AC-17 y grep AC-18 | 6 oct 2026 |
+| MVP-01 | CS-02 · frontend e imagen | `feat/mvp01-cs02-frontend-image` | [#4](https://github.com/astraDukoWave/pcre-learning-platform/pull/4) | `c61fa9b` (head `e518a4e`) | [37394717138](https://github.com/astraDukoWave/pcre-learning-platform/actions/runs/37394717138) ✅ 7 jobs + ci-gate | `make verify` exit 0; imagen con sondas AC-17 y grep AC-18 en el job `image` `[ci-run]` | 6 oct 2026 |
+| MVP-01 | CS-03 · identidad | `feat/mvp01-cs03-identity` | [#5](https://github.com/astraDukoWave/pcre-learning-platform/pull/5) | se completa al mergear | se completa al terminar | `make verify` exit 0 (129 pruebas de backend); verificador independiente antes del merge | 6 oct 2026 |
 
 ## Desviaciones
 
