@@ -17,6 +17,8 @@ from app.http.middleware import (
     build_csp,
 )
 from app.http.static import mount_frontend
+from app.modules.content import router_admin as content_admin
+from app.modules.content import router_student as content_student
 from app.modules.identity import router as identity_router
 
 JSON_BODY_LIMIT = 64 * 1024
@@ -40,6 +42,8 @@ def create_app(settings: Settings | None = None, *, container: Container | None 
     app.include_router(health.router)
     app.include_router(identity_router.router)
     app.include_router(identity_router.admin_router)
+    app.include_router(content_student.router)
+    app.include_router(content_admin.router)
     # Siempre al final: el fallback de la SPA atrapa lo que no reclamó ninguna ruta.
     mount_frontend(app, settings)
 

@@ -68,3 +68,11 @@ register(
         note="tokens de un uso; sin valor para el alumno",
     )
 )
+register(
+    UserDataTable(
+        "content_reports",
+        ("user_id",),
+        export=True,
+        note="reportes de contenido enviados por el alumno",
+    )
+)
