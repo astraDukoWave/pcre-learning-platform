@@ -38,6 +38,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/legal": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Legal */
+        get: operations["legal_api_v1_legal_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/auth/invitations/inspect": {
         parameters: {
             query?: never;
@@ -1478,6 +1495,16 @@ export interface components {
             /** Diagnostic Form Id */
             diagnostic_form_id: string | null;
         };
+        /**
+         * LegalOut
+         * @description Versión vigente del aviso (la que se acepta) y contacto de privacidad (REQ-17).
+         */
+        LegalOut: {
+            /** Consent Version */
+            consent_version: string;
+            /** Privacy Contact Email */
+            privacy_contact_email: string;
+        };
         /** LessonOut */
         LessonOut: {
             /**
@@ -2284,6 +2311,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ReadyOut"];
+                };
+            };
+        };
+    };
+    legal_api_v1_legal_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LegalOut"];
                 };
             };
         };

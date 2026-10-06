@@ -17,6 +17,7 @@ from app.modules.identity.schemas import (
     AdminUserPatch,
     DeleteMeIn,
     InvitationInfoOut,
+    LegalOut,
     LinkOut,
     LoginIn,
     MeOut,
@@ -60,6 +61,14 @@ def _frontend_origin(request: Request, container: ContainerDep) -> str:
     if origin and origin in container.settings.allowed_origins:
         return origin
     return container.settings.app_origin or str(request.base_url).rstrip("/")
+
+
+@router.get("/legal", response_model=LegalOut)
+def legal(container: ContainerDep) -> LegalOut:
+    return LegalOut(
+        consent_version=container.settings.consent_version,
+        privacy_contact_email=container.settings.privacy_contact_email,
+    )
 
 
 @router.post("/auth/invitations/inspect", response_model=InvitationInfoOut)

@@ -47,6 +47,27 @@
         }
       }
     },
+    "/api/v1/legal": {
+      "get": {
+        "tags": [
+          "identity"
+        ],
+        "summary": "Legal",
+        "operationId": "legal_api_v1_legal_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LegalOut"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/auth/invitations/inspect": {
       "post": {
         "tags": [
@@ -3908,6 +3929,25 @@
           "diagnostic_form_id"
         ],
         "title": "LearnerProgressOut"
+      },
+      "LegalOut": {
+        "properties": {
+          "consent_version": {
+            "type": "string",
+            "title": "Consent Version"
+          },
+          "privacy_contact_email": {
+            "type": "string",
+            "title": "Privacy Contact Email"
+          }
+        },
+        "type": "object",
+        "required": [
+          "consent_version",
+          "privacy_contact_email"
+        ],
+        "title": "LegalOut",
+        "description": "Versión vigente del aviso (la que se acepta) y contacto de privacidad (REQ-17)."
       },
       "LessonOut": {
         "properties": {

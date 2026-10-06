@@ -1,0 +1,160 @@
+# Deploy a Heroku (REQ-03, ADR-13). Corre tras un CI exitoso de un push a `main` y solo si
+# la variable del repo DEPLOY_ENABLED vale "true" (la define Jonathan en G1): sin ella el job
+# se omite y el run no queda en verde. El environment `production` exige la aprobación de
+# Jonathan antes de exponer HEROKU_API_KEY. Nunca termina en verde sin desplegar.
+# Pasos de preparación, aprobación y rollback: docs/runbook.md.
+name: Deploy
+
+run-name: Deploy ${{ github.event.workflow_run.head_sha }}
+
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+
+permissions:
+  contents: read
+
+# Un deploy a la vez; una ejecución pendiente más nueva reemplaza a la anterior.
+concurrency:
+  group: production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: deploy
+    if: >-
+      vars.DEPLOY_ENABLED == 'true' &&
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.event == 'push' &&
+      github.event.workflow_run.head_branch == 'main' &&
+      github.event.workflow_run.head_repository.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: production
+    env:
+      HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
+      HEROKU_APP_NAME: ${{ vars.HEROKU_APP_NAME }}
+      DEPLOY_SHA: ${{ github.event.workflow_run.head_sha }}
+    steps:
+      - name: Configuración del deploy
+        run: |
+          if [ -z "$HEROKU_API_KEY" ] || [ -z "$HEROKU_APP_NAME" ]; then
+            echo "::error::deploy no configurado: falta el secret HEROKU_API_KEY (environment production) o la variable HEROKU_APP_NAME"
+            exit 1
+          fi
+          echo "Desplegando $DEPLOY_SHA en $HEROKU_APP_NAME"
+
+      - name: Checkout del SHA exacto (historia completa)
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+          cache-dependency-glob: apps/backend/uv.lock
+
+      - name: Migración head esperada
+        working-directory: apps/backend
+        run: |
+          head="$(uv run --locked --no-dev alembic heads | awk '{print $1}')"
+          [ -n "$head" ] || { echo "::error::no se pudo leer el head de Alembic"; exit 1; }
+          echo "EXPECTED_MIGRATION=$head" >> "$GITHUB_ENV"
+          echo "Head esperado: $head"
+
+      - name: CLI de Heroku
+        run: |
+          npm install --global --no-audit --no-fund heroku@10
+          heroku --version
+
+      - name: Release actual (para el rollback)
+        run: |
+          prev="$(heroku releases --app "$HEROKU_APP_NAME" --json | jq -r 'map(.version) | max // 0')"
+          echo "PREVIOUS_RELEASE=$prev" >> "$GITHUB_ENV"
+          echo "Release actual: v$prev"
+
+      - name: Backup de la base
+        run: heroku pg:backups:capture --app "$HEROKU_APP_NAME"
+
+      - name: git push a Heroku
+        id: push
+        run: |
+          # Credencial solo en memoria: el helper lee HEROKU_API_KEY del entorno al usarse
+          # (comillas simples a propósito: no se expande aquí ni queda en la config).
+          # shellcheck disable=SC2016
+          git config --global credential.https://git.heroku.com.helper \
+            '!f() { echo username=heroku; echo "password=${HEROKU_API_KEY}"; }; f'
+          remote="https://git.heroku.com/${HEROKU_APP_NAME}.git"
+          current="$(git ls-remote "$remote" refs/heads/main | cut -f1)"
+          if [ "$current" = "$DEPLOY_SHA" ]; then
+            echo "Heroku ya tiene $DEPLOY_SHA: no hay build nuevo"
+            echo "new_release=false" >> "$GITHUB_OUTPUT"
+          else
+            git push "$remote" "HEAD:refs/heads/main"
+            echo "new_release=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Espera de la release
+        if: steps.push.outputs.new_release == 'true'
+        run: |
+          for _ in $(seq 1 90); do
+            release="$(heroku releases --app "$HEROKU_APP_NAME" --json | jq -c 'max_by(.version) | {version, status}')"
+            version="$(jq -r '.version' <<<"$release")"
+            status="$(jq -r '.status' <<<"$release")"
+            if [ "$version" -gt "$PREVIOUS_RELEASE" ]; then
+              case "$status" in
+                succeeded) echo "Release v$version lista"; exit 0 ;;
+                failed) echo "::error::la release v$version falló (release phase)"; exit 1 ;;
+              esac
+            fi
+            sleep 10
+          done
+          echo "::error::la release no terminó en 15 minutos"
+          exit 1
+
+      - name: Smoke
+        run: |
+          url="$(heroku apps:info --app "$HEROKU_APP_NAME" --json | jq -r '.app.web_url' | sed 's#/*$##')"
+          body="$(mktemp)"
+          probe() {  # ruta, accept, texto esperado
+            for _ in $(seq 1 30); do
+              code="$(curl -s -o "$body" -w '%{http_code}' -H "Accept: $2" "$url$1" || true)"
+              if [ "$code" = "200" ] && grep -q "$3" "$body"; then
+                echo "$1 → 200"
+                return 0
+              fi
+              sleep 5
+            done
+            echo "::error::smoke fallido en $1 (último código $code): $(head -c 300 "$body")"
+            return 1
+          }
+          probe /health application/json '"status":"ok"'
+          probe /api/v1/ready application/json "\"migration\":\"$EXPECTED_MIGRATION\""
+          probe / text/html '<div id="root">'
+
+      - name: Comando de rollback
+        if: failure() && steps.push.outcome != 'skipped'
+        run: |
+          {
+            echo "## Deploy fallido"
+            echo
+            if [ "${PREVIOUS_RELEASE:-0}" -gt 0 ]; then
+              echo "Rollback del código a la release anterior (las migraciones son expand):"
+              echo
+              echo '```'
+              echo "heroku rollback v${PREVIOUS_RELEASE} --app ${HEROKU_APP_NAME}"
+              echo '```'
+            else
+              echo "Era el primer deploy: no hay release anterior. Apaga el dyno web mientras se corrige:"
+              echo
+              echo '```'
+              echo "heroku ps:scale web=0 --app ${HEROKU_APP_NAME}"
+              echo '```'
+            fi
+            echo
+            echo "Backups de la base: \`heroku pg:backups --app ${HEROKU_APP_NAME}\` (restauración: docs/runbook.md)."
+          } | tee -a "$GITHUB_STEP_SUMMARY"

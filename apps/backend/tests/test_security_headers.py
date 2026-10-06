@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from collections.abc import Iterator
+
 from fastapi.testclient import TestClient
 
 from tests.helpers import Account
@@ -56,3 +58,20 @@ def test_hsts_only_in_production(container: object) -> None:
 
 def test_engine_hides_query_parameters_in_errors(engine: object) -> None:
     assert getattr(engine, "hide_parameters", False) is True
+
+
+def test_chunked_body_over_the_limit_is_413(student: Account) -> None:
+    """Sin `Content-Length` (cuerpo por partes) el límite se aplica al leer."""
+
+    def chunks() -> Iterator[bytes]:
+        yield b'{"display_name": "'
+        for _ in range(70):
+            yield b"a" * 1024
+        yield b'"}'
+
+    res = student.client.patch(
+        "/api/v1/me",
+        content=chunks(),
+        headers={**student.headers(), "Content-Type": "application/json"},
+    )
+    assert res.status_code == 413

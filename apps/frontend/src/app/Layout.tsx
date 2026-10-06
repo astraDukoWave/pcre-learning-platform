@@ -69,8 +69,10 @@ export function Layout() {
       </main>
       <footer className={styles.footer}>
         <p>{es.app.trademark}</p>
-        <p>
+        <p className={styles.legal}>
           <Link to="/privacidad">Aviso de privacidad</Link>
+          <Link to="/terminos">Términos de uso</Link>
+          <Link to="/como-funciona">Cómo funciona</Link>
         </p>
       </footer>
     </div>

@@ -65,7 +65,8 @@ anotan en el registro; cualquier otra desviación queda `pending-human`.
 | MVP-01 | CS-06 · formatos, audio y escenario | `feat/mvp01-cs06-formats-audio` | [#8](https://github.com/astraDukoWave/pcre-learning-platform/pull/8) | `1a592d4` (head `f2ed3da`) | [37402697350](https://github.com/astraDukoWave/pcre-learning-platform/actions/runs/37402697350) ✅ 8 jobs + ci-gate (el primer run, [37402283679](https://github.com/astraDukoWave/pcre-learning-platform/actions/runs/37402283679), falló: empate de reloj falso en una prueba y micrófono en Chrome Headless Shell; corregidos en `f2ed3da`) | `make verify` exit 0 (249 pruebas backend, 21 Vitest); E2E 5/5 local (Chromium y headless shell) y en la CI; `generate_audio.py --dry-run` U1: 9 guiones, 1 091 caracteres, USD 0.0327; NI-02 | 6 oct 2026 |
 | MVP-01 | CS-07 · comprobaciones | `feat/mvp01-cs07-assessments` | [#9](https://github.com/astraDukoWave/pcre-learning-platform/pull/9) | `ede8ea6` (head `455f45d`) | [37403902453](https://github.com/astraDukoWave/pcre-learning-platform/actions/runs/37403902453) ✅ 8 jobs + ci-gate | `make verify` exit 0 (257 pruebas backend, 22 Vitest, migraciones nuevas probadas: 4); E2E 7/7 local (Chromium y headless shell) y en la CI; NI-03 | 6 oct 2026 |
 | MVP-01 | CS-08 · progreso, repasos e inicio | `feat/mvp01-cs08-progress` | [#10](https://github.com/astraDukoWave/pcre-learning-platform/pull/10) | `7c0f8c0` (head `80078f0`) | [37404920643](https://github.com/astraDukoWave/pcre-learning-platform/actions/runs/37404920643) ✅ 8 jobs + ci-gate | `make verify` exit 0 (261 pruebas backend, 22 Vitest); AC-13 con números exactos; E2E 8/8 local (Chromium y headless shell) y en la CI | 6 oct 2026 |
-| MVP-01 | CS-09 · panel editorial y piloto | `feat/mvp01-cs09-editorial-pilot` | [#11](https://github.com/astraDukoWave/pcre-learning-platform/pull/11) | se completa al mergear | se completa al terminar | `make verify` exit 0 (268 pruebas backend, 22 Vitest, migraciones nuevas probadas: 5); AC-23 con fixture (internas excluidas); E2E local 9/9 (Chromium y headless shell) | 6 oct 2026 |
+| MVP-01 | CS-09 · panel editorial y piloto | `feat/mvp01-cs09-editorial-pilot` | [#11](https://github.com/astraDukoWave/pcre-learning-platform/pull/11) | `9709535` (head `4976623`) | [37410741432](https://github.com/astraDukoWave/pcre-learning-platform/actions/runs/37410741432) ✅ 8 jobs + ci-gate (el run [37410254736](https://github.com/astraDukoWave/pcre-learning-platform/actions/runs/37410254736) falló en `e2e`: un guardado lento movía de pregunta en la corrida; corregido en `4976623` con una prueba que retiene el guardado) | `make verify` exit 0 (268 pruebas backend, 22 Vitest, migraciones nuevas probadas: 5); AC-23 con fixture (internas excluidas); E2E 9/9 local y en la CI | 6 oct 2026 |
+| MVP-01 | CS-10 · seguridad, legales, accesibilidad, rendimiento y deploy | `feat/mvp01-cs10-hardening-deploy` | [#12](https://github.com/astraDukoWave/pcre-learning-platform/pull/12) | se completa al mergear | se completa al terminar | `make verify` exit 0 (271 pruebas backend, 23 Vitest); axe sin violaciones graves en las seis pantallas (escritorio y 390 × 844), recorrido con teclado y movimiento reducido; E2E 13/13 local (Chromium y headless shell); smoke de rendimiento: todo p95 < 800 ms (`docs/reviews/mvp-01-perf-smoke.md`); `deploy.yml` con actionlint; AC-21: URL del run omitido tras el merge; NI-04 | 6 oct 2026 |
 
 ## Desviaciones
 
@@ -99,6 +100,10 @@ Ninguna.
   hizo en la tabla (toda FK a `users` es `CASCADE`, regla de `data_registry`): queda en el
   log `diagnostic_reset` con el `user_ref` del admin. Un ítem cuyo audio no cargó se guarda
   con `audio_failed` y queda "no evaluable (audio)" fuera del denominador (EDGE-07).
+
+- **NI-04 · `GET /api/v1/legal`** (CS-10). REQ-17 pide mostrar en el aviso el contacto de
+  `PRIVACY_CONTACT_EMAIL`, que vive en la configuración del servidor. Ruta pública de solo
+  lectura con `consent_version` y ese contacto; no estaba en la tabla de rutas.
 
 ## Loop humano vigente
 
