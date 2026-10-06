@@ -1,13 +1,42 @@
-import { Link, Outlet } from "react-router";
+import { useMutation } from "@tanstack/react-query";
+import { Link, NavLink, Outlet, useNavigate } from "react-router";
+import { api, unwrap } from "../api/client";
 import { Notice } from "../components/Notice";
+import { UnauthorizedBridge } from "../features/auth/guards";
+import { useMe, useSetMe } from "../features/auth/session";
 import { es } from "../i18n/es";
 import styles from "./Layout.module.css";
 import { useOnline } from "./useOnline";
+
+function Nav() {
+  const me = useMe();
+  const setMe = useSetMe();
+  const navigate = useNavigate();
+  const logout = useMutation({
+    mutationFn: () => unwrap(api.POST("/api/v1/auth/logout")),
+    onSettled: () => {
+      setMe(null);
+      navigate("/entrar", { replace: true });
+    },
+  });
+  if (!me.data) return null;
+  return (
+    <nav aria-label="Principal" className={styles.nav}>
+      <NavLink to="/inicio">Inicio</NavLink>
+      <NavLink to="/perfil">Perfil</NavLink>
+      {me.data.role === "admin" ? <NavLink to="/admin/usuarios">Usuarios</NavLink> : null}
+      <button type="button" className={styles.logout} onClick={() => logout.mutate()}>
+        Salir
+      </button>
+    </nav>
+  );
+}
 
 export function Layout() {
   const online = useOnline();
   return (
     <div className={styles.shell}>
+      <UnauthorizedBridge />
       <a className={styles.skip} href="#main">
         {es.app.skipToContent}
       </a>
@@ -16,6 +45,7 @@ export function Layout() {
           PCRE
         </Link>
         <span className={styles.tagline}>{es.app.tagline}</span>
+        <Nav />
       </header>
       {!online ? (
         <div className={styles.offline}>
@@ -27,6 +57,9 @@ export function Layout() {
       </main>
       <footer className={styles.footer}>
         <p>{es.app.trademark}</p>
+        <p>
+          <Link to="/privacidad">Aviso de privacidad</Link>
+        </p>
       </footer>
     </div>
   );

@@ -1,0 +1,28 @@
+.section {
+  margin-top: var(--space-7);
+}
+
+.download {
+  display: inline-flex;
+  min-height: 48px;
+  align-items: center;
+  font-weight: 700;
+}
+
+.dialog {
+  border: 1px solid var(--grid);
+  border-radius: var(--radius);
+  padding: var(--space-5);
+  max-width: 28rem;
+  width: calc(100% - 2 * var(--space-4));
+}
+
+.dialog::backdrop {
+  background: color-mix(in srgb, var(--ink) 40%, transparent);
+}
+
+.actions {
+  display: flex;
+  gap: var(--space-3);
+  justify-content: flex-end;
+}

@@ -12,6 +12,7 @@ dependencies = [
     "psycopg[binary]>=3.2",
     "alembic>=1.16",
     "pyyaml>=6.0",
+    "argon2-cffi>=23.1",
 ]
 
 [dependency-groups]
@@ -65,3 +66,4 @@ testpaths = ["tests"]
 pythonpath = ["."]
 addopts = "-q --disable-socket --allow-unix-socket --allow-hosts=127.0.0.1,localhost,::1"
 filterwarnings = ["error::DeprecationWarning:app.*"]
+log_level = "WARNING"

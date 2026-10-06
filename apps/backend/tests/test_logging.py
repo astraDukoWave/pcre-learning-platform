@@ -59,3 +59,30 @@ def test_user_ref_is_salted_and_stable() -> None:
     assert a == user_ref("1b4e28ba-2fa1-11d2-883f-0016d3cca427", "s1")
     assert a != user_ref("1b4e28ba-2fa1-11d2-883f-0016d3cca427", "s2")
     assert len(a) == 12
+
+
+def test_login_logs_user_ref_not_email(
+    make_account: object, caplog: pytest.LogCaptureFixture
+) -> None:
+    with caplog.at_level(logging.INFO):
+        acct = make_account("privada@example.com")  # type: ignore[operator]
+    lines = [JsonFormatter().format(r) for r in caplog.records]
+    assert any('"msg": "login"' in line and '"user_ref"' in line for line in lines)
+    assert all("privada@example.com" not in line for line in lines)
+    assert all(acct.csrf not in line for line in lines)
+
+
+def test_rate_limited_login_logs_user_ref(
+    make_account: object, client: TestClient, caplog: pytest.LogCaptureFixture
+) -> None:
+    make_account("limitada@example.com")  # type: ignore[operator]
+    for _ in range(5):
+        client.post(
+            "/api/v1/auth/login", json={"email": "limitada@example.com", "password": "x" * 12}
+        )
+    with caplog.at_level(logging.WARNING, logger="app.identity"):
+        client.post(
+            "/api/v1/auth/login", json={"email": "limitada@example.com", "password": "x" * 12}
+        )
+    limited = [r for r in caplog.records if r.getMessage() == "login_rate_limited"]
+    assert limited and getattr(limited[0], "user_ref", None)

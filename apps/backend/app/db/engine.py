@@ -16,5 +16,8 @@ def create_db_engine(settings: Settings) -> Engine:
         max_overflow=5,
         pool_pre_ping=True,
         pool_timeout=10,
+        # Los errores de SQLAlchemy no llevan los valores de la consulta (emails, hashes)
+        # a las trazas de los logs (NFR-07).
+        hide_parameters=True,
         connect_args={"connect_timeout": 5, "application_name": settings.app_name.lower()},
     )
