@@ -1,0 +1,28 @@
+# Registro de fuentes (contrato §12). Una cita no equivale a respaldo confirmado; una
+# fuente que no pudo consultarse queda como `pending`, nunca como verificada.
+sources:
+  - id: ets-toefl-ibt-content
+    url: https://www.ets.org/toefl/test-takers/ibt/about/content.html
+    title: "TOEFL iBT Test Content"
+    publisher: ETS
+    accessed_on: 2026-10-05
+    status: consulted
+    note_es: "Tareas y secciones del formato vigente desde enero de 2026 (contrato §2)."
+  - id: ets-toefl-ibt-2026-updates
+    url: https://www.ets.org/toefl/test-takers/ibt/about.html
+    title: "About the TOEFL iBT Test (formato 2026)"
+    publisher: ETS
+    status: pending
+    note_es: "Blueprint del formato 2026; confirmar la página exacta al revisar U1."
+  - id: coe-cefr-global-scale
+    url: https://www.coe.int/en/web/common-european-framework-reference-languages/table-1-cefr-3.3-common-reference-levels-global-scale
+    title: "CEFR: Common Reference Levels, global scale (Table 1)"
+    publisher: Council of Europe
+    status: pending
+    note_es: "Escala global del MCER para los objetivos; se parafrasea, no se copia."
+  - id: coe-cefr-companion-volume
+    url: https://www.coe.int/en/web/common-european-framework-reference-languages/cefr-companion-volume
+    title: "CEFR Companion Volume"
+    publisher: Council of Europe
+    status: pending
+    note_es: "Descriptores ilustrativos por actividad comunicativa."

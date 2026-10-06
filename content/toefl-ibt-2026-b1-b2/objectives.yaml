@@ -1,0 +1,345 @@
+# Objetivos de la ruta (contrato §4). Los códigos son estables: una vez publicados no
+# se renumeran. Las referencias al MCER son paráfrasis, no citas.
+objectives:
+- code: U1.R
+  unit: 1
+  skill: reading
+  description_es: Localizar condiciones y datos explícitos en mensajes y horarios y hacer una inferencia
+    simple al comparar opciones
+  cefr_ref_es: 'Paráfrasis del MCER (comprensión lectora): en B1 entiende textos directos sobre temas
+    cotidianos; hacia B2 lee con autonomía y adapta su estilo de lectura al propósito.'
+  families:
+  - read_in_daily_life
+  - complete_the_words
+- code: U1.L
+  unit: 1
+  skill: listening
+  description_es: Identificar el propósito y las instrucciones en avisos breves
+  cefr_ref_es: 'Paráfrasis del MCER (comprensión auditiva): en B1 capta las ideas principales de habla
+    clara sobre temas conocidos; hacia B2 sigue discursos más largos y argumentos si el tema le es familiar.'
+  families:
+  - listen_announcement
+  - listen_choose_response
+- code: U1.W
+  unit: 1
+  skill: writing
+  description_es: Construir oraciones correctas y escribir una petición clara
+  cefr_ref_es: 'Paráfrasis del MCER (expresión escrita): en B1 escribe textos sencillos y conectados;
+    hacia B2 escribe textos claros y detallados, y desarrolla un argumento.'
+  families:
+  - build_a_sentence
+  - write_an_email
+- code: U1.S
+  unit: 1
+  skill: speaking
+  description_es: Presentarse y responder preguntas familiares
+  cefr_ref_es: 'Paráfrasis del MCER (expresión oral): en B1 se desenvuelve en situaciones habituales y
+    relata experiencias; hacia B2 interactúa con fluidez y espontaneidad suficientes con hablantes nativos.'
+  families:
+  - take_an_interview
+  - listen_and_repeat
+- code: U1.T
+  unit: 1
+  skill: transfer
+  description_es: Pedir información para resolver una gestión
+  cefr_ref_es: 'Paráfrasis del MCER (interacción): hacia B2 participa en conversaciones de forma natural,
+    aclara malentendidos y negocia una solución.'
+  families:
+  - communicative_transfer
+- code: U2.R
+  unit: 2
+  skill: reading
+  description_es: Entender solicitudes y restricciones en textos cotidianos
+  cefr_ref_es: 'Paráfrasis del MCER (comprensión lectora): en B1 entiende textos directos sobre temas
+    cotidianos; hacia B2 lee con autonomía y adapta su estilo de lectura al propósito.'
+  families:
+  - read_in_daily_life
+- code: U2.L
+  unit: 2
+  skill: listening
+  description_es: Elegir respuestas adecuadas y reconocer cuándo pedir aclaración
+  cefr_ref_es: 'Paráfrasis del MCER (comprensión auditiva): en B1 capta las ideas principales de habla
+    clara sobre temas conocidos; hacia B2 sigue discursos más largos y argumentos si el tema le es familiar.'
+  families:
+  - listen_choose_response
+  - listen_conversation
+- code: U2.W
+  unit: 2
+  skill: writing
+  description_es: Escribir un correo con propósito y detalles
+  cefr_ref_es: 'Paráfrasis del MCER (expresión escrita): en B1 escribe textos sencillos y conectados;
+    hacia B2 escribe textos claros y detallados, y desarrolla un argumento.'
+  families:
+  - write_an_email
+- code: U2.S
+  unit: 2
+  skill: speaking
+  description_es: Aclarar una necesidad y reformular
+  cefr_ref_es: 'Paráfrasis del MCER (expresión oral): en B1 se desenvuelve en situaciones habituales y
+    relata experiencias; hacia B2 interactúa con fluidez y espontaneidad suficientes con hablantes nativos.'
+  families:
+  - take_an_interview
+- code: U2.T
+  unit: 2
+  skill: transfer
+  description_es: Resolver un malentendido
+  cefr_ref_es: 'Paráfrasis del MCER (interacción): hacia B2 participa en conversaciones de forma natural,
+    aclara malentendidos y negocia una solución.'
+  families:
+  - communicative_transfer
+- code: U3.R
+  unit: 3
+  skill: reading
+  description_es: Seguir secuencias temporales en un texto
+  cefr_ref_es: 'Paráfrasis del MCER (comprensión lectora): en B1 entiende textos directos sobre temas
+    cotidianos; hacia B2 lee con autonomía y adapta su estilo de lectura al propósito.'
+  families:
+  - read_in_daily_life
+  - complete_the_words
+- code: U3.L
+  unit: 3
+  skill: listening
+  description_es: Distinguir hechos, planes y cambios en lo que se escucha
+  cefr_ref_es: 'Paráfrasis del MCER (comprensión auditiva): en B1 capta las ideas principales de habla
+    clara sobre temas conocidos; hacia B2 sigue discursos más largos y argumentos si el tema le es familiar.'
+  families:
+  - listen_conversation
+  - listen_announcement
+- code: U3.W
+  unit: 3
+  skill: writing
+  description_es: Relatar y conectar eventos con precisión
+  cefr_ref_es: 'Paráfrasis del MCER (expresión escrita): en B1 escribe textos sencillos y conectados;
+    hacia B2 escribe textos claros y detallados, y desarrolla un argumento.'
+  families:
+  - build_a_sentence
+  - write_an_email
+- code: U3.S
+  unit: 3
+  skill: speaking
+  description_es: Narrar una experiencia y repetir mensajes breves
+  cefr_ref_es: 'Paráfrasis del MCER (expresión oral): en B1 se desenvuelve en situaciones habituales y
+    relata experiencias; hacia B2 interactúa con fluidez y espontaneidad suficientes con hablantes nativos.'
+  families:
+  - listen_and_repeat
+  - take_an_interview
+- code: U3.T
+  unit: 3
+  skill: transfer
+  description_es: Explicar un cambio de planes
+  cefr_ref_es: 'Paráfrasis del MCER (interacción): hacia B2 participa en conversaciones de forma natural,
+    aclara malentendidos y negocia una solución.'
+  families:
+  - communicative_transfer
+- code: U4.R
+  unit: 4
+  skill: reading
+  description_es: Contrastar alternativas y evidencias
+  cefr_ref_es: 'Paráfrasis del MCER (comprensión lectora): en B1 entiende textos directos sobre temas
+    cotidianos; hacia B2 lee con autonomía y adapta su estilo de lectura al propósito.'
+  families:
+  - read_in_daily_life
+  - read_academic_passage
+- code: U4.L
+  unit: 4
+  skill: listening
+  description_es: Reconocer preferencias y razones
+  cefr_ref_es: 'Paráfrasis del MCER (comprensión auditiva): en B1 capta las ideas principales de habla
+    clara sobre temas conocidos; hacia B2 sigue discursos más largos y argumentos si el tema le es familiar.'
+  families:
+  - listen_conversation
+- code: U4.W
+  unit: 4
+  skill: writing
+  description_es: Recomendar una opción y reconocer una objeción
+  cefr_ref_es: 'Paráfrasis del MCER (expresión escrita): en B1 escribe textos sencillos y conectados;
+    hacia B2 escribe textos claros y detallados, y desarrolla un argumento.'
+  families:
+  - write_an_email
+- code: U4.S
+  unit: 4
+  skill: speaking
+  description_es: Defender una decisión y responder preguntas
+  cefr_ref_es: 'Paráfrasis del MCER (expresión oral): en B1 se desenvuelve en situaciones habituales y
+    relata experiencias; hacia B2 interactúa con fluidez y espontaneidad suficientes con hablantes nativos.'
+  families:
+  - take_an_interview
+- code: U4.T
+  unit: 4
+  skill: transfer
+  description_es: Elegir entre dos opciones con otra persona
+  cefr_ref_es: 'Paráfrasis del MCER (interacción): hacia B2 participa en conversaciones de forma natural,
+    aclara malentendidos y negocia una solución.'
+  families:
+  - communicative_transfer
+- code: U5.R
+  unit: 5
+  skill: reading
+  description_es: Identificar tesis, apoyo y vocabulario en contexto
+  cefr_ref_es: 'Paráfrasis del MCER (comprensión lectora): en B1 entiende textos directos sobre temas
+    cotidianos; hacia B2 lee con autonomía y adapta su estilo de lectura al propósito.'
+  families:
+  - read_academic_passage
+  - complete_the_words
+- code: U5.L
+  unit: 5
+  skill: listening
+  description_es: Tomar notas de una explicación breve
+  cefr_ref_es: 'Paráfrasis del MCER (comprensión auditiva): en B1 capta las ideas principales de habla
+    clara sobre temas conocidos; hacia B2 sigue discursos más largos y argumentos si el tema le es familiar.'
+  families:
+  - listen_academic_talk
+- code: U5.W
+  unit: 5
+  skill: writing
+  description_es: Aportar una opinión con apoyo a una discusión
+  cefr_ref_es: 'Paráfrasis del MCER (expresión escrita): en B1 escribe textos sencillos y conectados;
+    hacia B2 escribe textos claros y detallados, y desarrolla un argumento.'
+  families:
+  - write_academic_discussion
+- code: U5.S
+  unit: 5
+  skill: speaking
+  description_es: Explicar un concepto con ejemplos
+  cefr_ref_es: 'Paráfrasis del MCER (expresión oral): en B1 se desenvuelve en situaciones habituales y
+    relata experiencias; hacia B2 interactúa con fluidez y espontaneidad suficientes con hablantes nativos.'
+  families:
+  - take_an_interview
+- code: U5.T
+  unit: 5
+  skill: transfer
+  description_es: Explicar una idea a un compañero
+  cefr_ref_es: 'Paráfrasis del MCER (interacción): hacia B2 participa en conversaciones de forma natural,
+    aclara malentendidos y negocia una solución.'
+  families:
+  - communicative_transfer
+- code: U6.R
+  unit: 6
+  skill: reading
+  description_es: Inferir causas y condiciones
+  cefr_ref_es: 'Paráfrasis del MCER (comprensión lectora): en B1 entiende textos directos sobre temas
+    cotidianos; hacia B2 lee con autonomía y adapta su estilo de lectura al propósito.'
+  families:
+  - read_academic_passage
+  - read_in_daily_life
+- code: U6.L
+  unit: 6
+  skill: listening
+  description_es: Entender desacuerdos y propuestas
+  cefr_ref_es: 'Paráfrasis del MCER (comprensión auditiva): en B1 capta las ideas principales de habla
+    clara sobre temas conocidos; hacia B2 sigue discursos más largos y argumentos si el tema le es familiar.'
+  families:
+  - listen_conversation
+- code: U6.W
+  unit: 6
+  skill: writing
+  description_es: Proponer una solución por correo
+  cefr_ref_es: 'Paráfrasis del MCER (expresión escrita): en B1 escribe textos sencillos y conectados;
+    hacia B2 escribe textos claros y detallados, y desarrolla un argumento.'
+  families:
+  - write_an_email
+- code: U6.S
+  unit: 6
+  skill: speaking
+  description_es: Negociar una alternativa y sus consecuencias
+  cefr_ref_es: 'Paráfrasis del MCER (expresión oral): en B1 se desenvuelve en situaciones habituales y
+    relata experiencias; hacia B2 interactúa con fluidez y espontaneidad suficientes con hablantes nativos.'
+  families:
+  - take_an_interview
+- code: U6.T
+  unit: 6
+  skill: transfer
+  description_es: Negociar una solución
+  cefr_ref_es: 'Paráfrasis del MCER (interacción): hacia B2 participa en conversaciones de forma natural,
+    aclara malentendidos y negocia una solución.'
+  families:
+  - communicative_transfer
+- code: U7.R
+  unit: 7
+  skill: reading
+  description_es: Distinguir afirmación, evidencia e inferencia
+  cefr_ref_es: 'Paráfrasis del MCER (comprensión lectora): en B1 entiende textos directos sobre temas
+    cotidianos; hacia B2 lee con autonomía y adapta su estilo de lectura al propósito.'
+  families:
+  - read_academic_passage
+- code: U7.L
+  unit: 7
+  skill: listening
+  description_es: Reconocer postura e intención
+  cefr_ref_es: 'Paráfrasis del MCER (comprensión auditiva): en B1 capta las ideas principales de habla
+    clara sobre temas conocidos; hacia B2 sigue discursos más largos y argumentos si el tema le es familiar.'
+  families:
+  - listen_academic_talk
+  - listen_conversation
+- code: U7.W
+  unit: 7
+  skill: writing
+  description_es: Comparar argumentos y responder con matices
+  cefr_ref_es: 'Paráfrasis del MCER (expresión escrita): en B1 escribe textos sencillos y conectados;
+    hacia B2 escribe textos claros y detallados, y desarrolla un argumento.'
+  families:
+  - write_academic_discussion
+- code: U7.S
+  unit: 7
+  skill: speaking
+  description_es: Elaborar y sostener una respuesta coherente
+  cefr_ref_es: 'Paráfrasis del MCER (expresión oral): en B1 se desenvuelve en situaciones habituales y
+    relata experiencias; hacia B2 interactúa con fluidez y espontaneidad suficientes con hablantes nativos.'
+  families:
+  - take_an_interview
+- code: U7.T
+  unit: 7
+  skill: transfer
+  description_es: Defender una postura con matices
+  cefr_ref_es: 'Paráfrasis del MCER (interacción): hacia B2 participa en conversaciones de forma natural,
+    aclara malentendidos y negocia una solución.'
+  families:
+  - communicative_transfer
+- code: U8.R
+  unit: 8
+  skill: reading
+  description_es: Comprender lecturas nuevas y completar palabras en contexto
+  cefr_ref_es: 'Paráfrasis del MCER (comprensión lectora): en B1 entiende textos directos sobre temas
+    cotidianos; hacia B2 lee con autonomía y adapta su estilo de lectura al propósito.'
+  families:
+  - read_in_daily_life
+  - complete_the_words
+  - read_academic_passage
+- code: U8.L
+  unit: 8
+  skill: listening
+  description_es: Comprender una mezcla de conversaciones, avisos y exposiciones
+  cefr_ref_es: 'Paráfrasis del MCER (comprensión auditiva): en B1 capta las ideas principales de habla
+    clara sobre temas conocidos; hacia B2 sigue discursos más largos y argumentos si el tema le es familiar.'
+  families:
+  - listen_choose_response
+  - listen_conversation
+  - listen_announcement
+  - listen_academic_talk
+- code: U8.W
+  unit: 8
+  skill: writing
+  description_es: Escribir oraciones, un correo y una discusión sin ayudas
+  cefr_ref_es: 'Paráfrasis del MCER (expresión escrita): en B1 escribe textos sencillos y conectados;
+    hacia B2 escribe textos claros y detallados, y desarrolla un argumento.'
+  families:
+  - build_a_sentence
+  - write_an_email
+  - write_academic_discussion
+- code: U8.S
+  unit: 8
+  skill: speaking
+  description_es: Repetir mensajes y responder una entrevista con temas nuevos
+  cefr_ref_es: 'Paráfrasis del MCER (expresión oral): en B1 se desenvuelve en situaciones habituales y
+    relata experiencias; hacia B2 interactúa con fluidez y espontaneidad suficientes con hablantes nativos.'
+  families:
+  - listen_and_repeat
+  - take_an_interview
+- code: U8.T
+  unit: 8
+  skill: transfer
+  description_es: Resolver una situación integradora sin apoyo
+  cefr_ref_es: 'Paráfrasis del MCER (interacción): hacia B2 participa en conversaciones de forma natural,
+    aclara malentendidos y negocia una solución.'
+  families:
+  - communicative_transfer

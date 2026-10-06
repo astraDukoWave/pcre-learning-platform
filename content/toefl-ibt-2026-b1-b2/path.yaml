@@ -1,0 +1,42 @@
+# Ruta toefl-ibt-2026-b1-b2 (contrato curricular §1 y §4). Preparación independiente.
+code: toefl-ibt-2026-b1-b2
+exam_code: toefl_ibt
+exam_format_version: "2026-01"
+level_from: B1
+level_to: B2
+title: "Ruta B1 → B2 con tareas tipo TOEFL iBT (formato 2026)"
+label: "Preparación independiente"
+catalog_version: 1
+units:
+  - slug: u1-informacion-decisiones
+    position: 1
+    title: "Información y decisiones cotidianas"
+    summary: "Encuentra condiciones y datos en mensajes y horarios, entiende avisos breves, escribe una petición clara y responde preguntas familiares."
+  - slug: u2-pedir-aclarar
+    position: 2
+    title: "Pedir y aclarar"
+    summary: "Entiende solicitudes y restricciones, pide aclaración y escribe un correo con propósito y detalles."
+  - slug: u3-experiencias-cambios
+    position: 3
+    title: "Experiencias y cambios"
+    summary: "Sigue secuencias temporales, distingue hechos de planes y relata una experiencia con precisión."
+  - slug: u4-comparar-justificar
+    position: 4
+    title: "Comparar y justificar"
+    summary: "Contrasta alternativas, recomienda una opción y defiende una decisión."
+  - slug: u5-ideas-academicas
+    position: 5
+    title: "Ideas académicas"
+    summary: "Identifica tesis y apoyo, toma notas de una explicación y aporta una opinión con apoyo."
+  - slug: u6-resolver-problemas
+    position: 6
+    title: "Resolver problemas"
+    summary: "Infiere causas, entiende desacuerdos y propone una solución."
+  - slug: u7-evaluar-argumentos
+    position: 7
+    title: "Evaluar argumentos"
+    summary: "Distingue afirmación, evidencia e inferencia, y sostiene una postura con matices."
+  - slug: u8-integracion
+    position: 8
+    title: "Integración con menor apoyo"
+    summary: "Integra lectura, escucha, escritura y habla con temas nuevos y sin ayudas."

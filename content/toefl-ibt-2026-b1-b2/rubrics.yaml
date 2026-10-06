@@ -1,0 +1,160 @@
+# Rúbricas formativas versionadas (contrato §8). Cuatro niveles (0–3) por criterio; cada
+# resultado guarda su versión. En MVP-01 se usan para la autoevaluación guiada.
+rubrics:
+  - id: email
+    version: 1
+    name_es: "Correo"
+    applies_to: [write_an_email]
+    criteria:
+      - id: task
+        name_es: "Cumplimiento de la tarea"
+        levels:
+          - {score: 0, descriptor_es: "No responde a la consigna o falta casi todo lo pedido."}
+          - {score: 1, descriptor_es: "Cubre uno de los puntos pedidos."}
+          - {score: 2, descriptor_es: "Cubre la mayoría de los puntos pedidos."}
+          - {score: 3, descriptor_es: "Cubre todos los puntos pedidos con claridad."}
+      - id: organization
+        name_es: "Organización"
+        levels:
+          - {score: 0, descriptor_es: "Sin saludo, propósito ni cierre reconocibles."}
+          - {score: 1, descriptor_es: "Hay algunas partes, pero el propósito no queda claro."}
+          - {score: 2, descriptor_es: "Saludo, propósito, detalles y cierre, con algún salto."}
+          - {score: 3, descriptor_es: "Saludo, propósito, detalles y cierre en un orden fácil de seguir."}
+      - id: language_control
+        name_es: "Control del lenguaje"
+        levels:
+          - {score: 0, descriptor_es: "Los errores impiden entender el mensaje."}
+          - {score: 1, descriptor_es: "Errores frecuentes que obligan a releer."}
+          - {score: 2, descriptor_es: "Algunos errores que no dificultan entender."}
+          - {score: 3, descriptor_es: "Errores escasos; el mensaje se entiende a la primera."}
+      - id: register
+        name_es: "Registro y tono"
+        levels:
+          - {score: 0, descriptor_es: "El tono no corresponde a la persona destinataria."}
+          - {score: 1, descriptor_es: "Mezcla registros de forma notoria."}
+          - {score: 2, descriptor_es: "Registro adecuado con algún desliz."}
+          - {score: 3, descriptor_es: "Registro y cortesía adecuados a la situación."}
+  - id: academic-discussion
+    version: 1
+    name_es: "Discusión académica"
+    applies_to: [write_academic_discussion]
+    criteria:
+      - id: position
+        name_es: "Postura clara"
+        levels:
+          - {score: 0, descriptor_es: "No se identifica una postura."}
+          - {score: 1, descriptor_es: "La postura aparece, pero es ambigua."}
+          - {score: 2, descriptor_es: "Postura clara, con algún cambio de rumbo."}
+          - {score: 3, descriptor_es: "Postura clara y sostenida de principio a fin."}
+      - id: support
+        name_es: "Apoyo (razón y ejemplo)"
+        levels:
+          - {score: 0, descriptor_es: "Sin razones ni ejemplos."}
+          - {score: 1, descriptor_es: "Una razón general sin ejemplo."}
+          - {score: 2, descriptor_es: "Razón con un ejemplo poco desarrollado."}
+          - {score: 3, descriptor_es: "Razón y ejemplo concretos que apoyan la postura."}
+      - id: engagement
+        name_es: "Diálogo con otras ideas"
+        levels:
+          - {score: 0, descriptor_es: "Ignora lo que dicen otras personas."}
+          - {score: 1, descriptor_es: "Menciona otra idea sin responderla."}
+          - {score: 2, descriptor_es: "Responde a otra idea de forma breve."}
+          - {score: 3, descriptor_es: "Responde a otra idea y la relaciona con su postura."}
+      - id: language_range
+        name_es: "Variedad y precisión del lenguaje"
+        levels:
+          - {score: 0, descriptor_es: "Vocabulario y estructuras muy limitados o erróneos."}
+          - {score: 1, descriptor_es: "Repetitivo, con errores que distraen."}
+          - {score: 2, descriptor_es: "Variado, con errores ocasionales."}
+          - {score: 3, descriptor_es: "Variado y preciso para el tema."}
+  - id: interview
+    version: 1
+    name_es: "Entrevista oral"
+    applies_to: [take_an_interview]
+    note_es: "La pronunciación y la fluidez no se evalúan desde una transcripción; si se piden, son autoevaluación."
+    criteria:
+      - id: relevance
+        name_es: "Relevancia"
+        levels:
+          - {score: 0, descriptor_es: "No responde a la pregunta."}
+          - {score: 1, descriptor_es: "Responde de forma parcial o se desvía."}
+          - {score: 2, descriptor_es: "Responde la pregunta con algún desvío."}
+          - {score: 3, descriptor_es: "Responde directamente la pregunta."}
+      - id: development
+        name_es: "Desarrollo (detalle o ejemplo)"
+        levels:
+          - {score: 0, descriptor_es: "Una palabra o una frase suelta."}
+          - {score: 1, descriptor_es: "Respuesta breve sin detalle."}
+          - {score: 2, descriptor_es: "Un detalle o ejemplo poco desarrollado."}
+          - {score: 3, descriptor_es: "Detalles o un ejemplo que amplían la respuesta."}
+      - id: coherence
+        name_es: "Coherencia (conectores)"
+        levels:
+          - {score: 0, descriptor_es: "Ideas sueltas sin relación."}
+          - {score: 1, descriptor_es: "Ideas relacionadas con conectores muy básicos."}
+          - {score: 2, descriptor_es: "Ideas conectadas con algún salto."}
+          - {score: 3, descriptor_es: "Ideas conectadas que se siguen con facilidad."}
+      - id: recoverable_language
+        name_es: "Lenguaje recuperable"
+        levels:
+          - {score: 0, descriptor_es: "Casi nada se puede entender."}
+          - {score: 1, descriptor_es: "Se entiende con mucho esfuerzo."}
+          - {score: 2, descriptor_es: "Se entiende con algún esfuerzo."}
+          - {score: 3, descriptor_es: "Se entiende sin esfuerzo."}
+      - id: fluency_self
+        name_es: "Fluidez (autoevaluación)"
+        self_assessed_only: true
+        levels:
+          - {score: 0, descriptor_es: "Me detuve tanto que no terminé."}
+          - {score: 1, descriptor_es: "Hice pausas largas y frecuentes."}
+          - {score: 2, descriptor_es: "Hice algunas pausas, pero seguí."}
+          - {score: 3, descriptor_es: "Hablé con pocas pausas."}
+  - id: repeat
+    version: 1
+    name_es: "Repetición"
+    applies_to: [listen_and_repeat]
+    note_es: "Desde MVP-02 se suma la proporción de palabras reconocidas; un fallo del reconocimiento no es un error del alumno por defecto."
+    criteria:
+      - id: completeness_self
+        name_es: "Completitud (autoevaluación)"
+        self_assessed_only: true
+        levels:
+          - {score: 0, descriptor_es: "No pude repetir la oración."}
+          - {score: 1, descriptor_es: "Repetí menos de la mitad."}
+          - {score: 2, descriptor_es: "Repetí casi toda la oración."}
+          - {score: 3, descriptor_es: "Repetí la oración completa."}
+      - id: pronunciation_self
+        name_es: "Pronunciación (autoevaluación)"
+        self_assessed_only: true
+        levels:
+          - {score: 0, descriptor_es: "Al escucharme, no reconozco las palabras."}
+          - {score: 1, descriptor_es: "Reconozco algunas palabras."}
+          - {score: 2, descriptor_es: "Reconozco casi todas las palabras."}
+          - {score: 3, descriptor_es: "Suena muy parecido al modelo."}
+  - id: transfer
+    version: 1
+    name_es: "Transferencia (escenario)"
+    applies_to: [communicative_transfer]
+    note_es: "Escenario de la unidad: movimientos requeridos y lenguaje (contrato §7)."
+    criteria:
+      - id: required_moves
+        name_es: "Movimientos requeridos"
+        levels:
+          - {score: 0, descriptor_es: "No logra ninguno de los movimientos pedidos."}
+          - {score: 1, descriptor_es: "Logra uno de los movimientos pedidos."}
+          - {score: 2, descriptor_es: "Logra la mayoría de los movimientos pedidos."}
+          - {score: 3, descriptor_es: "Logra todos los movimientos pedidos."}
+      - id: appropriacy
+        name_es: "Adecuación a la situación"
+        levels:
+          - {score: 0, descriptor_es: "Las respuestas no corresponden a la situación."}
+          - {score: 1, descriptor_es: "Algunas respuestas encajan."}
+          - {score: 2, descriptor_es: "Casi todas las respuestas encajan."}
+          - {score: 3, descriptor_es: "Las respuestas encajan con la situación y la persona."}
+      - id: language_control
+        name_es: "Control del lenguaje"
+        levels:
+          - {score: 0, descriptor_es: "Los errores impiden seguir la conversación."}
+          - {score: 1, descriptor_es: "Errores frecuentes que obligan a pedir aclaración."}
+          - {score: 2, descriptor_es: "Algunos errores que no impiden seguir."}
+          - {score: 3, descriptor_es: "Errores escasos; la conversación fluye."}

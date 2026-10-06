@@ -1,0 +1,4 @@
+# Manifiesto de audio (contrato §11). Cada entrada guarda el guion completo; `file`,
+# `sha256`, proveedor y revisión se llenan cuando el workflow aprobado `content-audio.yml`
+# genera el MP3 (G2) y Jonathan lo revisa. Sin `reviewed_by`, el lint marca `pending_audio`.
+audio: []
