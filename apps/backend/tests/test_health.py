@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from fastapi import APIRouter, FastAPI
+from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from sqlalchemy import text
 from sqlalchemy.orm import Session
@@ -45,13 +45,11 @@ def test_unknown_api_route_is_json_404(client: TestClient) -> None:
 
 
 def test_unexpected_error_returns_envelope_with_request_id(app: FastAPI) -> None:
-    boom = APIRouter()
-
-    @boom.get("/api/v1/_boom")
     def _boom() -> None:
         raise RuntimeError("secreto que no debe salir")
 
-    app.include_router(boom)
+    app.router.add_api_route("/api/v1/_boom", _boom)
+    app.router.routes.insert(0, app.router.routes.pop())  # antes del fallback de la SPA
     with TestClient(app, base_url="https://testserver") as c:
         res = c.get("/api/v1/_boom")
     assert res.status_code == 500

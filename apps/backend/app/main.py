@@ -10,6 +10,7 @@ from app.core.logging import configure_logging
 from app.http import health
 from app.http.errors import install_error_handlers
 from app.http.middleware import RequestContextMiddleware
+from app.http.static import mount_frontend
 
 
 def create_app(settings: Settings | None = None, *, container: Container | None = None) -> FastAPI:
@@ -27,6 +28,8 @@ def create_app(settings: Settings | None = None, *, container: Container | None 
     app.state.container = container
     install_error_handlers(app)
     app.include_router(health.router)
+    # Siempre al final: el fallback de la SPA atrapa lo que no reclamó ninguna ruta.
+    mount_frontend(app, settings)
     app.add_middleware(RequestContextMiddleware)
     return app
 

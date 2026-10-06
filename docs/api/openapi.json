@@ -1,0 +1,86 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "PCRE API",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/health": {
+      "get": {
+        "tags": [
+          "ops"
+        ],
+        "summary": "Health",
+        "operationId": "health_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthOut"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/ready": {
+      "get": {
+        "tags": [
+          "ops"
+        ],
+        "summary": "Ready",
+        "operationId": "ready_api_v1_ready_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReadyOut"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "HealthOut": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "title": "Status"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status"
+        ],
+        "title": "HealthOut"
+      },
+      "ReadyOut": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "migration": {
+            "type": "string",
+            "title": "Migration"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "migration"
+        ],
+        "title": "ReadyOut"
+      }
+    }
+  }
+}
