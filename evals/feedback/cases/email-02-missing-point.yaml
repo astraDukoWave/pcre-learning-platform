@@ -1,0 +1,18 @@
+id: email-02-missing-point
+task: u1-email
+category: incorrecta
+learner_text: 'Hello,
+
+
+  I am interested in your evening English classes. Could you tell me which days the classes meet? I would
+  also like to know the price per month.
+
+
+  Best regards,
+
+  Luis'
+expected_status: evaluable
+must_not_flag: []
+must_mention_criteria:
+- task
+max_observations: 3

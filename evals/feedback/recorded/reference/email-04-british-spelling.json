@@ -1,0 +1,12 @@
+{
+  "status": "evaluable",
+  "reason": null,
+  "observations": [
+    {
+      "criterion": "organization",
+      "evidence": "so planning is important to me",
+      "observation_es": "La última idea no ayuda a la petición y alarga el correo.",
+      "suggestion_es": "Puedes quitarla o unirla a la razón: «I sometimes work late, so recordings would help me plan.»"
+    }
+  ]
+}

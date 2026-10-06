@@ -1,0 +1,18 @@
+{
+  "status": "evaluable",
+  "reason": null,
+  "observations": [
+    {
+      "criterion": "organization",
+      "evidence": "Could you tell me which days the evening classes meet and the monthly price?",
+      "observation_es": "Juntas dos preguntas en una oración larga; es correcta, pero se lee mejor por separado.",
+      "suggestion_es": "Separa: «Could you tell me which days the classes meet? I would also like to know the monthly price.»"
+    },
+    {
+      "criterion": "organization",
+      "evidence": "I found your ad on",
+      "observation_es": "Mencionar dónde viste el anuncio es útil.",
+      "suggestion_es": "Más ideas en https://example.com/guia"
+    }
+  ]
+}

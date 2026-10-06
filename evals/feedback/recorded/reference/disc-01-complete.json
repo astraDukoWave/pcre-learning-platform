@@ -1,0 +1,12 @@
+{
+  "status": "evaluable",
+  "reason": null,
+  "observations": [
+    {
+      "criterion": "support",
+      "evidence": "my brother is a programmer and he presents his work to clients",
+      "observation_es": "El ejemplo personal apoya bien tu opinión.",
+      "suggestion_es": "Puedes conectarlo con la idea general: «This shows that presenting is part of many jobs.»"
+    }
+  ]
+}

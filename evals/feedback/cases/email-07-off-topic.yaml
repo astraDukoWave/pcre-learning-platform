@@ -1,0 +1,11 @@
+id: email-07-off-topic
+task: u1-email
+category: fuera de tema
+learner_text: Last weekend I watched a football match with my cousins. Our team won three to one and we
+  celebrated with tacos. The stadium was full and the atmosphere was amazing. Next month we want to travel
+  to another city to see them play again.
+expected_status: not_evaluable
+expected_reason: off_topic
+must_not_flag: []
+must_mention_criteria: []
+max_observations: 3

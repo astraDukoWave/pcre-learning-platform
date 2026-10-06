@@ -1,0 +1,9 @@
+id: int-04-too-short
+task: u1-interview
+category: demasiado corta
+learner_text: Teacher.
+expected_status: not_evaluable
+expected_reason: too_short
+must_not_flag: []
+must_mention_criteria: []
+max_observations: 3

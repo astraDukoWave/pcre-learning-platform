@@ -1,0 +1,12 @@
+{
+  "status": "evaluable",
+  "reason": null,
+  "observations": [
+    {
+      "criterion": "development",
+      "evidence": "we usually stop for coffee after",
+      "observation_es": "Das un ejemplo concreto de tu tiempo libre; falta decir por qué te gusta.",
+      "suggestion_es": "Agrega una razón: «… because it is a good way to relax and see my friends.»"
+    }
+  ]
+}

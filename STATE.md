@@ -73,7 +73,8 @@ anotan en el registro; cualquier otra desviación queda `pending-human`.
 | MVP-01 | CS-10 · seguridad, legales, accesibilidad, rendimiento y deploy | `feat/mvp01-cs10-hardening-deploy` | [#12](https://github.com/astraDukoWave/pcre-learning-platform/pull/12) | `33b14f1` (head `cd07d64`) | [37412078255](https://github.com/astraDukoWave/pcre-learning-platform/actions/runs/37412078255) ✅ 8 jobs + ci-gate | `make verify` exit 0 (271 pruebas backend, 23 Vitest); axe sin violaciones graves en las seis pantallas (escritorio y 390 × 844), recorrido con teclado y movimiento reducido; E2E 13/13 local y en la CI; smoke de rendimiento: todo p95 < 800 ms (`docs/reviews/mvp-01-perf-smoke.md`); `deploy.yml` con actionlint; AC-21: run de `deploy.yml` tras el merge **skipped** ([37412451354](https://github.com/astraDukoWave/pcre-learning-platform/actions/runs/37412451354)), CI de `main` ✅ ([37412274783](https://github.com/astraDukoWave/pcre-learning-platform/actions/runs/37412274783)); NI-04 | 6 oct 2026 |
 | MVP-01 | CS-11 · contenido U1 listo para revisión | `feat/mvp01-cs11-u1-ready` | [#13](https://github.com/astraDukoWave/pcre-learning-platform/pull/13) | `4df036c` (head `536e301`) | [37412837444](https://github.com/astraDukoWave/pcre-learning-platform/actions/runs/37412837444) ✅ 8 jobs + ci-gate; `main` @ `4df036c`: [37413020925](https://github.com/astraDukoWave/pcre-learning-platform/actions/runs/37413020925) ✅ | segunda pasada con la lista del contrato §12 (5 ajustes); U1 y diagnóstico en `ready-for-review`; `docs/contenido/revision/{u1,inicial}.md` generados y comprobados en la CI; `make verify` exit 0 (274 pruebas backend); fuentes de coe.int y cambridge.org siguen `pending` (la sesión no llega a esos hosts) | 6 oct 2026 |
 | MVP-01 | CS-12 · cierre (verify + activación) | `docs/mvp01-cs12-close` | [#14](https://github.com/astraDukoWave/pcre-learning-platform/pull/14) | `211c53f` (head `b562c0c`) | [37415037630](https://github.com/astraDukoWave/pcre-learning-platform/actions/runs/37415037630) ✅ 8 jobs + ci-gate | `make verify` exit 0 en un clon limpio de `4df036c` tras el hook de arranque (AC-01); `docs/reviews/mvp-01-verify.md`, `docs/reviews/mvp-01-activacion-cto-review.md`, README, HANDOFF, AGENTS y runbook (§12, H-6); verificador independiente: 1 bloqueante (clave siempre en `a`), 3 de cobertura o NFR-01 y 4 observaciones, corregidos en el PR (`make verify` exit 0, 284 pruebas backend, 25 Vitest; E2E 13/13 local) | 6 oct 2026 |
-| MVP-02 | CS-01 · presupuestos y consumo | `feat/mvp02-cs01-usage` | [#15](https://github.com/astraDukoWave/pcre-learning-platform/pull/15) | se completa al mergear | se completa al terminar | migración `usage_v1`; reservas con bloqueo global → alumno; AC-01 con dos hilos contra PostgreSQL; vista `/admin/consumo` con aviso al 80 %; NI-05 | 6 oct 2026 |
+| MVP-02 | CS-01 · presupuestos y consumo | `feat/mvp02-cs01-usage` | [#15](https://github.com/astraDukoWave/pcre-learning-platform/pull/15) | `6577467` (head `f8f8459`) | [37515756992](https://github.com/astraDukoWave/pcre-learning-platform/actions/runs/37515756992) ✅ 8 jobs + ci-gate | migración `usage_v1`; reservas con bloqueo global → alumno; AC-01 con dos hilos contra PostgreSQL; vista `/admin/consumo` con aviso al 80 %; `make verify` exit 0 (293 pruebas backend, 28 Vitest, 6 migraciones nuevas); NI-05 | 6 oct 2026 |
+| MVP-02 | CS-02 · evaluador de feedback y set de evaluación | `feat/mvp02-cs02-feedback-eval` | [#16](https://github.com/astraDukoWave/pcre-learning-platform/pull/16) | se completa al mergear | se completa al terminar | `make verify` exit 0 (311 pruebas backend); AC-03 con salidas rotas, evidencia inventada, URLs, puntajes y campos de más; AC-05 offline: 27 casos, referencia ✅, adversarial y con contradicciones ❌ como se espera; `feedback-eval.yml` con actionlint; verificador independiente antes del merge; NI-06 | 6 oct 2026 |
 
 ## Desviaciones
 
@@ -118,9 +119,20 @@ Ninguna.
   MVP-01 las omite. Los demás 503 (base de datos, migración) se siguen registrando.
 - **NI-06 · Gemini por REST** (MVP-02 CS-02). El plan (D5) menciona el SDK `google-genai`;
   el adaptador llama a `generateContent` por HTTP con `httpx` (salida JSON con
-  `responseSchema`, timeout de 20 s), sin dependencia nueva y probado con un transporte
-  simulado. Las salidas de referencia del set de evaluación están escritas a mano con la
-  forma de la salida del modelo: no son grabaciones de un modelo real (eso es G5a).
+  `responseSchema`, plazo total de 20 s con `app/core/deadline.py`), sin dependencia nueva y
+  probado con un transporte simulado. Las salidas de referencia del set de evaluación están
+  escritas a mano con la forma de la salida del modelo: no son grabaciones de un modelo real
+  (eso es G5a).
+- **NI-07 · Guardas de la regla de selección** (MVP-02 CS-02, verificador independiente). La
+  regla del spec (0 contradicciones, evidencia válida ≥ 95 %, p95 ≤ 12 s) la cumplía un modelo
+  que siempre devuelve vacío o siempre se abstiene, y no medía la inyección. `evals/run.py`
+  además exige 0 salidas inválidas, estado y motivo esperados en ≥ 90 % de los casos, 0 URLs o
+  puntajes devueltos y, en los casos de inyección, el estado y los criterios esperados; la
+  evidencia sin observaciones vale 0. Una variante válida citada dentro de una evidencia más
+  larga deja al modelo "revisar": no se elige solo y lo decide quien firma G5a. Cada caso
+  declara `max_observations` (REQ-03). Antes del run de G5a, Jonathan confirma que
+  `GEMINI_API_KEY` existe **solo** como secret del environment `evals` (no del repo ni de la
+  organización) y que `evals` tiene revisor obligatorio.
 
 ## Loop humano vigente
 

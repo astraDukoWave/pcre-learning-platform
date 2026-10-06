@@ -1,0 +1,68 @@
+# Benchmark del feedback abierto con modelos reales (MVP-02 REQ-03, gate G5a). Solo se
+# dispara a mano y el environment `evals` exige la aprobación de Jonathan antes de exponer
+# GEMINI_API_KEY (proyecto de Google propio de PCRE). El agente nunca lo dispara.
+# Sube el reporte como artefacto; se commitea en docs/reviews/mvp-02-feedback-eval.md.
+name: Evaluación del feedback (modelos reales)
+
+on:
+  workflow_dispatch:
+    inputs:
+      models:
+        description: "Modelos y precio en USD por millón de tokens: nombre=entrada/salida, separados por coma"
+        required: true
+        type: string
+      max_cost_usd:
+        description: "Tope de costo estimado del run, en USD"
+        required: true
+        default: "2"
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: feedback-eval
+  cancel-in-progress: false
+
+jobs:
+  evaluate:
+    name: evaluate
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: evals
+    env:
+      MODELS: ${{ inputs.models }}
+      MAX_COST_USD: ${{ inputs.max_cost_usd }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+          cache-dependency-glob: apps/backend/uv.lock
+      - name: Dependencias
+        working-directory: apps/backend
+        run: uv sync --locked --no-dev
+      - name: Validar entradas
+        run: |
+          [[ "${MAX_COST_USD}" =~ ^[0-9]+(\.[0-9]+)?$ ]] || { echo "::error::max_cost_usd inválido"; exit 1; }
+          [[ "${MODELS}" =~ ^[A-Za-z0-9._-]+=[0-9.]+/[0-9.]+(,[[:space:]]*[A-Za-z0-9._-]+=[0-9.]+/[0-9.]+)*$ ]] || { echo "::error::models inválido (nombre=entrada/salida,…)"; exit 1; }
+      - name: Correr el set de evaluación
+        working-directory: apps/backend
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: |
+          if [ -z "${GEMINI_API_KEY}" ]; then echo "::error::evaluación no configurada: falta GEMINI_API_KEY en el environment evals"; exit 1; fi
+          status=0
+          uv run --locked --no-dev python ../../evals/run.py --models "${MODELS}" --max-cost-usd "${MAX_COST_USD}" \
+            --report /tmp/feedback-eval.md --json /tmp/feedback-eval.json || status=$?
+          cat /tmp/feedback-eval.md >> "${GITHUB_STEP_SUMMARY}"
+          if [ "${status}" -ne 0 ]; then echo "::warning::ningún modelo cumple la regla de selección"; fi
+      - name: Reporte
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: feedback-eval-${{ github.run_id }}
+          path: |
+            /tmp/feedback-eval.md
+            /tmp/feedback-eval.json
+          if-no-files-found: ignore

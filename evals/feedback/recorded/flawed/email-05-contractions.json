@@ -1,0 +1,12 @@
+{
+  "status": "evaluable",
+  "reason": null,
+  "observations": [
+    {
+      "criterion": "register",
+      "evidence": "I'm interested",
+      "observation_es": "Las contracciones son incorrectas en un correo.",
+      "suggestion_es": "Escribe «I am»."
+    }
+  ]
+}

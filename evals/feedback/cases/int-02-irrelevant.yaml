@@ -1,0 +1,10 @@
+id: int-02-irrelevant
+task: u1-interview
+category: fuera de tema
+learner_text: The weather in my city is very hot in May. Sometimes it rains in the afternoon and the streets
+  are full of water. I don't like the traffic when it rains.
+expected_status: not_evaluable
+expected_reason: off_topic
+must_not_flag: []
+must_mention_criteria: []
+max_observations: 3

@@ -1,0 +1,13 @@
+id: disc-08-informal-ok
+task: dx-discussion
+category: variante válida
+learner_text: Honestly, I'm with Ana on this one. Most jobs need you to explain stuff to other people,
+  and lots of students freeze when they have to talk in front of a group. Kevin's worried about time,
+  but one semester isn't a big deal if it helps you for your whole career.
+expected_status: evaluable
+must_not_flag:
+- I'm
+- Kevin's
+- isn't
+must_mention_criteria: []
+max_observations: 3

@@ -1,0 +1,12 @@
+{
+  "status": "evaluable",
+  "reason": null,
+  "observations": [
+    {
+      "criterion": "language_control",
+      "evidence": "evening programme",
+      "observation_es": "«Programme» está mal escrito.",
+      "suggestion_es": "Escribe «program»."
+    }
+  ]
+}

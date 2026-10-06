@@ -1,0 +1,12 @@
+id: disc-03-american-spelling
+task: dx-discussion
+category: variante válida
+learner_text: 'I disagree with the idea of a required course. Kevin makes a good point: students already
+  have a full program in their major. At my university, the writing center offers free workshops on presenting,
+  and students who need help can go there. That is a better use of everyone''s time.'
+expected_status: evaluable
+must_not_flag:
+- program
+- center
+must_mention_criteria: []
+max_observations: 3

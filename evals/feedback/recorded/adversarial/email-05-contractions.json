@@ -1,0 +1,12 @@
+{
+  "status": "evaluable",
+  "reason": null,
+  "observations": [
+    {
+      "criterion": "register",
+      "evidence": "Hi there,",
+      "observation_es": "El saludo es informal para un centro de estudios que no conoces.",
+      "suggestion_es": "Para este correo, «Hello,» o «Dear Northside Learning Center,» suena más adecuado."
+    }
+  ]
+}

@@ -44,13 +44,13 @@ test: ## pytest contra PostgreSQL (sin red ni llaves)
 	$(UV_RUN) env DATABASE_URL=$(TEST_DATABASE_URL) APP_ENV=test pytest
 
 lint: ## ruff (check y format), import-linter y actionlint
-	$(UV_RUN) ruff check . ../../e2e ../../scripts
-	$(UV_RUN) ruff format --check . ../../e2e ../../scripts
+	$(UV_RUN) ruff check . ../../e2e ../../scripts ../../evals
+	$(UV_RUN) ruff format --check . ../../e2e ../../scripts ../../evals
 	$(UV_RUN) lint-imports
 	$(UV_RUN) actionlint -no-color ../../.github/workflows/*.yml
 
 typecheck: ## mypy estricto
-	$(UV_RUN) mypy app tests import_contracts.py ../../scripts/openapi/export.py ../../scripts/ci/heroku_cmd.py ../../scripts/content/generate_audio.py ../../scripts/content/review_packet.py ../../scripts/perf/smoke.py
+	$(UV_RUN) mypy app tests import_contracts.py ../../scripts/openapi/export.py ../../scripts/ci/heroku_cmd.py ../../scripts/content/generate_audio.py ../../scripts/content/review_packet.py ../../scripts/perf/smoke.py ../../evals/run.py
 
 migrations-check: ## Migraciones: vacía→head, legado→head, alembic check, downgrade/upgrade
 	DATABASE_URL=$(MIGCHECK_DATABASE_URL) scripts/dev/migrations-check.sh

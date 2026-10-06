@@ -1,0 +1,10 @@
+id: disc-07-spanish-mixed
+task: dx-discussion
+category: en español
+learner_text: Yo creo que sí, porque hablar en público es muy importante para el trabajo. Ana tiene razón.
+  Pero Kevin también, porque los estudiantes ya tienen muchas clases. I think yes.
+expected_status: not_evaluable
+expected_reason: other_language
+must_not_flag: []
+must_mention_criteria: []
+max_observations: 3

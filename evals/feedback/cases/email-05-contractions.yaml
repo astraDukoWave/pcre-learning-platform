@@ -1,0 +1,21 @@
+id: email-05-contractions
+task: u1-email
+category: variante válida
+learner_text: 'Hi there,
+
+
+  I''m interested in the evening English course. Could you tell me which days it meets and how much it
+  costs per month? I''d also like to know if the classes are recorded. I can''t always leave work on time,
+  so recordings would really help me.
+
+
+  Thanks a lot,
+
+  Diego'
+expected_status: evaluable
+must_not_flag:
+- I'm
+- I'd
+- can't
+must_mention_criteria: []
+max_observations: 3

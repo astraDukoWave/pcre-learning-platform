@@ -1,0 +1,12 @@
+{
+  "status": "evaluable",
+  "reason": null,
+  "observations": [
+    {
+      "criterion": "support",
+      "evidence": "lots of students freeze",
+      "observation_es": "Das una razón clara, pero sin un ejemplo que la apoye.",
+      "suggestion_es": "Agrega un caso: «In my history class, a classmate could not finish his presentation.»"
+    }
+  ]
+}

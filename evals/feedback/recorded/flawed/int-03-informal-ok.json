@@ -1,0 +1,12 @@
+{
+  "status": "evaluable",
+  "reason": null,
+  "observations": [
+    {
+      "criterion": "recoverable_language",
+      "evidence": "kinda into",
+      "observation_es": "«Kinda» es un error.",
+      "suggestion_es": "Di «kind of»."
+    }
+  ]
+}
