@@ -13,7 +13,7 @@ TEST_DATABASE_URL ?= postgresql+psycopg://pcre:pcre@$(DB_HOST)/pcre_test
 MIGCHECK_DATABASE_URL ?= postgresql+psycopg://pcre:pcre@$(DB_HOST)/pcre_migcheck
 UV_RUN := cd $(BACKEND) && uv run --locked
 
-.PHONY: help setup db-up db-reset migrate dev dev-backend dev-frontend test lint typecheck migrations-check openapi frontend-check contract-check content-lint content-import e2e verify
+.PHONY: help setup db-up db-reset migrate dev dev-backend dev-frontend test lint typecheck migrations-check openapi frontend-check contract-check content-lint review-packet content-import e2e verify
 
 help:
 	@grep -E '^[a-z-]+:.*?## ' $(MAKEFILE_LIST) | awk -F':.*?## ' '{printf "  %-18s %s\n", $$1, $$2}'
@@ -50,7 +50,7 @@ lint: ## ruff (check y format), import-linter y actionlint
 	$(UV_RUN) actionlint -no-color ../../.github/workflows/*.yml
 
 typecheck: ## mypy estricto
-	$(UV_RUN) mypy app tests import_contracts.py ../../scripts/openapi/export.py ../../scripts/ci/heroku_cmd.py ../../scripts/content/generate_audio.py ../../scripts/perf/smoke.py
+	$(UV_RUN) mypy app tests import_contracts.py ../../scripts/openapi/export.py ../../scripts/ci/heroku_cmd.py ../../scripts/content/generate_audio.py ../../scripts/content/review_packet.py ../../scripts/perf/smoke.py
 
 migrations-check: ## Migraciones: vacía→head, legado→head, alembic check, downgrade/upgrade
 	DATABASE_URL=$(MIGCHECK_DATABASE_URL) scripts/dev/migrations-check.sh
@@ -65,8 +65,13 @@ frontend-check: ## Frontend: typecheck, ESLint, Vitest y build
 contract-check: ## OpenAPI y tipos sin diferencias con el código
 	scripts/ci/contract-check.sh
 
-content-lint: ## Lint del contenido y regenera docs/contenido/cobertura.md
+content-lint: ## Lint del contenido; regenera docs/contenido/cobertura.md y los paquetes de revisión
 	$(UV_RUN) python -m app.cli content lint --dir ../../content --coverage ../../docs/contenido/cobertura.md
+	$(UV_RUN) python ../../scripts/content/review_packet.py --all
+
+review-packet: ## Paquete de revisión: make review-packet UNIT=u1 (u1 … u8, inicial o final)
+	@test -n "$(UNIT)" || { echo "uso: make review-packet UNIT=u1"; exit 2; }
+	$(UV_RUN) python ../../scripts/content/review_packet.py --unit $(UNIT)
 
 content-import: ## Importa borradores a DATABASE_URL (nunca aprueba ni publica)
 	$(UV_RUN) python -m app.cli content import --dir ../../content
