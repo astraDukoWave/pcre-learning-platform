@@ -255,7 +255,9 @@ class ContentReport(Base):
     activity_id: Mapped[uuid.UUID | None] = mapped_column(
         ForeignKey("activities.id", ondelete="CASCADE")
     )
-    attempt_id: Mapped[uuid.UUID | None] = mapped_column()
+    attempt_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("attempts.id", ondelete="SET NULL", name="fk_content_reports_attempt")
+    )
     category: Mapped[str] = mapped_column(String(30))
     message: Mapped[str] = mapped_column(Text, server_default=text("''"), default="")
     page: Mapped[str | None] = mapped_column(String(200))

@@ -180,3 +180,10 @@ def test_initial_form_needs_exact_distribution(tmp_path: Path) -> None:
 
     issues = _issues(tmp_path, mutate)
     assert any(i.code == "minimum_items" and "inicial" in i.file for i in issues)
+
+
+def test_spanish_word_todo_is_not_a_marker(tmp_path: Path) -> None:
+    issues = _issues(tmp_path, lambda f: _lesson(f).update(title="Leer todo el anuncio con calma"))
+    assert "forbidden_marker" not in _codes(issues, "error")
+    issues = _issues(tmp_path / "b", lambda f: _lesson(f).update(title="Texto Lorem Ipsum"))
+    assert "forbidden_marker" in _codes(issues, "error")

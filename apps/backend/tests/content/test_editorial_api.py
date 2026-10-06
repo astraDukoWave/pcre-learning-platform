@@ -12,7 +12,7 @@ from sqlalchemy.orm import Session
 from app.modules.content.models import ContentItem, ContentRevision, EditorialDecision
 from app.modules.content.service_editorial import EditorialService
 from tests.content.builder import PATH_SLUG, add_listening, write_content
-from tests.helpers import Account
+from tests.helpers import Account, AccountFactory
 
 BASE = "/api/v1/admin/content"
 
@@ -104,7 +104,12 @@ def test_pending_audio_blocks_approval(
 
 
 def test_publish_is_atomic_and_supersedes(
-    admin: Account, student: Account, editorial: EditorialService, imported: Path, db: Session
+    admin: Account,
+    student: Account,
+    make_account: AccountFactory,
+    editorial: EditorialService,
+    imported: Path,
+    db: Session,
 ) -> None:
     v1 = _rev(admin, "u1-l1-lectura")
     assert _publish(admin, v1["id"]).json()["error"]["code"] == "not_approved"
@@ -138,7 +143,10 @@ def test_publish_is_atomic_and_supersedes(
         ).all()
     )
     assert statuses == {1: "superseded", 2: "published"}
-    assert student.client.get(f"/api/v1/lessons/{item.id}").json()["revision_version"] == 2
+    # EDGE-04: quien ya empezó sigue en su revisión fijada; quien llega después ve la nueva.
+    assert student.client.get(f"/api/v1/lessons/{item.id}").json()["revision_version"] == 1
+    newcomer = make_account("recien@example.com")
+    assert newcomer.client.get(f"/api/v1/lessons/{item.id}").json()["revision_version"] == 2
     actions = db.scalars(
         select(EditorialDecision.action).order_by(EditorialDecision.created_at)
     ).all()
