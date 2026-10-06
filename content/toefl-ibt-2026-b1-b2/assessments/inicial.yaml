@@ -1,0 +1,272 @@
+# Diagnóstico inicial de la ruta (contrato curricular §5): 12 ítems cerrados, 2 consignas
+# escritas y 2 orales que reparten objetivos de U1–U8; 25 minutos o menos. Sin pistas, apoyos
+# ni ejemplos. Borrador del agente para revisión humana; el audio sale de
+# `audio/manifest.yaml` (entradas `inicial-*`) en el workflow aprobado (G2).
+kind: assessment_form
+slug: diagnostico-inicial
+form_kind: initial
+position: 1
+title: "Diagnóstico inicial"
+status: draft
+duration_minutes: 25
+objectives: [U1.R, U2.R, U3.R, U5.R, U7.R, U8.R, U1.L, U2.L, U4.L, U6.L, U1.W, U2.W, U3.W, U5.W, U1.S, U4.S]
+sources:
+  - source: ets-toefl-ibt-content
+    claim: "Las familias de tareas del formato vigente se usan como referencia de formato; los ítems son originales."
+    scope: "formato de las tareas"
+passages:
+  - id: dp1
+    title_en: "Notice to all residents of Maple Court"
+    text_en: |
+      Water service will be turned off on Thursday, March 12, from 9:00 a.m. to 3:00 p.m., while workers replace the main pipe. Before the work starts, please fill a few bottles with water for drinking and cooking.
+
+      Residents may not use the washing machines in the basement during the work, because they will be disconnected. When the water comes back, it may look brown for a few minutes; let it run until it is clear.
+
+      If you have a medical need for water during these hours, call the building office by Tuesday so we can deliver bottled water to your door.
+
+      Thank you for your patience.
+      Building Management
+  - id: dp2
+    title_en: "Trees and Summer Heat in Cities"
+    text_en: |
+      On hot afternoons, a city street lined with trees can feel much cooler than a street with no trees. Researchers who study urban heat say this difference is not only a feeling. Trees block sunlight before it reaches the pavement, and they release water vapor through their leaves, which cools the air around them. In one measurement on a summer afternoon, a sidewalk under trees was several degrees cooler than a sidewalk in full sun.
+
+      Because of results like these, several cities have started programs to plant more trees in low-income neighborhoods, where there are usually fewer parks. However, trees are not a quick solution. A young tree needs regular water for several years, and in dry regions that water can be expensive. For this reason, some experts argue that cities should choose species that are adapted to the local climate.
+activities:
+  - key: dx.r1
+    format: choice
+    task_family: read_in_daily_life
+    pool: assessment
+    objectives: [U2.R]
+    instructions_es: "Lee el aviso y elige la respuesta."
+    prompt_en: "What should a resident with a medical need for water do?"
+    stimulus: {passage: dp1}
+    options:
+      - {id: a, text: "Call the building office by Tuesday."}
+      - {id: b, text: "Fill some bottles on Thursday morning.", why_es: "Llenar botellas es lo que todos deben hacer antes de la obra; quien tiene una necesidad médica además debe llamar."}
+      - {id: c, text: "Use the washing machines before 9:00 a.m.", why_es: "El aviso habla de las lavadoras como una restricción, no como una solución."}
+      - {id: d, text: "Wait at the door until 3:00 p.m.", why_es: "El agua embotellada se entrega a la puerta, pero hay que pedirla antes."}
+    correct: [a]
+    explanation_es: "«If you have a medical need for water…, call the building office by Tuesday»: la solicitud tiene un plazo (by Tuesday)."
+  - key: dx.r2
+    format: choice
+    task_family: read_in_daily_life
+    pool: assessment
+    objectives: [U3.R]
+    instructions_es: "Sigue el orden de los pasos del aviso."
+    prompt_en: "According to the notice, what should residents do when the water comes back?"
+    stimulus: {passage: dp1}
+    options:
+      - {id: a, text: "Let the water run until it is clear."}
+      - {id: b, text: "Fill bottles for drinking and cooking.", why_es: "Eso se hace antes de que empiece la obra."}
+      - {id: c, text: "Call the office to report brown water.", why_es: "El aviso explica que el color café es normal unos minutos; no pide reportarlo."}
+      - {id: d, text: "Turn on the washing machines in the basement.", why_es: "El aviso no dice nada de las lavadoras después de la obra."}
+    correct: [a]
+    explanation_es: "«When the water comes back, it may look brown…; let it run until it is clear»: when marca el momento del paso."
+  - key: dx.r3
+    format: word_completion
+    task_family: complete_the_words
+    pool: assessment
+    objectives: [U8.R]
+    instructions_es: "Completa cada palabra. Ves el inicio; escribe lo que falta o la palabra completa."
+    prompt_en: "Complete the words in the paragraph."
+    text_en: "Many people now work from home at least one day a we{{g1}}. Some say they get more do{{g2}} at home because there are fewer interruptions. Oth{{g3}} miss talking to their coworkers and sometimes feel isol{{g4}}."
+    gaps:
+      - {id: g1, shown: "we", accepted: ["week"]}
+      - {id: g2, shown: "do", accepted: ["done"]}
+      - {id: g3, shown: "Oth", accepted: ["Others"]}
+      - {id: g4, shown: "isol", accepted: ["isolated"]}
+    explanation_es: "week («one day a week»), done («get more done», terminar más trabajo), Others (contrasta con «Some») e isolated (aislado)."
+  - key: dx.r4
+    format: choice
+    task_family: read_academic_passage
+    pool: assessment
+    objectives: [U5.R]
+    instructions_es: "Lee el texto académico y elige la idea principal."
+    prompt_en: "What is the main idea of the passage?"
+    stimulus: {passage: dp2}
+    options:
+      - {id: a, text: "Trees can make city streets cooler, but planting them takes planning."}
+      - {id: b, text: "Cities should build fewer sidewalks in low-income neighborhoods.", why_es: "Las aceras aparecen solo en la medición; el texto no propone construir menos."}
+      - {id: c, text: "Young trees grow faster in dry regions.", why_es: "El texto dice que en regiones secas regarlos es caro, no que crezcan más rápido."}
+      - {id: d, text: "Water vapor is the main cause of summer heat.", why_es: "El vapor de agua que liberan las hojas enfría el aire; no causa el calor."}
+    correct: [a]
+    explanation_es: "El primer párrafo explica por qué los árboles enfrían la calle y el segundo, que no son una solución rápida: la idea principal une ambas partes."
+  - key: dx.r5
+    format: choice
+    task_family: read_academic_passage
+    pool: assessment
+    objectives: [U5.R]
+    instructions_es: "Vocabulario en contexto: relee la última oración."
+    prompt_en: "The word \"adapted\" in the last sentence is closest in meaning to"
+    stimulus: {passage: dp2}
+    options:
+      - {id: a, text: "suited"}
+      - {id: b, text: "imported", why_es: "Traer especies de otro lugar es casi lo contrario de lo que se recomienda."}
+      - {id: c, text: "protected", why_es: "El texto no habla de proteger a los árboles."}
+      - {id: d, text: "watered", why_es: "El riego es el problema que se quiere evitar, no el sentido de la palabra."}
+    correct: [a]
+    explanation_es: "«Species that are adapted to the local climate» son especies que se ajustan (suited) al clima del lugar, por eso necesitan menos agua."
+  - key: dx.r6
+    format: choice
+    task_family: read_academic_passage
+    pool: assessment
+    objectives: [U7.R]
+    instructions_es: "Distingue la evidencia de las afirmaciones."
+    prompt_en: "Which sentence from the passage gives evidence that trees cool city streets?"
+    stimulus: {passage: dp2}
+    options:
+      - {id: a, text: "In one measurement on a summer afternoon, a sidewalk under trees was several degrees cooler than a sidewalk in full sun."}
+      - {id: b, text: "For this reason, some experts argue that cities should choose species that are adapted to the local climate.", why_es: "Es una recomendación de expertos, no un dato que pruebe el enfriamiento."}
+      - {id: c, text: "However, trees are not a quick solution.", why_es: "Es una afirmación del autor sobre los límites de la solución."}
+      - {id: d, text: "On hot afternoons, a city street lined with trees can feel much cooler than a street with no trees.", why_es: "Describe una sensación; el texto dice justamente que hace falta algo más que la sensación."}
+    correct: [a]
+    explanation_es: "La evidencia es una medición concreta (dos aceras comparadas); las otras opciones son sensaciones, afirmaciones o recomendaciones."
+  - key: dx.l1
+    format: choice
+    task_family: listen_announcement
+    pool: assessment
+    objectives: [U1.L]
+    instructions_es: "Escucha el aviso y elige la respuesta."
+    prompt_en: "What are customers asked to do?"
+    stimulus:
+      audio: inicial-aviso
+      transcript: "Good evening, shoppers. The store will close in fifteen minutes, at nine o'clock. Please bring your items to the registers at the front of the store. The self-checkout machines are not working tonight, so please pay with a cashier. We will open again tomorrow at eight a.m. Thank you for shopping with us."
+    options:
+      - {id: a, text: "Pay for their items with a cashier."}
+      - {id: b, text: "Use the self-checkout machines.", why_es: "El aviso dice que hoy no funcionan."}
+      - {id: c, text: "Come back before eight a.m.", why_es: "A las ocho de la mañana abren mañana; no es una instrucción para hoy."}
+      - {id: d, text: "Leave their items at the entrance.", why_es: "Piden llevar los artículos a las cajas, al frente de la tienda."}
+    correct: [a]
+    explanation_es: "«The self-checkout machines are not working tonight, so please pay with a cashier»: la instrucción va después de please."
+  - key: dx.l2
+    format: choice
+    task_family: listen_choose_response
+    pool: assessment
+    objectives: [U2.L]
+    instructions_es: "Escucha y elige la mejor respuesta."
+    prompt_en: "Choose the best response."
+    stimulus:
+      audio: inicial-respuesta
+      transcript: "Just so you know, the meeting has moved to the other building."
+    options:
+      - {id: a, text: "Sorry, which building do you mean?"}
+      - {id: b, text: "Yes, I moved to a new apartment last year.", why_es: "Toma «moved» en otro sentido y no responde al aviso."}
+      - {id: c, text: "The meeting was very long.", why_es: "Habla de una reunión pasada, no del cambio de lugar."}
+      - {id: d, text: "I can help you build it.", why_es: "Confunde «building» (edificio) con el verbo build."}
+    correct: [a]
+    explanation_es: "«The other building» es ambiguo si hay varios edificios: pedir aclaración («which building do you mean?») es la respuesta adecuada."
+  - key: dx.l3
+    format: choice
+    task_family: listen_conversation
+    pool: assessment
+    objectives: [U4.L]
+    instructions_es: "Escucha la conversación y elige la respuesta."
+    prompt_en: "Why does Lucía not want to go to the Italian place?"
+    stimulus:
+      audio: inicial-conversacion
+      transcript: "Lucía: Martín, have you decided where we should have the team dinner on Friday? Martín: I was thinking about the Italian place near the office. It's close, so nobody needs to drive. Lucía: It's close, but it's really noisy on Fridays. Last time we could hardly hear each other. Martín: That's true. What about the Peruvian restaurant on Fifth Street? It's quieter. Lucía: I like that one, but it's a bit expensive for the whole team. Martín: Then why don't we ask them for a group menu? If the price per person is under thirty dollars, we can go there. Lucía: Good idea. I'll call them this afternoon. Martín: Great. And let's book for seven thirty, so people can come straight from work."
+    options:
+      - {id: a, text: "It is too noisy on Fridays."}
+      - {id: b, text: "It is too far from the office.", why_es: "Martín dice que está cerca."}
+      - {id: c, text: "It is too expensive for the team.", why_es: "El precio es el problema del restaurante peruano."}
+      - {id: d, text: "It does not accept group bookings.", why_es: "No se dice nada de reservas en el lugar italiano."}
+    correct: [a]
+    explanation_es: "Lucía da su razón con un ejemplo: «it's really noisy on Fridays. Last time we could hardly hear each other»."
+  - key: dx.l4
+    format: choice
+    task_family: listen_conversation
+    pool: assessment
+    objectives: [U6.L]
+    instructions_es: "Escucha la conversación y elige la respuesta."
+    prompt_en: "What does Martín propose to solve the problem with the price?"
+    stimulus:
+      audio: inicial-conversacion
+      transcript: "Lucía: Martín, have you decided where we should have the team dinner on Friday? Martín: I was thinking about the Italian place near the office. It's close, so nobody needs to drive. Lucía: It's close, but it's really noisy on Fridays. Last time we could hardly hear each other. Martín: That's true. What about the Peruvian restaurant on Fifth Street? It's quieter. Lucía: I like that one, but it's a bit expensive for the whole team. Martín: Then why don't we ask them for a group menu? If the price per person is under thirty dollars, we can go there. Lucía: Good idea. I'll call them this afternoon. Martín: Great. And let's book for seven thirty, so people can come straight from work."
+    options:
+      - {id: a, text: "Asking the restaurant for a group menu."}
+      - {id: b, text: "Going back to the Italian place.", why_es: "Ya la descartaron por el ruido."}
+      - {id: c, text: "Moving the dinner to another day.", why_es: "Nadie propone cambiar el día."}
+      - {id: d, text: "Inviting fewer people to the dinner.", why_es: "No se habla de invitar a menos personas."}
+    correct: [a]
+    explanation_es: "«Why don't we ask them for a group menu?» es la propuesta; la condición es que cueste menos de treinta dólares por persona."
+  - key: dx.w1
+    format: sentence_order
+    task_family: build_a_sentence
+    pool: assessment
+    objectives: [U1.W]
+    instructions_es: "Ordena las fichas. La pregunta empieza con «Do you know»."
+    prompt_en: "Ask a classmate if they know when the library opens."
+    tokens: ["Do you know", "when", "the library", "opens?"]
+    accepted_orders:
+      - ["Do you know", "when", "the library", "opens?"]
+    explanation_es: "Después de «Do you know when», va sujeto + verbo: «the library opens», sin does."
+  - key: dx.w2
+    format: sentence_order
+    task_family: build_a_sentence
+    pool: assessment
+    objectives: [U3.W]
+    instructions_es: "Ordena las fichas. La oración empieza con «After I»."
+    prompt_en: "Tell a friend what you did yesterday after work."
+    tokens: ["After I", "finished work,", "I went", "to the gym."]
+    accepted_orders:
+      - ["After I", "finished work,", "I went", "to the gym."]
+    explanation_es: "«After I finished work» marca el primer evento y la coma lo separa de lo que pasó después: «I went to the gym»."
+  - key: dx.e1
+    format: short_writing
+    task_family: write_an_email
+    pool: assessment
+    objectives: [U2.W]
+    instructions_es: "Escribe un correo breve (entre 50 y 110 palabras) que cubra los tres puntos."
+    prompt_en: "You ordered a desk online, but it arrived with a broken leg. Write an email to the store. In your email: say what you ordered and when; describe the problem; say what you would like the store to do."
+    min_words: 50
+    max_words: 110
+    rubric: email
+    model_answer: |
+      Dear Customer Service,
+
+      I am writing about a desk that I ordered on your website on May 3 (order 4821). It arrived yesterday, but one of the legs is broken, so I cannot use it. I have attached two photos of the damage.
+
+      Could you please send me a new leg or replace the desk? If that is not possible, I would like a full refund.
+
+      Thank you,
+      Sofía Ramírez
+    model_commentary_es: "Cubre los tres puntos en orden: qué pidió y cuándo (con un número de pedido), el problema concreto y lo que solicita, con una alternativa. El tono es firme y cortés."
+  - key: dx.e2
+    format: short_writing
+    task_family: write_academic_discussion
+    pool: assessment
+    objectives: [U5.W]
+    instructions_es: "Escribe tu aporte a la discusión (entre 70 y 140 palabras): da tu opinión, apóyala y responde a una de las ideas de tus compañeros."
+    prompt_en: "Your professor asks: \"Should universities require all students to take a public speaking course?\" Ana writes: \"Yes. Most jobs require presenting ideas, and many students are afraid of speaking in public.\" Kevin writes: \"No. Students should choose their own courses; a required course takes time away from their major.\" Write a post that gives your opinion and supports it. Respond to at least one of your classmates."
+    min_words: 70
+    max_words: 140
+    rubric: academic-discussion
+    model_answer: "I agree with Ana that universities should require a public speaking course, but I understand Kevin's concern about time. In my experience, presenting is part of almost every job, even technical ones. For example, my cousin is an engineer, and she has to explain her projects to clients every month. A short course would help students like her feel less nervous. To respond to Kevin, the course does not have to be long: a one-semester class with two hours a week would not take much time from a major, and the skill would be useful in every other class."
+    model_commentary_es: "Toma postura en la primera oración y reconoce la otra idea. Apoya la opinión con una razón general y un ejemplo concreto, y responde a la objeción de Kevin con una propuesta (un curso corto)."
+  - key: dx.s1
+    format: recorded_speaking
+    task_family: take_an_interview
+    pool: assessment
+    objectives: [U1.S]
+    instructions_es: "Lee la pregunta, prepárate y responde en voz alta."
+    subtype: interview
+    question_en: "Can you tell me about the place where you live?"
+    prep_seconds: 15
+    response_seconds: 45
+    rubric: interview
+    model_answer: "I live in a small apartment in the center of Mérida, close to the main square. It has two bedrooms, and I share it with my brother. What I like most is that I can walk to work in ten minutes. The only problem is the noise on weekends, because there are many restaurants on my street."
+    model_commentary_es: "Responde directo (dónde vive), agrega detalles (tamaño, con quién) y cierra con algo que le gusta y algo que no, con una razón."
+  - key: dx.s2
+    format: recorded_speaking
+    task_family: take_an_interview
+    pool: assessment
+    objectives: [U4.S]
+    instructions_es: "Lee la pregunta, prepárate y responde en voz alta."
+    subtype: interview
+    question_en: "Some people prefer to study in a group, and others prefer to study alone. Which do you prefer, and why?"
+    prep_seconds: 15
+    response_seconds: 45
+    rubric: interview
+    model_answer: "I prefer to study alone, at least most of the time. When I study with a group, we often start talking about other things, and I lose time. Alone, I can go at my own speed and repeat the parts that are difficult for me. That said, before an exam I sometimes meet with one or two classmates to compare answers, because they notice mistakes I don't see."
+    model_commentary_es: "Toma una postura clara, la defiende con dos razones y reconoce un caso en el que la otra opción también sirve: es una respuesta matizada y coherente."
