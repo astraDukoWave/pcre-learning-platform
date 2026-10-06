@@ -98,6 +98,29 @@ jobs:
         working-directory: apps/backend
         run: uv run --locked actionlint -color ../../.github/workflows/*.yml
 
+  content:
+    name: content
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+          cache-dependency-glob: apps/backend/uv.lock
+      - name: Dependencias
+        working-directory: apps/backend
+        run: uv sync --locked
+      - name: Lint de contenido
+        working-directory: apps/backend
+        run: uv run --locked python -m app.cli content lint --dir ../../content --coverage ../../docs/contenido/cobertura.md
+      - name: cobertura.md al día
+        run: |
+          if ! git diff --exit-code -- docs/contenido/cobertura.md; then
+            echo "::error::docs/contenido/cobertura.md no está al día: corre 'make content-lint' y commitea."
+            exit 1
+          fi
+
   frontend:
     name: frontend
     runs-on: ubuntu-latest
@@ -164,7 +187,7 @@ jobs:
   ci-gate:
     name: ci-gate
     if: always()
-    needs: [backend, migrations, frontend, contract, image, workflows]
+    needs: [backend, migrations, content, frontend, contract, image, workflows]
     runs-on: ubuntu-latest
     timeout-minutes: 2
     steps:
