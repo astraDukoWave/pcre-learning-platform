@@ -378,6 +378,46 @@ class PracticeService:
             return True
         return False
 
+    def self_assess(
+        self, learner: Learner, attempt_id: uuid.UUID, scores: dict[str, Any]
+    ) -> dict[str, Any]:
+        """Cierra una producción `pending` con la autoevaluación del alumno. Repetir con las
+        mismas marcas devuelve lo mismo; con otras marcas, 409: para cambiar de opinión se
+        reformula (intento nuevo con `revision_of`)."""
+        with self.uow() as s:
+            attempt = repository.attempt_for_user(s, learner.user_id, attempt_id, lock=True)
+            if attempt is None:
+                raise NotFound()
+            found = repository.activity_with_context(s, attempt.activity_id)
+            if found is None:
+                raise NotFound()
+            act = found[0]
+            if attempt.evaluation_status == "evaluated" and attempt.evaluation_source == "self":
+                if attempt.result.get("self_assessment") == scores:
+                    return _attempt_summary(attempt) | {"mode": attempt.mode}
+                raise Conflict(
+                    "Ya autoevaluaste este intento. Reformula para intentarlo de nuevo.",
+                    code="already_assessed",
+                )
+            try:
+                grade = domain.self_assess(
+                    act.format, attempt.evaluation_status, attempt.result, scores, act.rubric
+                )
+            except domain.InvalidResponse as exc:
+                raise ValidationFailed(
+                    f"Revisa tu autoevaluación: {exc}.", code="self_assessment_invalid"
+                ) from exc
+            attempt.evaluation_status = grade.evaluation_status
+            attempt.score = grade.score
+            attempt.result = grade.result
+            s.flush()
+            out = _attempt_summary(attempt) | {"mode": attempt.mode}
+        logger.info(
+            "self_assessed",
+            extra={"user_ref": user_ref(learner.user_id, self.settings.log_salt)},
+        )
+        return out
+
     def get_attempt(self, learner: Learner, attempt_id: uuid.UUID) -> dict[str, Any]:
         with self.uow() as s:
             attempt = repository.attempt_for_user(s, learner.user_id, attempt_id)

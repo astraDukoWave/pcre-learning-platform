@@ -189,8 +189,13 @@ def last_attempts_by_key(s: Session, user_id: uuid.UUID, item_id: uuid.UUID) -> 
     return out
 
 
-def attempt_for_user(s: Session, user_id: uuid.UUID, attempt_id: uuid.UUID) -> Attempt | None:
-    return s.scalar(select(Attempt).where(Attempt.id == attempt_id, Attempt.user_id == user_id))
+def attempt_for_user(
+    s: Session, user_id: uuid.UUID, attempt_id: uuid.UUID, *, lock: bool = False
+) -> Attempt | None:
+    stmt = select(Attempt).where(Attempt.id == attempt_id, Attempt.user_id == user_id)
+    if lock:
+        stmt = stmt.with_for_update()
+    return s.scalar(stmt)
 
 
 def recent_attempts(

@@ -19,6 +19,7 @@ from app.modules.practice.schemas import (
     LessonOut,
     PathOut,
     PathStateOut,
+    SelfAssessmentIn,
 )
 from app.modules.practice.service import Learner, PracticeService
 
@@ -83,6 +84,15 @@ def submit_attempt(
     if replayed:
         response.headers["Idempotent-Replayed"] = "true"
     return AttemptOut.model_validate(payload)
+
+
+@router.post("/attempts/{attempt_id}/self-assessment", response_model=AttemptSummaryOut)
+def self_assess(
+    attempt_id: uuid.UUID, body: SelfAssessmentIn, ctx: AuthDep, practice: PracticeDep
+) -> AttemptSummaryOut:
+    return AttemptSummaryOut.model_validate(
+        practice.self_assess(_learner(ctx), attempt_id, body.scores)
+    )
 
 
 @router.get("/attempts/{attempt_id}", response_model=AttemptSummaryOut)
