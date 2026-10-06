@@ -7,7 +7,7 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Literal
 
-from pydantic import Field, field_validator, model_validator
+from pydantic import Field, SecretStr, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 BACKEND_DIR = Path(__file__).resolve().parents[2]
@@ -76,6 +76,10 @@ class Settings(BaseSettings):
     gemini_price_output_per_mtok_microusd: int | None = Field(default=None, ge=0)
     stt_price_per_min_microusd: int = Field(default=4300, ge=0)
     voice_price_per_min_microusd: int = Field(default=75000, ge=0)
+    # Evaluador del feedback: `fake` (doble determinista) solo fuera de producción.
+    feedback_provider: Literal["gemini", "fake"] = "gemini"
+    gemini_api_key: SecretStr | None = None
+    gemini_model: str | None = None
 
     @field_validator("database_url")
     @classmethod
@@ -102,6 +106,8 @@ class Settings(BaseSettings):
                 raise ValueError("APP_ORIGIN es obligatoria con APP_ENV=prod")
             if self.test_clock_enabled:
                 raise ValueError("TEST_CLOCK_ENABLED no se permite con APP_ENV=prod")
+            if self.feedback_provider == "fake":
+                raise ValueError("FEEDBACK_PROVIDER=fake no se permite con APP_ENV=prod")
         return self
 
     @property

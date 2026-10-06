@@ -35,6 +35,7 @@ def submit_feedback(body: FeedbackIn, ctx: AuthDep, svc: InsightsDep) -> Created
         rating=body.rating,
         message=body.message,
         page=body.page,
+        observation=body.observation,
     )
     return CreatedOut(id=feedback_id)
 

@@ -65,3 +65,48 @@
 .dialog::backdrop {
   background: rgb(22 35 63 / 40%);
 }
+
+.ai {
+  display: grid;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+}
+
+.caption {
+  font-size: 0.875rem;
+  color: var(--muted, inherit);
+}
+
+.learnerText {
+  margin: 0;
+  padding: var(--space-2) var(--space-3);
+  border-left: 3px solid var(--grid);
+  white-space: pre-wrap;
+}
+
+.notes {
+  display: grid;
+  gap: var(--space-3);
+  padding-left: var(--space-4);
+}
+
+.thumbs {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.thumbs button {
+  font: inherit;
+  min-height: 44px;
+  padding: 0 var(--space-3);
+  border: 2px solid var(--grid);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--ink);
+}
+
+.thumbs button[aria-pressed="true"] {
+  border-color: var(--ink);
+}

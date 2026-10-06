@@ -34,6 +34,17 @@ WITHDRAWN_NOTICE = "Esta lección se retiró para corregirla. Tus respuestas se 
 
 
 @dataclass(frozen=True)
+class FeedbackTarget:
+    attempt_id: uuid.UUID
+    kind: str  # writing · interview
+    objectives: tuple[str, ...]
+    task_en: str
+    objective_es: str
+    learner_text: str
+    rubric: dict[str, Any] | None
+
+
+@dataclass(frozen=True)
 class Learner:
     user_id: uuid.UUID
     timezone: str
@@ -472,6 +483,84 @@ class PracticeService:
             extra={"user_ref": user_ref(learner.user_id, self.settings.log_salt)},
         )
         return out
+
+    # -- feedback abierto con IA (MVP-02 REQ-02) ----------------------------------------
+
+    def feedback_target(self, learner: Learner, attempt_id: uuid.UUID) -> FeedbackTarget:
+        """Lo que el evaluador necesita de un intento propio de escritura en práctica o
+        repaso (o de una entrevista transcrita y confirmada, REQ-04). Ajeno → 404."""
+        with self.uow() as s:
+            attempt = repository.attempt_for_user(s, learner.user_id, attempt_id)
+            if attempt is None:
+                raise NotFound()
+            found = repository.activity_with_context(s, attempt.activity_id)
+            if found is None:
+                raise NotFound()
+            act, revision, _ = found
+            text = domain.feedback_text(act.format, act.options, attempt.response, attempt.result)
+            if text is None or attempt.mode not in ("practice", "review"):
+                raise ValidationFailed(
+                    "Esta respuesta no admite feedback con IA.", code="feedback_not_supported"
+                )
+            return FeedbackTarget(
+                attempt_id=attempt.id,
+                kind="writing" if act.format == "short_writing" else "interview",
+                objectives=tuple(act.objective_codes),
+                task_en=(act.options or {}).get("question_en")
+                or str(act.prompt.get("prompt_en") or ""),
+                objective_es=str((revision.body or {}).get("objective_es") or ""),
+                learner_text=text,
+                rubric=act.rubric,
+            )
+
+    def store_ai_feedback(
+        self,
+        learner: Learner,
+        attempt_id: uuid.UUID,
+        feedback: dict[str, Any],
+        *,
+        run_id: uuid.UUID,
+        objectives: tuple[str, ...],
+    ) -> dict[str, Any]:
+        """Guarda el feedback validado en el intento. Un resultado evaluable cierra una
+        producción `pending` con `evaluation_source = ai` (la autoevaluación sigue posible);
+        una dificultad confirmada (observación válida) programa el repaso del objetivo."""
+        now = self.clock.now()
+        with self.uow() as s:
+            attempt = repository.attempt_for_user(s, learner.user_id, attempt_id, lock=True)
+            if attempt is None:
+                raise NotFound()
+            found = repository.activity_with_context(s, attempt.activity_id)
+            if found is None:
+                raise NotFound()
+            attempt.result = {**attempt.result, "ai_feedback": {**feedback, "run_id": str(run_id)}}
+            confirmed = feedback.get("status") == "evaluable" and bool(feedback.get("observations"))
+            if confirmed and attempt.evaluation_status == "pending":
+                attempt.evaluation_status = "evaluated"
+                attempt.evaluation_source = "ai"
+            if confirmed:
+                # Una dificultad confirmada se repasa como un fallo en repaso (etapa 0, 24 h).
+                progress_service.record_outcome(
+                    s,
+                    user_id=learner.user_id,
+                    objectives=list(objectives),
+                    outcome="incorrect",
+                    aided=False,
+                    mode="review",
+                    first_attempt=False,
+                    now=now,
+                    intervals_hours=self.settings.review_intervals,
+                )
+            s.flush()
+            insights.emit(
+                s,
+                learner.user_id,
+                "feedback_viewed",
+                now,
+                attempt_id=str(attempt.id),
+                source="ai",
+            )
+            return _attempt_detail(attempt, found[0])
 
     def get_attempt(self, learner: Learner, attempt_id: uuid.UUID) -> dict[str, Any]:
         with self.uow() as s:

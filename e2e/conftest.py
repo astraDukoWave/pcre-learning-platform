@@ -199,6 +199,35 @@ def server() -> Iterator[Server]:
     srv.stop()
 
 
+# Capacidades con costo encendidas con dobles y presupuesto de prueba (MVP-02). Nunca hay
+# llaves: los proveedores son los falsos de `adapters/` y `tests/fakes/`.
+FUNDED_ENV = {
+    "AI_FEEDBACK_ENABLED": "true",
+    "FEEDBACK_PROVIDER": "fake",
+    "BUDGET_GLOBAL_MONTHLY_MICROUSD": "25000000",
+    "BUDGET_USER_MONTHLY_MICROUSD": "8000000",
+    "VOICE_MAX_MINUTES_PER_USER_MONTH": "60",
+    "GEMINI_PRICE_INPUT_PER_MTOK_MICROUSD": "100000",
+    "GEMINI_PRICE_OUTPUT_PER_MTOK_MICROUSD": "400000",
+}
+
+
+@pytest.fixture(scope="session")
+def funded_server(server: Server) -> Iterator[Server]:
+    """Segundo proceso sobre la misma base ya preparada, con las capacidades de MVP-02
+    encendidas y sus dobles; el servidor principal las deja apagadas (AC-02)."""
+    port = _free_port()
+    env = {
+        **server.env,
+        **FUNDED_ENV,
+        "DEV_ALLOWED_ORIGINS": f"http://localhost:{port},http://127.0.0.1:{port}",
+    }
+    srv = Server(port=port, env=env, log=RESULTS / "server-funded.log")
+    srv.start()
+    yield srv
+    srv.stop()
+
+
 @pytest.fixture(scope="session")
 def playwright() -> Iterator[Playwright]:
     with sync_playwright() as p:
@@ -263,6 +292,16 @@ def contexts(
 ) -> Iterator[Contexts]:
     viewport = getattr(request, "param", None)
     ctx = Contexts(browser, server, request.node.name, viewport)
+    yield ctx
+    report = getattr(request.node, "rep_call", None)
+    ctx.close(failed=bool(report and report.failed))
+
+
+@pytest.fixture
+def funded_contexts(
+    request: pytest.FixtureRequest, browser: Browser, funded_server: Server
+) -> Iterator[Contexts]:
+    ctx = Contexts(browser, funded_server, request.node.name, None)
     yield ctx
     report = getattr(request.node, "rep_call", None)
     ctx.close(failed=bool(report and report.failed))

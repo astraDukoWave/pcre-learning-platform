@@ -1751,6 +1751,59 @@
         }
       }
     },
+    "/api/v1/attempts/{attempt_id}/feedback": {
+      "post": {
+        "tags": [
+          "coaching"
+        ],
+        "summary": "Request Feedback",
+        "operationId": "request_feedback_api_v1_attempts__attempt_id__feedback_post",
+        "parameters": [
+          {
+            "name": "attempt_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Attempt Id"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 80,
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AiFeedbackOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/admin/content/revisions": {
       "get": {
         "tags": [
@@ -2454,6 +2507,103 @@
           "units"
         ],
         "title": "AdvanceOut"
+      },
+      "AiFeedbackOut": {
+        "properties": {
+          "run_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Run Id"
+          },
+          "attempt_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Attempt Id"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "evaluable",
+              "not_evaluable",
+              "failed",
+              "unknown"
+            ],
+            "title": "Status"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "observations": {
+            "items": {
+              "$ref": "#/components/schemas/AiObservationOut"
+            },
+            "type": "array",
+            "title": "Observations"
+          },
+          "rubric_levels": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "type": "object",
+            "title": "Rubric Levels"
+          }
+        },
+        "type": "object",
+        "required": [
+          "run_id",
+          "attempt_id",
+          "status",
+          "reason",
+          "label",
+          "observations",
+          "rubric_levels"
+        ],
+        "title": "AiFeedbackOut"
+      },
+      "AiObservationOut": {
+        "properties": {
+          "criterion": {
+            "type": "string",
+            "title": "Criterion"
+          },
+          "criterion_name_es": {
+            "type": "string",
+            "title": "Criterion Name Es"
+          },
+          "evidence": {
+            "type": "string",
+            "title": "Evidence"
+          },
+          "observation_es": {
+            "type": "string",
+            "title": "Observation Es"
+          },
+          "suggestion_es": {
+            "type": "string",
+            "title": "Suggestion Es"
+          }
+        },
+        "type": "object",
+        "required": [
+          "criterion",
+          "criterion_name_es",
+          "evidence",
+          "observation_es",
+          "suggestion_es"
+        ],
+        "title": "AiObservationOut"
       },
       "AidContentOut": {
         "properties": {
@@ -3465,7 +3615,8 @@
             "type": "string",
             "enum": [
               "lesson",
-              "general"
+              "general",
+              "ai_observation"
             ],
             "title": "Context Type"
           },
@@ -3486,7 +3637,7 @@
               {
                 "type": "integer",
                 "maximum": 5.0,
-                "minimum": 1.0
+                "minimum": 0.0
               },
               {
                 "type": "null"
@@ -3511,6 +3662,19 @@
               }
             ],
             "title": "Page"
+          },
+          "observation": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 2.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Observation"
           }
         },
         "additionalProperties": false,

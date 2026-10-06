@@ -346,3 +346,19 @@ def assessment_summary(items: list[ScoredItem]) -> dict[str, Any]:
         "productions_total": productions,
         "not_evaluable_audio": audio,
     }
+
+
+def feedback_text(
+    fmt: str, public: dict[str, Any] | None, response: dict[str, Any], result: dict[str, Any]
+) -> str | None:
+    """Texto que el evaluador de feedback recibe: el correo o la publicación del alumno, o la
+    transcripción confirmada de una entrevista (REQ-04). `None` si el intento no lo admite."""
+    if fmt == "short_writing":
+        text = response.get("text")
+        return text if isinstance(text, str) and text.strip() else None
+    if fmt == "recorded_speaking" and (public or {}).get("subtype") == "interview":
+        transcription = result.get("transcription")
+        if isinstance(transcription, dict) and transcription.get("confirmed"):
+            text = transcription.get("text")
+            return text if isinstance(text, str) and text.strip() else None
+    return None

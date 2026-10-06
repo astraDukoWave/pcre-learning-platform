@@ -368,3 +368,35 @@ def test_concurrent_reservations_over_the_limit_only_one_succeeds(
         ).one()
         assert (g.reserved_microusd, g.spent_microusd) == (60, 0)
         assert s.scalar(select(func.count()).select_from(AiRun).where(AiRun.user_id.in_(ids))) == 1
+
+
+def test_concurrent_reservations_with_the_same_key_create_one_run(
+    committed_container: Container,
+) -> None:
+    """Dos peticiones simultáneas con la misma clave: una sola ejecución y una sola reserva
+    (la búsqueda por clave va después del bloqueo global)."""
+    c = committed_container
+    settings = c.settings.model_copy(update=FUNDED)
+    with c.uow() as s:
+        user_id = create_user(s, c, "misma-clave@race.example.com").id
+    svc = UsageService(c.uow, c.clock, settings, lambda _: True)
+    barrier = threading.Barrier(2)
+    runs: list[tuple[uuid.UUID, bool]] = []
+
+    def worker() -> None:
+        barrier.wait()
+        r = svc.reserve(
+            user_id, purpose="writing_feedback", amount=1000, idempotency_key="k", provider="fake"
+        )
+        runs.append((r.run_id, r.existing))
+
+    threads = [threading.Thread(target=worker) for _ in range(2)]
+    for t in threads:
+        t.start()
+    for t in threads:
+        t.join()
+    assert len({run_id for run_id, _ in runs}) == 1
+    assert sorted(existing for _, existing in runs) == [False, True]
+    with c.uow() as s:
+        row = s.scalars(select(BudgetPeriod).where(BudgetPeriod.user_id == user_id)).one()
+        assert row.reserved_microusd == 1000
