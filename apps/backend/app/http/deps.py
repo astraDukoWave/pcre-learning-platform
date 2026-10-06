@@ -62,3 +62,15 @@ def require_admin(ctx: AuthDep) -> AuthContext:
 
 
 AdminDep = Annotated[AuthContext, Depends(require_admin)]
+
+
+def client_ip(request: Request) -> str:
+    """IP del cliente para el límite de intentos. Detrás del router de Heroku, el último
+    valor de `X-Forwarded-For` lo agrega el router; los anteriores los controla el cliente
+    y no se usan."""
+    forwarded = request.headers.get("x-forwarded-for", "")
+    if forwarded:
+        last = forwarded.split(",")[-1].strip()
+        if last:
+            return last
+    return request.client.host if request.client else "unknown"

@@ -80,3 +80,44 @@ def test_delete_removes_every_row_and_allows_reinvite(
         },
     )
     assert accepted.status_code == 201
+
+
+def test_delete_also_removes_old_invitations_with_the_email(
+    admin: Account, db: Session, container: Container
+) -> None:
+    for _ in range(2):
+        res = admin.client.post(
+            "/api/v1/admin/invitations",
+            json={"email": "borrame@example.com"},
+            headers=admin.headers(),
+        )
+    token = re.search(r"#t=(.+)$", res.json()["url"]).group(1)  # type: ignore[union-attr]
+    c = TestClient(
+        admin.client.app, base_url="https://testserver", headers={"Origin": "http://localhost:5173"}
+    )
+    me = c.post(
+        "/api/v1/auth/invitations/accept",
+        json={
+            "token": token,
+            "password": "una frase segura",
+            "password_confirm": "una frase segura",
+            "accept_privacy": True,
+            "consent_version": container.settings.consent_version,
+            "adult": True,
+        },
+    ).json()
+    res = c.request(
+        "DELETE",
+        "/api/v1/me",
+        json={"password": "una frase segura"},
+        headers={"X-CSRF-Token": me["csrf_token"]},
+    )
+    assert res.status_code == 204
+    for name, table in Base.metadata.tables.items():
+        if "email" in table.c:
+            count = db.scalar(
+                select(func.count())
+                .select_from(table)
+                .where(table.c.email == "borrame@example.com")
+            )
+            assert count == 0, f"quedó el email en {name}"

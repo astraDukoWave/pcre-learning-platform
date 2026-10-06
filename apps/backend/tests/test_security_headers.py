@@ -37,3 +37,22 @@ def test_json_body_over_64kb_is_413(student: Account) -> None:
     )
     assert res.status_code == 413
     assert res.json()["error"]["code"] == "payload_too_large"
+
+
+def test_hsts_only_in_production(container: object) -> None:
+    from app.bootstrap import Container
+    from app.main import create_app
+
+    assert isinstance(container, Container)
+    prod = container.settings.model_copy(
+        update={"app_env": "prod", "app_origin": "https://pcre.example.com"}
+    )
+    container.settings = prod
+    with TestClient(create_app(prod, container=container), base_url="https://testserver") as c:
+        res = c.get("/health")
+    assert res.headers["strict-transport-security"] == "max-age=31536000; includeSubDomains"
+    assert "wss://pcre.example.com" in res.headers["content-security-policy"]
+
+
+def test_engine_hides_query_parameters_in_errors(engine: object) -> None:
+    assert getattr(engine, "hide_parameters", False) is True

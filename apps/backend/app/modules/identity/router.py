@@ -9,7 +9,7 @@ from fastapi import APIRouter, Request, Response, status
 from fastapi.responses import JSONResponse
 
 from app.http.cookies import SESSION_COOKIE, clear_session_cookie, set_session_cookie
-from app.http.deps import AdminDep, AuthDep, ContainerDep, IdentityDep
+from app.http.deps import AdminDep, AuthDep, ContainerDep, IdentityDep, client_ip
 from app.modules.identity.schemas import (
     AcceptInvitationIn,
     AdminInvitationIn,
@@ -94,8 +94,9 @@ def login(
     identity: IdentityDep,
     container: ContainerDep,
 ) -> MeOut:
-    ip = request.client.host if request.client else "unknown"
-    issued = identity.login(body.email, body.password, ip, request.cookies.get(SESSION_COOKIE))
+    issued = identity.login(
+        body.email, body.password, client_ip(request), request.cookies.get(SESSION_COOKIE)
+    )
     return _with_session(response, issued, container)
 
 

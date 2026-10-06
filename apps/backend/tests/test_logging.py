@@ -70,3 +70,19 @@ def test_login_logs_user_ref_not_email(
     assert any('"msg": "login"' in line and '"user_ref"' in line for line in lines)
     assert all("privada@example.com" not in line for line in lines)
     assert all(acct.csrf not in line for line in lines)
+
+
+def test_rate_limited_login_logs_user_ref(
+    make_account: object, client: TestClient, caplog: pytest.LogCaptureFixture
+) -> None:
+    make_account("limitada@example.com")  # type: ignore[operator]
+    for _ in range(5):
+        client.post(
+            "/api/v1/auth/login", json={"email": "limitada@example.com", "password": "x" * 12}
+        )
+    with caplog.at_level(logging.WARNING, logger="app.identity"):
+        client.post(
+            "/api/v1/auth/login", json={"email": "limitada@example.com", "password": "x" * 12}
+        )
+    limited = [r for r in caplog.records if r.getMessage() == "login_rate_limited"]
+    assert limited and getattr(limited[0], "user_ref", None)

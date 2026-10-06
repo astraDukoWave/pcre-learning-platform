@@ -7,7 +7,7 @@ from datetime import date, datetime
 from decimal import Decimal
 from typing import Any
 
-from sqlalchemy import Table, delete, select, update
+from sqlalchemy import Table, delete, func, select, update
 from sqlalchemy.orm import Session
 
 from app.db.base import Base
@@ -72,6 +72,15 @@ def expire_pending_resets(session: Session, user_id: uuid.UUID, now: datetime) -
         )
         .values(expires_at=now)
     )
+
+
+def lock_email(session: Session, email: str) -> None:
+    """Serializa la creación de invitaciones por email (lock consultivo de la transacción)."""
+    session.execute(select(func.pg_advisory_xact_lock(func.hashtext(f"invite:{email}"))))
+
+
+def delete_invitations_for_email(session: Session, email: str) -> None:
+    session.execute(delete(Invitation).where(Invitation.email == email))
 
 
 def list_users(session: Session) -> list[User]:

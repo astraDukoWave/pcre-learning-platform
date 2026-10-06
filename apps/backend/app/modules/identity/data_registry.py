@@ -54,7 +54,10 @@ register(
         "invitations",
         ("consumed_user_id", "created_by"),
         export=False,
-        note="metadatos de acceso administrados por el equipo; el email ya va en el perfil",
+        note=(
+            "metadatos de acceso administrados por el equipo; el email ya va en el perfil. "
+            "Al borrar la cuenta se borran también las invitaciones con su email."
+        ),
     )
 )
 register(

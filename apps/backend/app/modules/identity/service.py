@@ -11,6 +11,7 @@ from typing import Any
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from sqlalchemy import func, select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.core.clock import Clock
@@ -248,7 +249,10 @@ class IdentityService:
         normalized = domain.normalize_email(email)
         wait = self.limiter.hit((f"email:{normalized}", f"ip:{ip}"), now)
         if wait is not None:
-            logger.warning("login_rate_limited", extra={"retry_after": wait})
+            with self.uow() as s:
+                limited = repository.user_by_email(s, normalized)
+                ref = user_ref(limited.id, self.settings.log_salt) if limited else None
+            logger.warning("login_rate_limited", extra={"retry_after": wait, "user_ref": ref})
             raise RateLimited(wait)
         with self.uow() as s:
             user = repository.user_by_email(s, normalized)
@@ -290,6 +294,7 @@ class IdentityService:
         token = new_token()
         expires = now + timedelta(hours=self.settings.invitation_ttl_hours)
         with self.uow() as s:
+            repository.lock_email(s, normalized)
             if repository.user_by_email(s, normalized) is not None:
                 raise Conflict("Ya existe una cuenta con este correo.", code="email_taken")
             repository.expire_pending_invitations(s, normalized, now)
@@ -318,6 +323,31 @@ class IdentityService:
             return inv.email, inv.expires_at
 
     def accept_invitation(
+        self,
+        *,
+        token: str,
+        password: str,
+        password_confirm: str,
+        accept_privacy: bool,
+        consent_version: str,
+        adult: bool,
+        display_name: str | None,
+    ) -> IssuedSession:
+        try:
+            return self._accept_invitation(
+                token=token,
+                password=password,
+                password_confirm=password_confirm,
+                accept_privacy=accept_privacy,
+                consent_version=consent_version,
+                adult=adult,
+                display_name=display_name,
+            )
+        except IntegrityError as exc:
+            # Dos invitaciones del mismo email aceptadas a la vez: gana una.
+            raise LinkInvalid() from exc
+
+    def _accept_invitation(
         self,
         *,
         token: str,
@@ -496,6 +526,9 @@ class IdentityService:
             if not self.passwords.verify(user.password_hash, password):
                 raise ValidationFailed("La contraseña no es correcta.", code="password_incorrect")
             ref = user_ref(user.id, self.settings.log_salt)
+            # Las invitaciones vencidas o reemplazadas guardan el email sin apuntar al
+            # usuario: también se borran (no queda ninguna fila con sus datos).
+            repository.delete_invitations_for_email(s, user.email)
             repository.delete_user(s, user.id)
         logger.info("account_deleted", extra={"user_ref": ref})
 

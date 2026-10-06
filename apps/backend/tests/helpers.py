@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import uuid
-from collections.abc import Callable
+from collections.abc import Callable, Iterator
 from dataclasses import dataclass
 
 import pytest
@@ -99,3 +99,28 @@ def admin(make_account: AccountFactory) -> Account:
 @pytest.fixture
 def student(make_account: AccountFactory) -> Account:
     return make_account("alumna@example.com")
+
+
+@pytest.fixture
+def committed_container(engine: object, settings: object) -> Iterator[Container]:
+    """Contenedor con commits reales (sin la transacción externa de la prueba), para
+    pruebas de concurrencia. Limpia al final todo lo creado con emails `@race.example.com`."""
+    from sqlalchemy import Engine, text
+
+    from app.core.clock import SystemClock
+    from app.db.session import make_sessionmaker
+    from app.db.uow import UnitOfWorkFactory
+    from tests.conftest import FAST_PASSWORDS
+
+    assert isinstance(engine, Engine)
+    container = Container(
+        settings=settings,  # type: ignore[arg-type]
+        uow=UnitOfWorkFactory(make_sessionmaker(engine)),
+        clock=SystemClock(),
+        passwords=FAST_PASSWORDS,
+        engine=engine,
+    )
+    yield container
+    with engine.begin() as conn:
+        conn.execute(text("DELETE FROM invitations WHERE email LIKE '%@race.example.com'"))
+        conn.execute(text("DELETE FROM users WHERE email LIKE '%@race.example.com'"))

@@ -300,3 +300,48 @@ def test_invitation_rows_store_only_hashes(admin: Account, db: Session) -> None:
     token = _invite(admin, "hash@example.com")
     inv = db.scalar(select(Invitation).where(Invitation.email == "hash@example.com"))
     assert inv is not None and inv.token_hash != token and token not in inv.token_hash
+
+
+def test_accept_and_reset_set_the_same_secure_cookie(
+    admin: Account, client: TestClient, container: Container, student: Account
+) -> None:
+    res = _accept(client, _invite(admin, "cookie2@example.com"), container)
+    reset = admin.client.post(
+        f"/api/v1/admin/users/{student.id}/reset-link", headers=admin.headers()
+    )
+    fresh = TestClient(
+        client.app, base_url="https://testserver", headers={"Origin": "http://localhost:5173"}
+    )
+    confirm = fresh.post(
+        "/api/v1/auth/password-reset/confirm",
+        json={
+            "token": _token(reset.json()["url"]),
+            "password": "nueva frase segura",
+            "password_confirm": "nueva frase segura",
+        },
+    )
+    for response in (res, confirm):
+        cookie = response.headers["set-cookie"].lower()
+        assert cookie.startswith("__host-pcre_session=")
+        for attr in ("httponly", "secure", "samesite=lax", "path=/"):
+            assert attr in cookie
+        assert "domain" not in cookie
+
+
+def test_rate_limit_uses_the_last_forwarded_ip(
+    make_account: AccountFactory, client: TestClient
+) -> None:
+    make_account("xff@example.com")
+    for i in range(5):
+        client.post(
+            "/api/v1/auth/login",
+            json={"email": f"otra{i}@example.com", "password": "mala contraseña"},
+            headers={"X-Forwarded-For": f"10.0.0.{i}, 203.0.113.9"},
+        )
+    # Cambiar el primer valor (lo controla el cliente) no evade el límite por IP.
+    res = client.post(
+        "/api/v1/auth/login",
+        json={"email": "xff@example.com", "password": PASSWORD},
+        headers={"X-Forwarded-For": "10.9.9.9, 203.0.113.9"},
+    )
+    assert res.status_code == 429
