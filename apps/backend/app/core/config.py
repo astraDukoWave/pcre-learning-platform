@@ -7,7 +7,7 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Literal
 
-from pydantic import field_validator, model_validator
+from pydantic import Field, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 BACKEND_DIR = Path(__file__).resolve().parents[2]
@@ -64,6 +64,18 @@ class Settings(BaseSettings):
     media_dir: Path = REPO_DIR / "content" / "toefl-ibt-2026-b1-b2" / "audio"
     frontend_dist: Path = REPO_DIR / "apps" / "frontend" / "dist"
     test_clock_enabled: bool = False
+    # MVP-02 (ADR-11): capacidades con costo. Apagadas por defecto y fail-closed: sin
+    # presupuesto, precios y proveedor configurados responden 503 `capability_disabled`.
+    ai_feedback_enabled: bool = False
+    stt_enabled: bool = False
+    voice_enabled: bool = False
+    budget_global_monthly_microusd: int | None = Field(default=None, ge=0)
+    budget_user_monthly_microusd: int | None = Field(default=None, ge=0)
+    voice_max_minutes_per_user_month: int | None = Field(default=None, ge=0)
+    gemini_price_input_per_mtok_microusd: int | None = Field(default=None, ge=0)
+    gemini_price_output_per_mtok_microusd: int | None = Field(default=None, ge=0)
+    stt_price_per_min_microusd: int = Field(default=4300, ge=0)
+    voice_price_per_min_microusd: int = Field(default=75000, ge=0)
 
     @field_validator("database_url")
     @classmethod

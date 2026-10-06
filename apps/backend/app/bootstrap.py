@@ -30,6 +30,11 @@ class Container:
         default_factory=lambda: SlidingWindowLimiter(LOGIN_LIMITS)
     )
     extras: dict[str, Any] = field(default_factory=dict)
+    # Capacidades con costo (MVP-02) cuyo proveedor, real o doble, está configurado.
+    ready_providers: frozenset[str] = frozenset()
+
+    def provider_ready(self, capability: str) -> bool:
+        return capability in self.ready_providers
 
 
 def build_container(settings: Settings) -> Container:

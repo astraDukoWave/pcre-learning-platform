@@ -4,6 +4,7 @@ import { ContentList } from "../features/admin/content/ContentList";
 import { RevisionDetail } from "../features/admin/content/RevisionDetail";
 import { PilotPage } from "../features/admin/pilot/PilotPage";
 import { ReportsPage } from "../features/admin/reports/ReportsPage";
+import { UsagePage } from "../features/admin/usage/UsagePage";
 import { AdminUsers } from "../features/admin/users/AdminUsers";
 import { AssessmentPage } from "../features/assessment/AssessmentPage";
 import { RunPage } from "../features/assessment/RunPage";
@@ -61,6 +62,7 @@ export const routes: RouteObject[] = [
       { path: "admin/contenido/:revisionId", element: admin(<RevisionDetail />) },
       { path: "admin/reportes", element: admin(<ReportsPage />) },
       { path: "admin/piloto", element: admin(<PilotPage />) },
+      { path: "admin/consumo", element: admin(<UsagePage />) },
       { path: "*", element: <NotFound /> },
     ],
   },

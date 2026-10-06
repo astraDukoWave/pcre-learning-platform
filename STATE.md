@@ -72,7 +72,8 @@ anotan en el registro; cualquier otra desviación queda `pending-human`.
 | MVP-01 | CS-09 · panel editorial y piloto | `feat/mvp01-cs09-editorial-pilot` | [#11](https://github.com/astraDukoWave/pcre-learning-platform/pull/11) | `9709535` (head `4976623`) | [37410741432](https://github.com/astraDukoWave/pcre-learning-platform/actions/runs/37410741432) ✅ 8 jobs + ci-gate (el run [37410254736](https://github.com/astraDukoWave/pcre-learning-platform/actions/runs/37410254736) falló en `e2e`: un guardado lento movía de pregunta en la corrida; corregido en `4976623` con una prueba que retiene el guardado) | `make verify` exit 0 (268 pruebas backend, 22 Vitest, migraciones nuevas probadas: 5); AC-23 con fixture (internas excluidas); E2E 9/9 local y en la CI | 6 oct 2026 |
 | MVP-01 | CS-10 · seguridad, legales, accesibilidad, rendimiento y deploy | `feat/mvp01-cs10-hardening-deploy` | [#12](https://github.com/astraDukoWave/pcre-learning-platform/pull/12) | `33b14f1` (head `cd07d64`) | [37412078255](https://github.com/astraDukoWave/pcre-learning-platform/actions/runs/37412078255) ✅ 8 jobs + ci-gate | `make verify` exit 0 (271 pruebas backend, 23 Vitest); axe sin violaciones graves en las seis pantallas (escritorio y 390 × 844), recorrido con teclado y movimiento reducido; E2E 13/13 local y en la CI; smoke de rendimiento: todo p95 < 800 ms (`docs/reviews/mvp-01-perf-smoke.md`); `deploy.yml` con actionlint; AC-21: run de `deploy.yml` tras el merge **skipped** ([37412451354](https://github.com/astraDukoWave/pcre-learning-platform/actions/runs/37412451354)), CI de `main` ✅ ([37412274783](https://github.com/astraDukoWave/pcre-learning-platform/actions/runs/37412274783)); NI-04 | 6 oct 2026 |
 | MVP-01 | CS-11 · contenido U1 listo para revisión | `feat/mvp01-cs11-u1-ready` | [#13](https://github.com/astraDukoWave/pcre-learning-platform/pull/13) | `4df036c` (head `536e301`) | [37412837444](https://github.com/astraDukoWave/pcre-learning-platform/actions/runs/37412837444) ✅ 8 jobs + ci-gate; `main` @ `4df036c`: [37413020925](https://github.com/astraDukoWave/pcre-learning-platform/actions/runs/37413020925) ✅ | segunda pasada con la lista del contrato §12 (5 ajustes); U1 y diagnóstico en `ready-for-review`; `docs/contenido/revision/{u1,inicial}.md` generados y comprobados en la CI; `make verify` exit 0 (274 pruebas backend); fuentes de coe.int y cambridge.org siguen `pending` (la sesión no llega a esos hosts) | 6 oct 2026 |
-| MVP-01 | CS-12 · cierre (verify + activación) | `docs/mvp01-cs12-close` | [#14](https://github.com/astraDukoWave/pcre-learning-platform/pull/14) | se completa al mergear | se completa al terminar | `make verify` exit 0 en un clon limpio de `4df036c` tras el hook de arranque (AC-01); `docs/reviews/mvp-01-verify.md`, `docs/reviews/mvp-01-activacion-cto-review.md`, README, HANDOFF, AGENTS y runbook (§12, H-6); verificador independiente: 1 bloqueante (clave siempre en `a`), 3 de cobertura o NFR-01 y 4 observaciones, corregidos en el PR (`make verify` exit 0, 284 pruebas backend, 25 Vitest; E2E 13/13 local) | 6 oct 2026 |
+| MVP-01 | CS-12 · cierre (verify + activación) | `docs/mvp01-cs12-close` | [#14](https://github.com/astraDukoWave/pcre-learning-platform/pull/14) | `211c53f` (head `b562c0c`) | [37415037630](https://github.com/astraDukoWave/pcre-learning-platform/actions/runs/37415037630) ✅ 8 jobs + ci-gate | `make verify` exit 0 en un clon limpio de `4df036c` tras el hook de arranque (AC-01); `docs/reviews/mvp-01-verify.md`, `docs/reviews/mvp-01-activacion-cto-review.md`, README, HANDOFF, AGENTS y runbook (§12, H-6); verificador independiente: 1 bloqueante (clave siempre en `a`), 3 de cobertura o NFR-01 y 4 observaciones, corregidos en el PR (`make verify` exit 0, 284 pruebas backend, 25 Vitest; E2E 13/13 local) | 6 oct 2026 |
+| MVP-02 | CS-01 · presupuestos y consumo | `feat/mvp02-cs01-usage` | [#15](https://github.com/astraDukoWave/pcre-learning-platform/pull/15) | se completa al mergear | se completa al terminar | migración `usage_v1`; reservas con bloqueo global → alumno; AC-01 con dos hilos contra PostgreSQL; vista `/admin/consumo` con aviso al 80 %; NI-05 | 6 oct 2026 |
 
 ## Desviaciones
 
@@ -110,6 +111,16 @@ Ninguna.
 - **NI-04 · `GET /api/v1/legal`** (CS-10). REQ-17 pide mostrar en el aviso el contacto de
   `PRIVACY_CONTACT_EMAIL`, que vive en la configuración del servidor. Ruta pública de solo
   lectura con `consent_version` y ese contacto; no estaba en la tabla de rutas.
+
+- **NI-05 · 503 esperados fuera de `error_events`** (MVP-02 CS-01). `capability_disabled` y
+  `budget_exhausted` son respuestas previstas por el spec (se registran como `info` en el
+  log), no errores del servidor: el manejador marca la petición y el registro de 5xx de
+  MVP-01 las omite. Los demás 503 (base de datos, migración) se siguen registrando.
+- **NI-06 · Gemini por REST** (MVP-02 CS-02). El plan (D5) menciona el SDK `google-genai`;
+  el adaptador llama a `generateContent` por HTTP con `httpx` (salida JSON con
+  `responseSchema`, timeout de 20 s), sin dependencia nueva y probado con un transporte
+  simulado. Las salidas de referencia del set de evaluación están escritas a mano con la
+  forma de la salida del modelo: no son grabaciones de un modelo real (eso es G5a).
 
 ## Loop humano vigente
 

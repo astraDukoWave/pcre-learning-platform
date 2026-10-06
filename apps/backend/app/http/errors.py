@@ -44,7 +44,9 @@ def error_response(
 
 def install_error_handlers(app: FastAPI) -> None:
     @app.exception_handler(AppError)
-    async def _app_error(_: Request, exc: AppError) -> JSONResponse:
+    async def _app_error(request: Request, exc: AppError) -> JSONResponse:
+        if exc.expected:
+            request.state.error_expected = True
         level = logging.WARNING if exc.status_code in (403, 429) else logging.INFO
         logger.log(level, "app_error", extra={"error_code": exc.code, "status": exc.status_code})
         return error_response(exc.status_code, exc.code, exc.message, exc.headers)

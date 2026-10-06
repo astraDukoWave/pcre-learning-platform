@@ -15,6 +15,7 @@ MODEL_MODULES = (
     "app.modules.practice.models",
     "app.modules.progress.models",
     "app.modules.insights.models",
+    "app.modules.usage.models",
 )
 
 
