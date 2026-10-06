@@ -1,0 +1,88 @@
+# Audio TTS de una unidad (ADR-12, gate G2). Solo se dispara a mano y el environment
+# `content-audio` exige la aprobación de Jonathan antes de exponer DEEPGRAM_API_KEY.
+# Abre un PR con los MP3 y el manifiesto; la revisión (`reviewed_by`) es humana.
+name: Audio de contenido (TTS)
+
+on:
+  workflow_dispatch:
+    inputs:
+      unit:
+        description: "Prefijo de la unidad (u1, u2, …)"
+        required: true
+        type: string
+      max_chars:
+        description: "Tope de caracteres de esta ejecución"
+        required: true
+        default: "20000"
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: content-audio
+  cancel-in-progress: false
+
+jobs:
+  generate:
+    name: generate
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: content-audio
+    permissions:
+      contents: write
+      pull-requests: write
+    env:
+      UNIT: ${{ inputs.unit }}
+      MAX_CHARS: ${{ inputs.max_chars }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: astral-sh/setup-uv@v6
+      - name: Dependencias
+        working-directory: apps/backend
+        run: uv sync --locked
+      - name: Validar entradas
+        run: |
+          [[ "${UNIT}" =~ ^u[1-8]$ ]] || { echo "::error::unit inválida: ${UNIT}"; exit 1; }
+          [[ "${MAX_CHARS}" =~ ^[0-9]+$ ]] || { echo "::error::max_chars inválido"; exit 1; }
+      - name: Conteo y costo estimado (sin red)
+        working-directory: apps/backend
+        run: |
+          status=0
+          uv run --locked python ../../scripts/content/generate_audio.py --unit "${UNIT}" --max-chars "${MAX_CHARS}" --dry-run --summary /tmp/dry-run.json || status=$?
+          {
+            echo "## Audio ${UNIT}: estimación"
+            echo '```json'
+            cat /tmp/dry-run.json
+            echo '```'
+          } >> "${GITHUB_STEP_SUMMARY}"
+          if [ "${status}" -ne 0 ]; then echo "::error::el conteo supera max_chars; no se genera nada"; exit "${status}"; fi
+      - name: Generar con Deepgram Aura-2
+        working-directory: apps/backend
+        env:
+          DEEPGRAM_API_KEY: ${{ secrets.DEEPGRAM_API_KEY }}
+        run: |
+          if [ -z "${DEEPGRAM_API_KEY}" ]; then echo "::error::audio no configurado: falta DEEPGRAM_API_KEY en el environment content-audio"; exit 1; fi
+          uv run --locked python ../../scripts/content/generate_audio.py --unit "${UNIT}" --max-chars "${MAX_CHARS}" --summary /tmp/generated.json
+          {
+            echo "## Audio ${UNIT}: generado"
+            echo '```json'
+            cat /tmp/generated.json
+            echo '```'
+          } >> "${GITHUB_STEP_SUMMARY}"
+      - name: Abrir PR con los MP3 y el manifiesto
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_ID: ${{ github.run_id }}
+        run: |
+          branch="content/audio-${UNIT}-${RUN_ID}"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -b "${branch}"
+          git add content/
+          if git diff --cached --quiet; then echo "Sin audio nuevo"; exit 0; fi
+          git commit -m "feat(content): generated audio for ${UNIT} (pending review)"
+          git push origin "${branch}"
+          gh api "repos/${GITHUB_REPOSITORY}/pulls" -f title="Audio ${UNIT} generado (pendiente de revisión)" \
+            -f head="${branch}" -f base=main \
+            -f body="Generado por content-audio.yml (run ${RUN_ID}). Escucha cada archivo, compáralo con su guion y llena reviewed_by y reviewed_at en el manifiesto antes de aprobar."
