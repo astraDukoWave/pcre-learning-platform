@@ -864,6 +864,59 @@
         }
       }
     },
+    "/api/v1/attempts/{attempt_id}/self-assessment": {
+      "post": {
+        "tags": [
+          "practice"
+        ],
+        "summary": "Self Assess",
+        "operationId": "self_assess_api_v1_attempts__attempt_id__self_assessment_post",
+        "parameters": [
+          {
+            "name": "attempt_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Attempt Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SelfAssessmentIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AttemptDetailOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/attempts/{attempt_id}": {
       "get": {
         "tags": [
@@ -889,7 +942,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/AttemptSummaryOut"
+                  "$ref": "#/components/schemas/AttemptDetailOut"
                 }
               }
             }
@@ -1745,6 +1798,92 @@
           "content_hash"
         ],
         "title": "ApproveIn"
+      },
+      "AttemptDetailOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "activity_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Activity Id"
+          },
+          "response": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Response"
+          },
+          "evaluation_status": {
+            "type": "string",
+            "title": "Evaluation Status"
+          },
+          "score": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Score"
+          },
+          "correct": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Correct"
+          },
+          "result": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Result"
+          },
+          "aided": {
+            "type": "boolean",
+            "title": "Aided"
+          },
+          "submitted_at": {
+            "type": "string",
+            "title": "Submitted At"
+          },
+          "mode": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mode"
+          },
+          "feedback": {
+            "$ref": "#/components/schemas/AttemptFeedbackOut"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "activity_id",
+          "response",
+          "evaluation_status",
+          "score",
+          "correct",
+          "result",
+          "aided",
+          "submitted_at",
+          "feedback"
+        ],
+        "title": "AttemptDetailOut"
       },
       "AttemptFeedbackOut": {
         "properties": {
@@ -3582,6 +3721,25 @@
           "created_at"
         ],
         "title": "RevisionRowOut"
+      },
+      "SelfAssessmentIn": {
+        "properties": {
+          "scores": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "type": "object",
+            "maxProperties": 12,
+            "title": "Scores"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "scores"
+        ],
+        "title": "SelfAssessmentIn",
+        "description": "Marca de 0 a 3 por criterio de la rúbrica, enviada después de ver la rúbrica."
       },
       "StimulusOut": {
         "properties": {

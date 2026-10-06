@@ -65,6 +65,11 @@ def test_writing_is_pending_until_self_assessed_after_seeing_the_rubric(
     assert [c["id"] for c in body["feedback"]["rubric"]["criteria"]] == ["task"]
     assert body["feedback"]["model_commentary_es"]
 
+    # Después de recargar, el intento propio trae la rúbrica para retomar la autoevaluación.
+    detail = student.client.get(f"/api/v1/attempts/{body['id']}").json()
+    assert detail["evaluation_status"] == "pending"
+    assert detail["feedback"]["rubric"]["criteria"][0]["id"] == "task"
+
     assert self_assess(student, body["id"], {}).status_code == 422
     assert self_assess(student, body["id"], {"task": 4}).status_code == 422
     assert self_assess(student, body["id"], {"other": 2}).status_code == 422

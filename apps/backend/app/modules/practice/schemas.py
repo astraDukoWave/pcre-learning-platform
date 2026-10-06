@@ -193,6 +193,10 @@ class AttemptFeedbackOut(BaseModel):
     rubric: dict[str, Any] | None = None
 
 
+class AttemptDetailOut(AttemptSummaryOut):
+    feedback: AttemptFeedbackOut
+
+
 class AttemptOut(BaseModel):
     id: uuid.UUID
     activity_id: uuid.UUID
