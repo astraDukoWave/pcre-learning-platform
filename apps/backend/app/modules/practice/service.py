@@ -316,6 +316,9 @@ class PracticeService:
             correct=grade.correct,
             result=grade.result,
             is_first=first,
+            # Un repaso de una actividad ya respondida es reutilizada (REQ-14): no cuenta
+            # como recuperación diferida.
+            repeated=mode == "review" and not first,
             submitted_at=now,
             local_day=domain.local_day(now, learner.timezone),
         )

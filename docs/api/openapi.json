@@ -1026,6 +1026,57 @@
         }
       }
     },
+    "/api/v1/me/reviews/next": {
+      "get": {
+        "tags": [
+          "practice"
+        ],
+        "summary": "Next Review",
+        "description": "Siguiente repaso (REQ-14): `progress` elige la actividad; la entrega es de práctica.\nCon `objective`, la reparación inmediata opcional de ese objetivo.",
+        "operationId": "next_review_api_v1_me_reviews_next_get",
+        "parameters": [
+          {
+            "name": "objective",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^U[1-8]\\.[RLWST](\\.[0-9]+)?$"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Objective"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NextReviewOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/assessments/{form_id}": {
       "get": {
         "tags": [
@@ -1317,6 +1368,48 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/me/progress": {
+      "get": {
+        "tags": [
+          "progress"
+        ],
+        "summary": "My Progress",
+        "operationId": "my_progress_api_v1_me_progress_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LearnerProgressOut"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/me/reviews": {
+      "get": {
+        "tags": [
+          "progress"
+        ],
+        "summary": "My Reviews",
+        "operationId": "my_reviews_api_v1_me_reviews_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReviewsOut"
                 }
               }
             }
@@ -1984,6 +2077,32 @@
         ],
         "title": "AdminUserPatch"
       },
+      "AdvanceOut": {
+        "properties": {
+          "correct": {
+            "type": "integer",
+            "title": "Correct"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          },
+          "units": {
+            "items": {
+              "$ref": "#/components/schemas/UnitAdvanceOut"
+            },
+            "type": "array",
+            "title": "Units"
+          }
+        },
+        "type": "object",
+        "required": [
+          "correct",
+          "total",
+          "units"
+        ],
+        "title": "AdvanceOut"
+      },
       "AidContentOut": {
         "properties": {
           "kind": {
@@ -2011,6 +2130,34 @@
           "remaining"
         ],
         "title": "AidContentOut"
+      },
+      "AidCountsOut": {
+        "properties": {
+          "hint": {
+            "type": "integer",
+            "title": "Hint"
+          },
+          "support_es": {
+            "type": "integer",
+            "title": "Support Es"
+          },
+          "transcript": {
+            "type": "integer",
+            "title": "Transcript"
+          },
+          "example": {
+            "type": "integer",
+            "title": "Example"
+          }
+        },
+        "type": "object",
+        "required": [
+          "hint",
+          "support_es",
+          "transcript",
+          "example"
+        ],
+        "title": "AidCountsOut"
       },
       "AidIn": {
         "properties": {
@@ -3200,6 +3347,74 @@
         ],
         "title": "ItemStateRefOut"
       },
+      "LearnerProgressOut": {
+        "properties": {
+          "period_days": {
+            "type": "integer",
+            "title": "Period Days"
+          },
+          "advance": {
+            "$ref": "#/components/schemas/AdvanceOut"
+          },
+          "initial_accuracy": {
+            "$ref": "#/components/schemas/RatioOut"
+          },
+          "delayed_recall": {
+            "$ref": "#/components/schemas/RatioOut"
+          },
+          "aids": {
+            "$ref": "#/components/schemas/AidCountsOut"
+          },
+          "production": {
+            "$ref": "#/components/schemas/ProductionOut"
+          },
+          "to_reinforce": {
+            "items": {
+              "$ref": "#/components/schemas/ReinforceOut"
+            },
+            "type": "array",
+            "title": "To Reinforce"
+          },
+          "streak_days": {
+            "type": "integer",
+            "title": "Streak Days"
+          },
+          "reviews_due": {
+            "type": "integer",
+            "title": "Reviews Due"
+          },
+          "next_action": {
+            "$ref": "#/components/schemas/NextActionOut"
+          },
+          "diagnostic_form_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Diagnostic Form Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "period_days",
+          "advance",
+          "initial_accuracy",
+          "delayed_recall",
+          "aids",
+          "production",
+          "to_reinforce",
+          "streak_days",
+          "reviews_due",
+          "next_action",
+          "diagnostic_form_id"
+        ],
+        "title": "LearnerProgressOut"
+      },
       "LessonOut": {
         "properties": {
           "id": {
@@ -3765,6 +3980,98 @@
         "title": "MePatch",
         "description": "Lista explícita de campos editables por el alumno."
       },
+      "NextActionOut": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "lesson",
+              "scenario",
+              "review",
+              "done"
+            ],
+            "title": "Kind"
+          },
+          "item_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Item Id"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "in_progress",
+                  "next"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          },
+          "objective": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Objective"
+          }
+        },
+        "type": "object",
+        "required": [
+          "kind"
+        ],
+        "title": "NextActionOut"
+      },
+      "NextReviewOut": {
+        "properties": {
+          "review": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ReviewOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "remaining_due": {
+            "type": "integer",
+            "title": "Remaining Due"
+          }
+        },
+        "type": "object",
+        "required": [
+          "review",
+          "remaining_due"
+        ],
+        "title": "NextReviewOut"
+      },
       "ObjectiveResultOut": {
         "properties": {
           "code": {
@@ -3965,6 +4272,53 @@
         ],
         "title": "PcreRuleOut"
       },
+      "ProductionOut": {
+        "properties": {
+          "writing": {
+            "$ref": "#/components/schemas/ProductionStatOut"
+          },
+          "speaking": {
+            "$ref": "#/components/schemas/ProductionStatOut"
+          }
+        },
+        "type": "object",
+        "required": [
+          "writing",
+          "speaking"
+        ],
+        "title": "ProductionOut"
+      },
+      "ProductionStatOut": {
+        "properties": {
+          "average": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Average"
+          },
+          "count": {
+            "type": "integer",
+            "title": "Count"
+          },
+          "label": {
+            "type": "string",
+            "const": "autoevaluación",
+            "title": "Label"
+          }
+        },
+        "type": "object",
+        "required": [
+          "average",
+          "count",
+          "label"
+        ],
+        "title": "ProductionStatOut"
+      },
       "ProgressOut": {
         "properties": {
           "started_at": {
@@ -4040,6 +4394,25 @@
         ],
         "title": "PublishedOut"
       },
+      "RatioOut": {
+        "properties": {
+          "correct": {
+            "type": "integer",
+            "title": "Correct"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          }
+        },
+        "type": "object",
+        "required": [
+          "correct",
+          "total"
+        ],
+        "title": "RatioOut",
+        "description": "Numerador y denominador; con `total = 0` la interfaz dice \"aún sin medición\"."
+      },
       "ReadyOut": {
         "properties": {
           "status": {
@@ -4057,6 +4430,41 @@
           "migration"
         ],
         "title": "ReadyOut"
+      },
+      "ReinforceOut": {
+        "properties": {
+          "objective": {
+            "type": "string",
+            "title": "Objective"
+          },
+          "failed_at": {
+            "type": "string",
+            "title": "Failed At"
+          },
+          "attempt_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Attempt Id"
+          },
+          "item_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Item Id"
+          },
+          "activity_key": {
+            "type": "string",
+            "title": "Activity Key"
+          }
+        },
+        "type": "object",
+        "required": [
+          "objective",
+          "failed_at",
+          "attempt_id",
+          "item_id",
+          "activity_key"
+        ],
+        "title": "ReinforceOut"
       },
       "ResetConfirmIn": {
         "properties": {
@@ -4098,6 +4506,121 @@
           "email"
         ],
         "title": "ResetInfoOut"
+      },
+      "ReviewItemRefOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "kind": {
+            "type": "string",
+            "title": "Kind"
+          },
+          "slug": {
+            "type": "string",
+            "title": "Slug"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "unit": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/UnitRefOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "kind",
+          "slug",
+          "title",
+          "unit"
+        ],
+        "title": "ReviewItemRefOut"
+      },
+      "ReviewOut": {
+        "properties": {
+          "objective": {
+            "type": "string",
+            "title": "Objective"
+          },
+          "due": {
+            "type": "boolean",
+            "title": "Due"
+          },
+          "stage": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Stage"
+          },
+          "repeated": {
+            "type": "boolean",
+            "title": "Repeated"
+          },
+          "item": {
+            "$ref": "#/components/schemas/ReviewItemRefOut"
+          },
+          "activity": {
+            "$ref": "#/components/schemas/StudentActivityOut"
+          },
+          "passages": {
+            "items": {
+              "$ref": "#/components/schemas/PassageOut"
+            },
+            "type": "array",
+            "title": "Passages"
+          }
+        },
+        "type": "object",
+        "required": [
+          "objective",
+          "due",
+          "stage",
+          "repeated",
+          "item",
+          "activity",
+          "passages"
+        ],
+        "title": "ReviewOut"
+      },
+      "ReviewsOut": {
+        "properties": {
+          "due": {
+            "items": {
+              "$ref": "#/components/schemas/ScheduleOut"
+            },
+            "type": "array",
+            "title": "Due"
+          },
+          "upcoming": {
+            "items": {
+              "$ref": "#/components/schemas/ScheduleOut"
+            },
+            "type": "array",
+            "title": "Upcoming"
+          }
+        },
+        "type": "object",
+        "required": [
+          "due",
+          "upcoming"
+        ],
+        "title": "ReviewsOut"
       },
       "RevisionDetailOut": {
         "properties": {
@@ -4539,6 +5062,39 @@
         ],
         "title": "SavedAnswerOut"
       },
+      "ScheduleOut": {
+        "properties": {
+          "objective": {
+            "type": "string",
+            "title": "Objective"
+          },
+          "stage": {
+            "type": "integer",
+            "title": "Stage"
+          },
+          "due_at": {
+            "type": "string",
+            "title": "Due At"
+          },
+          "due": {
+            "type": "boolean",
+            "title": "Due"
+          },
+          "last_outcome": {
+            "type": "string",
+            "title": "Last Outcome"
+          }
+        },
+        "type": "object",
+        "required": [
+          "objective",
+          "stage",
+          "due_at",
+          "due",
+          "last_outcome"
+        ],
+        "title": "ScheduleOut"
+      },
       "SelfAssessmentIn": {
         "properties": {
           "scores": {
@@ -4712,6 +5268,34 @@
           "token"
         ],
         "title": "TokenIn"
+      },
+      "UnitAdvanceOut": {
+        "properties": {
+          "correct": {
+            "type": "integer",
+            "title": "Correct"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          },
+          "unit": {
+            "type": "string",
+            "title": "Unit"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          }
+        },
+        "type": "object",
+        "required": [
+          "correct",
+          "total",
+          "unit",
+          "title"
+        ],
+        "title": "UnitAdvanceOut"
       },
       "UnitRefOut": {
         "properties": {

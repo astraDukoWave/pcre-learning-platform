@@ -45,12 +45,14 @@ export function ActivityCard({
   onSubmitted,
   onNext,
   isLast,
+  nextLabel,
 }: {
   activity: Activity;
   last?: AttemptSummary;
   onSubmitted: (lessonCompleted: boolean | null | undefined) => void;
   onNext: () => void;
   isLast: boolean;
+  nextLabel?: string;
 }) {
   const initial = loadDraft(activity.id)?.response ?? last?.response ?? {};
   const [response, setResponse] = useState<Record<string, unknown>>(initial);
@@ -278,7 +280,7 @@ export function ActivityCard({
                 Intentar de nuevo
               </Button>
             )}
-            <Button onClick={onNext}>{isLast ? "Terminar" : "Siguiente actividad"}</Button>
+            <Button onClick={onNext}>{nextLabel ?? (isLast ? "Terminar" : "Siguiente actividad")}</Button>
           </>
         )}
       </div>

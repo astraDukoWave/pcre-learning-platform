@@ -431,6 +431,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/me/reviews/next": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Next Review
+         * @description Siguiente repaso (REQ-14): `progress` elige la actividad; la entrega es de práctica.
+         *     Con `objective`, la reparación inmediata opcional de ese objetivo.
+         */
+        get: operations["next_review_api_v1_me_reviews_next_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/assessments/{form_id}": {
         parameters: {
             query?: never;
@@ -527,6 +548,40 @@ export interface paths {
         put?: never;
         /** Reset Diagnostic */
         post: operations["reset_diagnostic_api_v1_admin_users__user_id__diagnostic_reset_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/progress": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** My Progress */
+        get: operations["my_progress_api_v1_me_progress_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/reviews": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** My Reviews */
+        get: operations["my_reviews_api_v1_me_reviews_get"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -761,6 +816,15 @@ export interface components {
             /** Is Internal */
             is_internal: boolean;
         };
+        /** AdvanceOut */
+        AdvanceOut: {
+            /** Correct */
+            correct: number;
+            /** Total */
+            total: number;
+            /** Units */
+            units: components["schemas"]["UnitAdvanceOut"][];
+        };
         /** AidContentOut */
         AidContentOut: {
             /** Kind */
@@ -771,6 +835,17 @@ export interface components {
             content: string;
             /** Remaining */
             remaining: number;
+        };
+        /** AidCountsOut */
+        AidCountsOut: {
+            /** Hint */
+            hint: number;
+            /** Support Es */
+            support_es: number;
+            /** Transcript */
+            transcript: number;
+            /** Example */
+            example: number;
         };
         /** AidIn */
         AidIn: {
@@ -1206,6 +1281,25 @@ export interface components {
              */
             state: "not_started" | "in_progress" | "completed";
         };
+        /** LearnerProgressOut */
+        LearnerProgressOut: {
+            /** Period Days */
+            period_days: number;
+            advance: components["schemas"]["AdvanceOut"];
+            initial_accuracy: components["schemas"]["RatioOut"];
+            delayed_recall: components["schemas"]["RatioOut"];
+            aids: components["schemas"]["AidCountsOut"];
+            production: components["schemas"]["ProductionOut"];
+            /** To Reinforce */
+            to_reinforce: components["schemas"]["ReinforceOut"][];
+            /** Streak Days */
+            streak_days: number;
+            /** Reviews Due */
+            reviews_due: number;
+            next_action: components["schemas"]["NextActionOut"];
+            /** Diagnostic Form Id */
+            diagnostic_form_id: string | null;
+        };
         /** LessonOut */
         LessonOut: {
             /**
@@ -1345,6 +1439,28 @@ export interface components {
             /** Onboarded */
             onboarded?: boolean | null;
         };
+        /** NextActionOut */
+        NextActionOut: {
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "lesson" | "scenario" | "review" | "done";
+            /** Item Id */
+            item_id?: string | null;
+            /** Title */
+            title?: string | null;
+            /** Reason */
+            reason?: ("in_progress" | "next") | null;
+            /** Objective */
+            objective?: string | null;
+        };
+        /** NextReviewOut */
+        NextReviewOut: {
+            review: components["schemas"]["ReviewOut"] | null;
+            /** Remaining Due */
+            remaining_due: number;
+        };
         /** ObjectiveResultOut */
         ObjectiveResultOut: {
             /** Code */
@@ -1417,6 +1533,23 @@ export interface components {
             /** Applies When Not Es */
             applies_when_not_es?: string | null;
         };
+        /** ProductionOut */
+        ProductionOut: {
+            writing: components["schemas"]["ProductionStatOut"];
+            speaking: components["schemas"]["ProductionStatOut"];
+        };
+        /** ProductionStatOut */
+        ProductionStatOut: {
+            /** Average */
+            average: number | null;
+            /** Count */
+            count: number;
+            /**
+             * Label
+             * @constant
+             */
+            label: "autoevaluación";
+        };
         /** ProgressOut */
         ProgressOut: {
             /** Started At */
@@ -1441,12 +1574,41 @@ export interface components {
             /** Version */
             version: number;
         };
+        /**
+         * RatioOut
+         * @description Numerador y denominador; con `total = 0` la interfaz dice "aún sin medición".
+         */
+        RatioOut: {
+            /** Correct */
+            correct: number;
+            /** Total */
+            total: number;
+        };
         /** ReadyOut */
         ReadyOut: {
             /** Status */
             status: string;
             /** Migration */
             migration: string;
+        };
+        /** ReinforceOut */
+        ReinforceOut: {
+            /** Objective */
+            objective: string;
+            /** Failed At */
+            failed_at: string;
+            /**
+             * Attempt Id
+             * Format: uuid
+             */
+            attempt_id: string;
+            /**
+             * Item Id
+             * Format: uuid
+             */
+            item_id: string;
+            /** Activity Key */
+            activity_key: string;
         };
         /** ResetConfirmIn */
         ResetConfirmIn: {
@@ -1461,6 +1623,43 @@ export interface components {
         ResetInfoOut: {
             /** Email */
             email: string;
+        };
+        /** ReviewItemRefOut */
+        ReviewItemRefOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Kind */
+            kind: string;
+            /** Slug */
+            slug: string;
+            /** Title */
+            title: string;
+            unit: components["schemas"]["UnitRefOut"] | null;
+        };
+        /** ReviewOut */
+        ReviewOut: {
+            /** Objective */
+            objective: string;
+            /** Due */
+            due: boolean;
+            /** Stage */
+            stage: number | null;
+            /** Repeated */
+            repeated: boolean;
+            item: components["schemas"]["ReviewItemRefOut"];
+            activity: components["schemas"]["StudentActivityOut"];
+            /** Passages */
+            passages: components["schemas"]["PassageOut"][];
+        };
+        /** ReviewsOut */
+        ReviewsOut: {
+            /** Due */
+            due: components["schemas"]["ScheduleOut"][];
+            /** Upcoming */
+            upcoming: components["schemas"]["ScheduleOut"][];
         };
         /** RevisionDetailOut */
         RevisionDetailOut: {
@@ -1628,6 +1827,19 @@ export interface components {
             /** Saved At */
             saved_at: string;
         };
+        /** ScheduleOut */
+        ScheduleOut: {
+            /** Objective */
+            objective: string;
+            /** Stage */
+            stage: number;
+            /** Due At */
+            due_at: string;
+            /** Due */
+            due: boolean;
+            /** Last Outcome */
+            last_outcome: string;
+        };
         /**
          * SelfAssessmentIn
          * @description Marca de 0 a 3 por criterio de la rúbrica, enviada después de ver la rúbrica.
@@ -1693,6 +1905,17 @@ export interface components {
         TokenIn: {
             /** Token */
             token: string;
+        };
+        /** UnitAdvanceOut */
+        UnitAdvanceOut: {
+            /** Correct */
+            correct: number;
+            /** Total */
+            total: number;
+            /** Unit */
+            unit: string;
+            /** Title */
+            title: string;
         };
         /** UnitRefOut */
         UnitRefOut: {
@@ -2538,6 +2761,37 @@ export interface operations {
             };
         };
     };
+    next_review_api_v1_me_reviews_next_get: {
+        parameters: {
+            query?: {
+                objective?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NextReviewOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     form_api_v1_assessments__form_id__get: {
         parameters: {
             query?: never;
@@ -2729,6 +2983,46 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    my_progress_api_v1_me_progress_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LearnerProgressOut"];
+                };
+            };
+        };
+    };
+    my_reviews_api_v1_me_reviews_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReviewsOut"];
                 };
             };
         };

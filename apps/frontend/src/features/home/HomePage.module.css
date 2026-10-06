@@ -1,0 +1,26 @@
+.next {
+  margin: var(--space-4) 0;
+}
+
+.primary {
+  display: inline-flex;
+  align-items: center;
+  min-height: 48px;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius);
+  background: var(--pen);
+  color: var(--surface);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.primary:focus-visible {
+  outline: var(--focus);
+  outline-offset: 3px;
+}
+
+.facts {
+  padding-left: var(--space-4);
+  display: grid;
+  gap: var(--space-2);
+}

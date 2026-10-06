@@ -31,6 +31,10 @@ class Account:
     def post(self, url: str, **kwargs: object) -> object:
         return self.client.post(url, headers=self.headers(), **kwargs)  # type: ignore[arg-type]
 
+    def relogin(self) -> None:
+        """Nueva sesión: tras mover el reloj más de 24 h, la anterior vence por inactividad."""
+        self.csrf = login(self.client, self.email, self.password)
+
 
 def create_user(
     db: Session,
