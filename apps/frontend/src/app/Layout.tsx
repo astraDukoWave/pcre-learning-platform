@@ -23,6 +23,7 @@ function Nav() {
   return (
     <nav aria-label="Principal" className={styles.nav}>
       <NavLink to="/inicio">Inicio</NavLink>
+      <NavLink to="/ruta">Ruta</NavLink>
       <NavLink to="/perfil">Perfil</NavLink>
       {me.data.role === "admin" ? <NavLink to="/admin/usuarios">Usuarios</NavLink> : null}
       <button type="button" className={styles.logout} onClick={() => logout.mutate()}>

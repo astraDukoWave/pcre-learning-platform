@@ -1,0 +1,48 @@
+.group {
+  border: 0;
+  padding: 0;
+  margin: 0 0 var(--space-4);
+  display: grid;
+  gap: var(--space-2);
+}
+
+.option {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: var(--space-3);
+  align-items: start;
+  padding: var(--space-3);
+  border: 2px solid var(--grid);
+  border-radius: var(--radius);
+  background: var(--surface);
+  cursor: pointer;
+  min-height: 48px;
+}
+
+.option input {
+  width: 22px;
+  height: 22px;
+  margin-top: 3px;
+}
+
+.chosen {
+  border-color: var(--pen);
+}
+
+.key {
+  border-color: var(--ok);
+}
+
+.missed {
+  border-color: var(--note);
+}
+
+.badge {
+  font-size: var(--step--1);
+  color: var(--ok);
+  font-weight: 700;
+}
+
+fieldset:disabled .option {
+  cursor: default;
+}

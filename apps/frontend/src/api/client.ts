@@ -47,7 +47,11 @@ export const sessionMiddleware: Middleware = {
   },
   onResponse({ response, request }) {
     const path = new URL(request.url).pathname;
-    if (response.status === 401 && !path.startsWith("/api/v1/auth/")) onUnauthorized();
+    // Solo si había sesión: un visitante anónimo (GET /me → 401) no "perdió" nada.
+    if (response.status === 401 && csrfToken !== null && !path.startsWith("/api/v1/auth/")) {
+      csrfToken = null;
+      onUnauthorized();
+    }
     return response;
   },
 };

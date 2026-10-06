@@ -66,10 +66,14 @@ describe("api client", () => {
     expect((error as ApiError).isNetwork).toBe(true);
   });
 
-  it("calls the unauthorized handler on 401 outside /auth", async () => {
+  it("calls the unauthorized handler on 401 only when there was a session", async () => {
     const handler = vi.fn();
     setUnauthorizedHandler(handler);
     mockFetch(401, { error: { code: "unauthorized", message: "x", request_id: "r" } });
+    setCsrfToken(null);
+    await unwrap(client().GET("/health")).catch(() => undefined);
+    expect(handler).not.toHaveBeenCalled();
+    setCsrfToken("csrf");
     await unwrap(client().GET("/health")).catch(() => undefined);
     expect(handler).toHaveBeenCalledTimes(1);
     setUnauthorizedHandler(() => undefined);
