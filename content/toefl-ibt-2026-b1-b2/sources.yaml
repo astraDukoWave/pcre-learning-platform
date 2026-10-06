@@ -26,3 +26,15 @@ sources:
     publisher: Council of Europe
     status: pending
     note_es: "Descriptores ilustrativos por actividad comunicativa."
+  - id: cambridge-grammar-time-prepositions
+    url: https://dictionary.cambridge.org/grammar/british-grammar/prepositions-and-particles
+    title: "Cambridge Grammar: prepositions and particles (from … to, until)"
+    publisher: Cambridge University Press
+    status: pending
+    note_es: "Uso de from … to y until para rangos de tiempo; confirmar la entrada exacta al revisar."
+  - id: cambridge-dictionary-up-to
+    url: https://dictionary.cambridge.org/dictionary/english/up-to
+    title: "Cambridge Dictionary: up to"
+    publisher: Cambridge University Press
+    status: pending
+    note_es: "Sentido de límite superior de up to; confirmar al revisar."
