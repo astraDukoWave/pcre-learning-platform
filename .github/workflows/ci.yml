@@ -1,0 +1,119 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    name: backend
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: pcre
+          POSTGRES_PASSWORD: pcre
+          POSTGRES_DB: pcre_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U pcre -d pcre_test"
+          --health-interval 5s --health-timeout 5s --health-retries 20
+    env:
+      APP_ENV: test
+      DATABASE_URL: postgresql+psycopg://pcre:pcre@127.0.0.1:5432/pcre_test
+    defaults:
+      run:
+        working-directory: apps/backend
+    steps:
+      - uses: actions/checkout@v5
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+          cache-dependency-glob: apps/backend/uv.lock
+      - name: Dependencias
+        run: uv sync --locked
+      - name: ruff check
+        run: uv run --locked ruff check .
+      - name: ruff format
+        run: uv run --locked ruff format --check .
+      - name: mypy
+        run: uv run --locked mypy app tests import_contracts.py
+      - name: import-linter
+        run: uv run --locked lint-imports
+      - name: pytest
+        run: uv run --locked pytest
+
+  migrations:
+    name: migrations
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: pcre
+          POSTGRES_PASSWORD: pcre
+          POSTGRES_DB: pcre_migcheck
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U pcre -d pcre_migcheck"
+          --health-interval 5s --health-timeout 5s --health-retries 20
+    env:
+      DATABASE_URL: postgresql+psycopg://pcre:pcre@127.0.0.1:5432/pcre_migcheck
+    steps:
+      - uses: actions/checkout@v5
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+          cache-dependency-glob: apps/backend/uv.lock
+      - name: Dependencias
+        working-directory: apps/backend
+        run: uv sync --locked
+      - name: Vacía → head, legado → head, alembic check, downgrade/upgrade
+        run: scripts/dev/migrations-check.sh
+
+  workflows:
+    name: workflows
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+          cache-dependency-glob: apps/backend/uv.lock
+      - name: actionlint
+        working-directory: apps/backend
+        run: uv run --locked actionlint -color ../../.github/workflows/*.yml
+
+  ci-gate:
+    name: ci-gate
+    if: always()
+    needs: [backend, migrations, workflows]
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Resultado de los jobs requeridos
+        env:
+          RESULTS: ${{ join(needs.*.result, ' ') }}
+        run: |
+          echo "resultados: ${RESULTS}"
+          for result in ${RESULTS}; do
+            if [ "${result}" = "failure" ] || [ "${result}" = "cancelled" ]; then
+              echo "::error::ci-gate: al menos un job terminó en ${result}"
+              exit 1
+            fi
+          done
+          echo "ci-gate: todos los jobs requeridos pasaron"
