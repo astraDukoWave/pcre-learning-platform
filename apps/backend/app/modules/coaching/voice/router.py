@@ -4,6 +4,7 @@ Sin lógica: el WebSocket valida `Origin`, la sesión de la app y el dueño ante
 
 from __future__ import annotations
 
+import contextlib
 import logging
 import uuid
 from typing import Annotated, Any
@@ -135,30 +136,40 @@ async def voice_socket(websocket: WebSocket, session_id: uuid.UUID) -> None:
     identity = get_identity(container)
     ctx = await run_in_threadpool(identity.authenticate, token) if token else None
     agent = container.voice_agent
-    if ctx is None or agent is None:
-        return await _reject(websocket, "no_session" if agent else "voice_off")
+    if agent is None or not settings.voice_enabled:  # apagado o rollback (G5)
+        return await _reject(websocket, "voice_off")
+    if ctx is None:
+        return await _reject(websocket, "no_session")
     voice = voice_service(container)
     try:
         ticket = await run_in_threadpool(voice.claim, session_id, ctx.user_id)
     except VoiceRejected as exc:
         return await _reject(websocket, exc.reason)
-    await websocket.accept()
-    config = AgentConfig(
-        listen_model=settings.voice_listen_model,
-        think_provider=settings.voice_think_provider,
-        think_model=settings.voice_think_model,
-        speak_model=settings.voice_speak_model,
-        output_sample_rate=settings.voice_output_sample_rate,
-    )
-    relay = voice_relay.VoiceRelay(
-        ticket,
-        agent=agent,
-        agent_settings=build_settings(ticket.scenario, config),
-        hooks=voice,
-        auth_session_id=ctx.session_id,
-        timings=container.voice_timings,
-    )
-    await relay.run(_Channel(websocket))
+    relay: voice_relay.VoiceRelay | None = None
+    try:
+        await websocket.accept()
+        config = AgentConfig(
+            listen_model=settings.voice_listen_model,
+            think_provider=settings.voice_think_provider,
+            think_model=settings.voice_think_model,
+            speak_model=settings.voice_speak_model,
+            output_sample_rate=settings.voice_output_sample_rate,
+        )
+        relay = voice_relay.VoiceRelay(
+            ticket,
+            agent=agent,
+            agent_settings=build_settings(ticket.scenario, config),
+            hooks=voice,
+            auth_session_id=ctx.session_id,
+            timings=container.voice_timings,
+        )
+        await relay.run(_Channel(websocket))
+    finally:
+        if relay is None:
+            # Reclamada pero el relay nunca arrancó: se cierra y se libera aquí.
+            voice_relay.PENDING_STOP.discard(session_id)
+            with contextlib.suppress(Exception):
+                await run_in_threadpool(voice.finish, session_id, reason="disconnect")
 
 
 async def _reject(websocket: WebSocket, reason: str) -> None:

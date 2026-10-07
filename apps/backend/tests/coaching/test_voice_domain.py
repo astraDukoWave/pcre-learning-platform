@@ -46,7 +46,7 @@ def test_rate_window_per_second() -> None:
 def test_transcript_marks_the_repeat_aid_and_roles() -> None:
     transcript = domain.Transcript()
     transcript.add("assistant", "Good afternoon.", 0.0)
-    transcript.pending_aid_text = domain.REPEAT_REQUEST
+    transcript.pending_repeats = 1
     aid = transcript.add("user", domain.REPEAT_REQUEST, 3.24)
     spoken = transcript.add("user", "How much is it?", 5.0)
     assert [t["role"] for t in transcript.as_list()] == ["coach", "learner", "learner"]
@@ -69,6 +69,8 @@ def test_settings_message_from_the_scenario() -> None:
     for expected in (
         "friendly receptionist",
         "Ask about the price",
+        "Stay inside this scenario",
+        "B1 to B2 level",
         "two sentences at most",
         "Never ask for personal data",
         "Never give grades, scores, bands or levels",
@@ -102,3 +104,19 @@ def test_fake_agent_url_must_be_plain_localhost() -> None:
         "http://127.0.0.1:1/x",
     ):
         assert not local_agent_url(bad), bad
+
+
+def test_a_pending_repeat_is_forgotten_when_the_next_learner_turn_differs() -> None:
+    """Verificador ronda 2: sin eco de la ayuda (o con `InjectionRefused`), un «Could you
+    repeat that?» dicho después por el alumno es suyo; dos «repetir» seguidos marcan sus dos
+    ecos."""
+    transcript = domain.Transcript()
+    transcript.pending_repeats = 1
+    own = transcript.add("user", "Sorry, how much is it?", 2.0)
+    later = transcript.add("user", domain.REPEAT_REQUEST, 6.0)
+    assert not own.aid and not later.aid and transcript.pending_repeats == 0
+    transcript.pending_repeats = 2
+    first = transcript.add("user", domain.REPEAT_REQUEST, 8.0)
+    transcript.add("assistant", "Sure.", 9.0)
+    second = transcript.add("user", domain.REPEAT_REQUEST, 10.0)
+    assert first.aid and second.aid and transcript.pending_repeats == 0
