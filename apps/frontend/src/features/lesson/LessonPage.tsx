@@ -1,6 +1,7 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { Link, useParams } from "react-router";
+import { useCapabilities } from "../feedback/capabilities";
 import { api, unwrap } from "../../api/client";
 import { ApiError } from "../../api/errors";
 import { ErrorNotice } from "../../components/ErrorNotice";
@@ -19,6 +20,7 @@ function firstUnanswered(lesson: Lesson): number {
 
 /** Lección o escenario (modo texto): misma estructura de actividades con estado propio. */
 export function LessonPage({ kind = "lesson" }: { kind?: "lesson" | "scenario" }) {
+  const capabilities = useCapabilities();
   const { itemId = "" } = useParams();
   const qc = useQueryClient();
   const query = useQuery({
@@ -92,6 +94,11 @@ export function LessonPage({ kind = "lesson" }: { kind?: "lesson" | "scenario" }
             </>
           ) : null}
           <p className={styles.not}>Práctica en modo texto. No es una tarea del examen oficial.</p>
+          {capabilities.data?.voice ? (
+            <p>
+              <Link to={`/escenarios/${lesson.id}/voz`}>Practicar este escenario por voz con el coach</Link>
+            </p>
+          ) : null}
         </section>
       ) : null}
       {lesson.pcre ? (
