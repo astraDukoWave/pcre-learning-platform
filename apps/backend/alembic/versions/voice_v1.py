@@ -36,6 +36,7 @@ def upgrade() -> None:
         sa.Column("started_at", sa.DateTime(timezone=True), nullable=True),
         sa.Column("ended_at", sa.DateTime(timezone=True), nullable=True),
         sa.Column("end_reason", sa.String(length=20), nullable=True),
+        sa.Column("learner_speech_ms", sa.Integer(), server_default=sa.text("0"), nullable=False),
         sa.Column(
             "aids",
             postgresql.JSONB(astext_type=sa.Text()),

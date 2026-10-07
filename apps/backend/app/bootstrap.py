@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from typing import Any
+from urllib.parse import urlsplit
 
 from sqlalchemy import Engine
 
@@ -70,17 +71,29 @@ def build_speech_to_text(settings: Settings) -> SpeechToText | None:
     return None
 
 
-LOCAL_AGENT = ("ws://127.0.0.1:", "ws://localhost:")
+LOCAL_HOSTS = frozenset({"127.0.0.1", "localhost"})
+
+
+def local_agent_url(url: str | None) -> bool:
+    """`ws://` a localhost, sin usuario ni contraseña (el Deepgram falso de las pruebas)."""
+    if not url:
+        return False
+    parts = urlsplit(url)
+    return (
+        parts.scheme == "ws"
+        and parts.hostname in LOCAL_HOSTS
+        and parts.username is None
+        and parts.password is None
+    )
 
 
 def build_voice_agent(settings: Settings) -> VoiceAgent | None:
     """Deepgram con llave (G5); el falso solo fuera de producción y en localhost."""
     model = settings.voice_think_model
     if settings.voice_provider == "fake":
-        url = settings.voice_agent_url or ""
-        if settings.app_env == "prod" or not url.startswith(LOCAL_AGENT):
+        if settings.app_env == "prod" or not local_agent_url(settings.voice_agent_url):
             return None
-        return DeepgramVoiceAgent(None, model=model, url=url)
+        return DeepgramVoiceAgent(None, model=model, url=str(settings.voice_agent_url))
     if settings.deepgram_api_key is not None:
         return DeepgramVoiceAgent(settings.deepgram_api_key.get_secret_value(), model=model)
     return None

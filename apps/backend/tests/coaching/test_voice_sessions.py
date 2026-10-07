@@ -8,6 +8,7 @@ El relay toca la base desde otros hilos: estas pruebas usan commits reales
 
 from __future__ import annotations
 
+import asyncio
 import json
 import time
 import uuid
@@ -514,3 +515,192 @@ def test_per_second_limits_on_audio_and_control_messages(world: World) -> None:
     wait_closed(session_id, world.container)
     assert world.fake.connections[0].audio_bytes <= 50 * 100
     assert len(session_row(world.container, session_id).aids) <= 5
+
+
+class MemoryChannel:
+    """Cliente en memoria para manejar el relay sin WebSocket."""
+
+    def __init__(self) -> None:
+        self.sent: list[Any] = []
+        self.closed = asyncio.Event()
+
+    async def receive(self) -> bytes | str | None:
+        await self.closed.wait()
+        return None
+
+    async def send_bytes(self, data: bytes) -> None:
+        self.sent.append(data)
+
+    async def send_json(self, data: dict[str, Any]) -> None:
+        self.sent.append(data)
+
+    async def close(self, code: int = 1000) -> None:
+        self.closed.set()
+
+
+def relay_for(world: World, session_id: str, user_id: uuid.UUID) -> tuple[Any, Any]:
+    from app.modules.coaching.voice.relay import VoiceRelay
+    from app.modules.coaching.voice.router import voice_service
+    from app.modules.coaching.voice.settings_builder import AgentConfig, build_settings
+
+    service = voice_service(world.container)
+    ticket = service.claim(uuid.UUID(session_id), user_id)  # lo que hace el WebSocket
+    config = AgentConfig("nova-3", "open_ai", "gpt-4o-mini", "aura-2-thalia-en", 24_000)
+    relay = VoiceRelay(
+        ticket,
+        agent=world.container.voice_agent,  # type: ignore[arg-type]
+        agent_settings=build_settings(ticket.scenario, config),
+        hooks=service,
+        auth_session_id=uuid.uuid4(),
+        timings=FAST,
+    )
+    return service, relay
+
+
+def test_stop_while_the_relay_is_starting_never_converses(world: World) -> None:
+    """Verificador F1: un POST /stop entre la conexión (claim) y el arranque del relay no
+    libera la reserva mientras el relay conversa: el relay se detiene sin conversar."""
+    client, csrf, user_id = world.student("carrera")
+    session_id = create(client, csrf, world.scenario_id).json()["id"]
+    _, relay = relay_for(world, session_id, user_id)
+    stopped = client.post(
+        f"/api/v1/voice-sessions/{session_id}/stop", headers={"X-CSRF-Token": csrf}
+    ).json()
+    assert stopped["status"] == "reserved"  # no la cierra: el relay está arrancando
+    assert uuid.UUID(session_id) in voice_relay.PENDING_STOP
+    summary = asyncio.run(relay.run(MemoryChannel()))
+    assert summary["status"] == "failed" and summary["end_reason"] == "user_stop"
+    assert world.fake.connections == []  # nunca habló con el proveedor
+    assert run_of(world.container, session_id).status == "failed"  # reserva liberada
+
+
+def test_a_session_closed_meanwhile_is_not_activated(world: World) -> None:
+    client, csrf, user_id = world.student("cerrada")
+    session_id = create(client, csrf, world.scenario_id).json()["id"]
+    service, relay = relay_for(world, session_id, user_id)
+    service.finish(uuid.UUID(session_id), reason="expired")  # el barrido llegó primero
+    channel = MemoryChannel()
+    asyncio.run(relay.run(channel))
+    assert not any(isinstance(m, dict) and m.get("type") == "ready" for m in channel.sent)
+    assert world.fake.wait_closed() is not None  # el proveedor se cerró sin conversar
+    assert session_row(world.container, session_id).status == "failed"
+
+
+def test_a_failing_session_check_does_not_stop_the_deadline(
+    world: World, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Verificador F2: un error de la base al revisar la sesión de la app no mata al relay;
+    el deadline tiene su propio temporizador."""
+    from app.modules.coaching.voice.service import VoiceService
+
+    def broken(self: Any, auth_session_id: uuid.UUID) -> bool:
+        raise RuntimeError("pool agotado")
+
+    monkeypatch.setattr(VoiceService, "session_alive", broken)
+    world.container.settings = world.container.settings.model_copy(
+        update={"voice_max_session_s": 2}
+    )
+    world.app = create_app(world.container.settings, container=world.container)
+    client, csrf, _ = world.student("checkfalla")
+    session_id = create(client, csrf, world.scenario_id).json()["id"]
+    with connect(client, session_id) as ws:
+        receive_until(ws, "ready")
+        ws.send_json({"type": "aid", "kind": "hint"})  # también revisa la sesión
+        ended, _ = receive_until(ws, "ended", limit=80)
+    assert ended["reason"] == "deadline"
+    wait_closed(session_id, world.container)
+
+
+def test_a_dying_task_or_activation_error_still_closes_and_settles(
+    world: World, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Verificador F2 y F3: una tarea que muere o un error al activar cierran al proveedor y
+    concilian, con `provider_error`."""
+    from app.modules.coaching.voice import domain as voice_domain
+    from app.modules.coaching.voice.service import VoiceService
+
+    def explode(self: Any, role: str, text: str, at_s: float) -> Any:
+        raise RuntimeError("bug")
+
+    monkeypatch.setattr(voice_domain.Transcript, "add", explode)
+    client, csrf, _ = world.student("tarea")
+    session_id = create(client, csrf, world.scenario_id).json()["id"]
+    with connect(client, session_id) as ws:
+        ended, _ = receive_until(ws, "ended", limit=80)
+    assert ended["reason"] == "provider_error"
+    wait_closed(session_id, world.container)
+    assert world.fake.connections[-1].closed_at is not None
+    assert run_of(world.container, session_id).status == "succeeded"  # empezó: se concilia
+    monkeypatch.undo()
+
+    def fail_activation(self: Any, session_id: uuid.UUID) -> Any:
+        raise RuntimeError("base caída")
+
+    monkeypatch.setattr(VoiceService, "mark_active", fail_activation)
+    other, other_csrf, _ = world.student("activacion")
+    second = create(other, other_csrf, world.scenario_id).json()["id"]
+    with connect(other, second) as ws:
+        ended, _ = receive_until(ws, "ended", limit=80)
+    assert ended["reason"] == "provider_error"
+    wait_closed(second, world.container)
+    assert world.fake.connections[-1].closed_at is not None
+    assert run_of(world.container, second).status == "failed"  # nunca empezó: se libera
+
+
+def test_sweep_releases_reservations_left_without_a_session(world: World) -> None:
+    """Verificador F4: una reserva de voz abierta sin sesión (falla entre dos commits)."""
+    from app.modules.usage.service import UsageService
+
+    c = world.container
+    _, _, user_id = world.student("sinsesion")
+    usage = UsageService(c.uow, c.clock, c.settings, c.provider_ready)
+    run = usage.reserve(
+        user_id,
+        purpose="voice_session",
+        amount=375_000,
+        idempotency_key="perdida",
+        provider="deepgram",
+        voice_seconds=300,
+    )
+    with c.uow() as s:
+        row = s.get(AiRun, run.run_id)
+        assert row is not None
+        row.created_at = row.created_at - timedelta(minutes=15)
+    from app.modules.coaching.voice.router import voice_service
+
+    assert voice_service(c).sweep() == 1
+    with c.uow() as s:
+        row = s.get(AiRun, run.run_id)
+        assert row is not None and row.status == "failed"
+        budget = s.scalars(select(BudgetPeriod).where(BudgetPeriod.user_id == user_id)).one()
+        assert budget.reserved_microusd == 0
+
+
+def test_no_key_reaches_the_browser_or_debug_logs(
+    world: World, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """AC-15 (mensajes) y verificador F6: la llave solo viaja al proveedor."""
+    from app.core.logging import configure_logging
+
+    key = "clave-secreta-de-prueba-voz-123"
+    world.container.voice_agent = DeepgramVoiceAgent(key, model="fake-agent", url=world.fake.url)
+    world.app = create_app(world.container.settings, container=world.container)
+    configure_logging("DEBUG")
+    try:
+        client, csrf, _ = world.student("llave")
+        created = create(client, csrf, world.scenario_id)
+        seen = [created.text]
+        with connect(client, created.json()["id"]) as ws:
+            for _ in range(6):
+                message = ws.receive()
+                seen.append(message.get("text") or "")
+            ws.send_json({"type": "stop"})
+            _, rest = receive_until(ws, "ended", limit=80)
+            seen += [json.dumps(m) for m in rest if isinstance(m, dict)]
+        wait_closed(created.json()["id"], world.container)
+        seen.append(client.get(f"/api/v1/voice-sessions/{created.json()['id']}").text)
+    finally:
+        configure_logging("INFO")
+    assert world.fake.connections[-1].headers.get("authorization") == f"Token {key}"
+    assert all(key not in text for text in seen)
+    assert key not in capsys.readouterr().out

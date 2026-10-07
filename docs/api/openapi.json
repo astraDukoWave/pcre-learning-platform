@@ -7351,6 +7351,10 @@
             ],
             "title": "Duration S"
           },
+          "learner_speech_s": {
+            "type": "number",
+            "title": "Learner Speech S"
+          },
           "aids": {
             "items": {
               "$ref": "#/components/schemas/VoiceAidOut"
@@ -7399,6 +7403,7 @@
           "ended_at",
           "end_reason",
           "duration_s",
+          "learner_speech_s",
           "aids",
           "transcript",
           "feedback"

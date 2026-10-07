@@ -1,10 +1,11 @@
 """Deepgram Voice Agent falso: servidor `websockets` local con un guion fijo (MVP-02 CS-05).
 
 Emite `Welcome` al conectar; con `Settings`, `SettingsApplied`, el saludo
-(`ConversationText` del asistente), audio binario y `AgentAudioDone`. Cada segundo de audio
-del alumno (32 000 bytes de linear16 a 16 kHz) produce `UserStartedSpeaking`, el turno del
-alumno del guion y la respuesta del coach. Responde a `InjectUserMessage`,
-`InjectAgentMessage` y `UpdatePrompt`, y registra cada mensaje recibido y la hora de cierre.
+(`ConversationText` del asistente), audio binario y `AgentAudioDone`. El primer audio de
+un turno del alumno produce `UserStartedSpeaking`; al completar un segundo (32 000 bytes
+de linear16 a 16 kHz), el turno del alumno del guion y la respuesta del coach. Responde a
+`InjectUserMessage`, `InjectAgentMessage` y `UpdatePrompt`, y registra cada mensaje recibido
+y la hora de cierre.
 
 Uso en pruebas: `with FakeDeepgramAgent() as fake:` y `VOICE_AGENT_URL=fake.url`. Uso
 independiente (E2E): `python -m tests.fakes.deepgram_agent --port 8765`.
@@ -129,10 +130,12 @@ class FakeDeepgramAgent:
             async for message in ws:
                 if isinstance(message, bytes):
                     conn.audio_bytes += len(message)
+                    if buffered == 0:  # empieza un turno del alumno
+                        await ws.send(json.dumps({"type": "UserStartedSpeaking"}))
                     buffered += len(message)
                     if buffered >= BYTES_PER_LEARNER_TURN:
                         buffered = 0
-                        await self._learner_turn(ws, LEARNER_LINES[turn % len(LEARNER_LINES)])
+                        await self._learner_said(ws, LEARNER_LINES[turn % len(LEARNER_LINES)])
                         await self._coach(ws, COACH_LINES[turn % len(COACH_LINES)])
                         turn += 1
                     continue
@@ -166,6 +169,9 @@ class FakeDeepgramAgent:
 
     async def _learner_turn(self, ws: ServerConnection, text: str) -> None:
         await ws.send(json.dumps({"type": "UserStartedSpeaking"}))
+        await self._learner_said(ws, text)
+
+    async def _learner_said(self, ws: ServerConnection, text: str) -> None:
         await ws.send(json.dumps({"type": "ConversationText", "role": "user", "content": text}))
 
     async def _coach(self, ws: ServerConnection, text: str) -> None:

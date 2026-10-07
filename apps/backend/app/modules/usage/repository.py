@@ -169,3 +169,15 @@ def latest_run_for_attempt(
 
 def run(s: Session, run_id: uuid.UUID) -> AiRun | None:
     return s.get(AiRun, run_id)
+
+
+def open_runs(s: Session, purpose: str, created_before: datetime) -> list[AiRun]:
+    return list(
+        s.scalars(
+            select(AiRun).where(
+                AiRun.purpose == purpose,
+                AiRun.status.in_(("reserved", "running")),
+                AiRun.created_at < created_before,
+            )
+        )
+    )
