@@ -169,7 +169,7 @@ def server() -> Iterator[Server]:
         "APP_ENV": "test",
         "DATABASE_URL": DATABASE_URL,
         "FRONTEND_DIST": str(DIST),
-        "LOG_LEVEL": "WARNING",
+        "LOG_LEVEL": os.environ.get("E2E_LOG_LEVEL", "WARNING"),
         "LOG_SALT": "e2e",
         "TEST_CLOCK_ENABLED": "true",
         "CONTENT_DIR": str(content),
@@ -215,13 +215,27 @@ FUNDED_ENV = {
 
 
 @pytest.fixture(scope="session")
-def funded_server(server: Server) -> Iterator[Server]:
+def fake_deepgram() -> Iterator[object]:
+    """Deepgram Voice Agent falso (`apps/backend/tests/fakes/deepgram_agent.py`) en este
+    proceso; el servidor con presupuesto se conecta a él por `ws://127.0.0.1`."""
+    sys.path.insert(0, str(BACKEND))
+    from tests.fakes.deepgram_agent import FakeDeepgramAgent
+
+    with FakeDeepgramAgent() as fake:
+        yield fake
+
+
+@pytest.fixture(scope="session")
+def funded_server(server: Server, fake_deepgram: object) -> Iterator[Server]:
     """Segundo proceso sobre la misma base ya preparada, con las capacidades de MVP-02
     encendidas y sus dobles; el servidor principal las deja apagadas (AC-02)."""
     port = _free_port()
     env = {
         **server.env,
         **FUNDED_ENV,
+        "VOICE_ENABLED": "true",
+        "VOICE_PROVIDER": "fake",
+        "VOICE_AGENT_URL": str(getattr(fake_deepgram, "url")),  # noqa: B009
         "DEV_ALLOWED_ORIGINS": f"http://localhost:{port},http://127.0.0.1:{port}",
     }
     srv = Server(port=port, env=env, log=RESULTS / "server-funded.log")

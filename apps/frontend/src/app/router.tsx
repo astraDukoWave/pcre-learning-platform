@@ -9,6 +9,7 @@ import { AdminUsers } from "../features/admin/users/AdminUsers";
 import { AssessmentPage } from "../features/assessment/AssessmentPage";
 import { RunPage } from "../features/assessment/RunPage";
 import { RequireAuth } from "../features/auth/guards";
+import { CoachPage } from "../features/coach/CoachPage";
 import { LessonPage } from "../features/lesson/LessonPage";
 import { PathPage } from "../features/path/PathPage";
 import { ProgressPage } from "../features/progress/ProgressPage";
@@ -55,6 +56,7 @@ export const routes: RouteObject[] = [
       { path: "progreso", element: auth(<ProgressPage />) },
       { path: "lecciones/:itemId", element: auth(<LessonPage />) },
       { path: "escenarios/:itemId", element: auth(<LessonPage kind="scenario" />) },
+      { path: "escenarios/:itemId/voz", element: auth(<CoachPage />) },
       { path: "comprobaciones/:formId", element: auth(<AssessmentPage />) },
       { path: "corridas/:runId", element: auth(<RunPage />) },
       { path: "admin/usuarios", element: admin(<AdminUsers />) },

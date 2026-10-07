@@ -1,0 +1,116 @@
+.mode {
+  color: var(--ink-soft);
+  font-size: var(--step--1);
+}
+
+.intro,
+.live,
+.summary {
+  display: grid;
+  gap: var(--space-3);
+  max-width: 46rem;
+}
+
+.consent {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 44px;
+}
+
+.consent input {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.actions,
+.aids {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  align-items: center;
+}
+
+.textMode {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+}
+
+.phase {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--step-1);
+  font-weight: 700;
+}
+
+.phase > span {
+  width: 0.9rem;
+  height: 0.9rem;
+  border-radius: 50%;
+  background: var(--grid);
+}
+
+.phase > .listening {
+  background: var(--pen);
+}
+
+.phase > .coach_speaking {
+  background: var(--ink);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .phase > .listening,
+  .phase > .connecting {
+    animation: pulse 1.4s ease-in-out infinite;
+  }
+}
+
+@keyframes pulse {
+  50% {
+    opacity: 0.35;
+  }
+}
+
+.time {
+  font-variant-numeric: tabular-nums;
+}
+
+.warning {
+  color: var(--ink);
+  font-weight: 700;
+}
+
+.turns {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: var(--space-2);
+  max-height: 20rem;
+  overflow-y: auto;
+}
+
+.turns li {
+  padding: var(--space-2);
+  border-radius: var(--radius);
+  border: 1px solid var(--grid);
+}
+
+.coach {
+  background: var(--surface);
+}
+
+.learner {
+  background: var(--paper);
+}
+
+.who {
+  font-weight: 700;
+}
+
+.aid {
+  color: var(--ink-soft);
+  font-size: var(--step--1);
+}

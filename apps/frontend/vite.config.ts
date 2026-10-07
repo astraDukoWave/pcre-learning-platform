@@ -13,6 +13,8 @@ export default defineConfig({
     outDir: "dist",
     assetsDir: "assets",
     sourcemap: false,
+    // Nada en línea como `data:`: la CSP solo permite scripts, worklets y fuentes de 'self'.
+    assetsInlineLimit: 0,
   },
   server: {
     port: 5173,
