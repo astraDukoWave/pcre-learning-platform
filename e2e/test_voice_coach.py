@@ -30,9 +30,9 @@ def test_voice_coach_conversation(funded_contexts: Contexts) -> None:
         sockets.append(ws.url)
         ws.on(
             "framereceived",
-            lambda payload: audio_frames.append(len(payload))
-            if isinstance(payload, bytes)
-            else None,
+            lambda payload: (
+                audio_frames.append(len(payload)) if isinstance(payload, bytes) else None
+            ),
         )
 
     page.on("websocket", watch)
