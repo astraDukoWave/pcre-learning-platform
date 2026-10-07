@@ -1,7 +1,7 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { cleanup, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { useState } from "react";
+import { StrictMode, useState } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { type VoiceSession, VoiceFeedback, voiceReason } from "./VoiceFeedback";
 
@@ -63,17 +63,23 @@ function Harness({ initial }: { initial: VoiceSession }) {
   return <VoiceFeedback session={current} onSession={setCurrent} />;
 }
 
-function renderWith(initial: VoiceSession, handler: (req: Request) => Response) {
+function renderWith(initial: VoiceSession, handler: (req: Request) => Response | Promise<Response>) {
   const fetchFn = vi.fn(async (input: Request) => handler(input));
   vi.stubGlobal("fetch", fetchFn);
   const qc = new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } });
+  // StrictMode como en main.tsx: monta dos veces y la petición automática sigue siendo una.
   render(
-    <QueryClientProvider client={qc}>
-      <Harness initial={initial} />
-    </QueryClientProvider>,
+    <StrictMode>
+      <QueryClientProvider client={qc}>
+        <Harness initial={initial} />
+      </QueryClientProvider>
+    </StrictMode>,
   );
   return fetchFn;
 }
+
+const posts = (fetchFn: ReturnType<typeof vi.fn>) =>
+  (fetchFn.mock.calls as [Request][]).filter(([r]) => r.method === "POST").map(([r]) => r);
 
 afterEach(() => vi.unstubAllGlobals());
 
@@ -88,9 +94,12 @@ describe("voice session feedback", () => {
     });
     expect(await screen.findByText("Preguntaste el precio.")).toBeInTheDocument();
     expect(screen.getByText("Feedback automático orientativo (IA)")).toBeInTheDocument();
-    expect(screen.getByText(/\(turno 4\)/)).toBeInTheDocument();
-    const marks = document.querySelectorAll("li mark");
-    expect([...marks].map((m) => m.textContent)).toContain("How much does the course1");
+    // La evidencia se marca solo en el turno citado (el 4), con el número de su observación.
+    const items = [...document.querySelectorAll("details li")];
+    const cited = items.find((li) => li.textContent?.includes("cost?"));
+    expect(cited?.querySelector("mark")?.textContent).toBe("How much does the course1");
+    const other = items.find((li) => li.textContent?.includes("I want to join a course."));
+    expect(other?.querySelector("mark")).toBeNull();
     // El turno de ayuda no se puede disputar; los propios sí.
     expect(screen.getAllByRole("button", { name: /Eso no fue lo que dije/ })).toHaveLength(2);
     expect(fetchFn.mock.calls.filter(([r]) => r.method === "POST")).toHaveLength(1);
@@ -152,5 +161,84 @@ describe("voice session feedback", () => {
     const retry = await screen.findByRole("button", { name: "Pedir el feedback otra vez" });
     await userEvent.click(retry);
     await waitFor(() => expect(calls).toBe(2));
+  });
+
+  it("after a failed result the retry uses a new key; after a network error, the same key", async () => {
+    let n = 0;
+    const fetchFn = renderWith(session(), (req) => {
+      if (req.method !== "POST") return json(200, session());
+      n += 1;
+      if (n === 1) return json(200, { status: "failed", reason: "http_503", run_id: RUN, observations: [], hidden: 0 });
+      if (n === 2) throw new TypeError("Failed to fetch");
+      return json(200, FEEDBACK);
+    });
+    await userEvent.click(await screen.findByRole("button", { name: "Pedir el feedback otra vez" }));
+    await userEvent.click(await screen.findByRole("button", { name: "Pedir el feedback otra vez" }));
+    expect(await screen.findByText("Preguntaste el precio.")).toBeInTheDocument();
+    const keys = posts(fetchFn).map((r) => r.headers.get("Idempotency-Key"));
+    expect(keys).toHaveLength(3);
+    expect(keys[1]).not.toBe(keys[0]); // tras `failed`, otra clave
+    expect(keys[2]).toBe(keys[1]); // tras una falla de red, la misma
+  });
+
+  it("waits for the session to close, then shows the result", async () => {
+    let n = 0;
+    renderWith(session(), (req) => {
+      if (req.method !== "POST") return json(200, session({ feedback: FEEDBACK as VoiceSession["feedback"] }));
+      n += 1;
+      return n === 1
+        ? json(409, { error: { code: "voice_session_open", message: "La sesión sigue abierta." } })
+        : json(200, FEEDBACK);
+    });
+    expect(await screen.findByText("Preguntaste el precio.", {}, { timeout: 3000 })).toBeInTheDocument();
+  });
+
+  it("unknown, unavailable and not evaluable explain themselves without a dead end", async () => {
+    renderWith(session(), () =>
+      json(200, { status: "unknown", reason: "timeout", run_id: RUN, observations: [], hidden: 0 }),
+    );
+    expect(await screen.findByText(/Estamos verificando/)).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Pedir el feedback otra vez" })).toBeNull();
+    cleanup();
+    renderWith(session(), () =>
+      json(503, { error: { code: "capability_disabled", message: "No disponible." } }),
+    );
+    expect(await screen.findByText("El feedback no está disponible ahora.")).toBeInTheDocument();
+    expect(screen.getAllByText("El feedback no está disponible ahora.")).toHaveLength(1);
+    expect(screen.queryByRole("button", { name: "Pedir el feedback otra vez" })).toBeNull();
+    cleanup();
+    renderWith(session({ learner_speech_s: 12 }), (req) =>
+      req.method === "POST"
+        ? json(200, { status: "not_evaluable", reason: "too_little_speech", observations: [], hidden: 0 })
+        : json(200, session()),
+    );
+    // Visible y anunciado en la región viva.
+    expect(await screen.findAllByText(/hablaste menos de 30 segundos/)).toHaveLength(2);
+    expect(screen.getByRole("status")).toHaveTextContent(/hablaste menos de 30 segundos/);
+  });
+
+  it("re-reads a session whose transcript was not saved yet", async () => {
+    const fetchFn = renderWith(session({ status: "active", transcript: null }), (req) =>
+      req.method === "POST"
+        ? json(503, { error: { code: "capability_disabled", message: "No disponible." } })
+        : json(200, session()),
+    );
+    expect(await screen.findByText(/Transcripción \(4 turnos\)/)).toBeInTheDocument();
+    expect((fetchFn.mock.calls as [Request][]).some(([r]) => r.method === "GET")).toBe(true);
+  });
+
+  it("flag buttons wait while the feedback is being analysed", async () => {
+    let release: (r: Response) => void = () => undefined;
+    renderWith(session(), (req) =>
+      req.method === "POST" ? new Promise<Response>((resolve) => (release = resolve)) : json(200, session()),
+    );
+    const buttons = await screen.findAllByRole("button", { name: /Eso no fue lo que dije/ });
+    expect(buttons.every((b) => (b as HTMLButtonElement).disabled)).toBe(true);
+    release(json(200, FEEDBACK));
+    await waitFor(() =>
+      expect(
+        screen.getAllByRole("button", { name: /Eso no fue lo que dije/ }).every((b) => !(b as HTMLButtonElement).disabled),
+      ).toBe(true),
+    );
   });
 });

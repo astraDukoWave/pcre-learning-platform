@@ -1,4 +1,5 @@
 import { useMutation } from "@tanstack/react-query";
+import type React from "react";
 import { useEffect, useRef, useState } from "react";
 import { api, newIdempotencyKey, unwrap } from "../../api/client";
 import { ApiError } from "../../api/errors";
@@ -42,7 +43,7 @@ function Observations({ data }: { data: VoiceFeedbackData }) {
                 <Highlight>
                   <span lang="en">{o.evidence}</span>
                 </Highlight>
-                »{o.turn ? ` (turno ${o.turn})` : null}
+                »
               </p>
               <p>{o.observation_es}</p>
               <p>{o.suggestion_es}</p>
@@ -66,11 +67,14 @@ function Transcript({
   observations,
   disputing,
   onDispute,
+  focusTurn,
 }: {
   session: VoiceSession;
   observations: VoiceObservation[];
   disputing: boolean;
   onDispute: (n: number) => void;
+  /** Turno recién marcado: su aviso recibe el foco (el botón desaparece). */
+  focusTurn: React.RefObject<number | null>;
 }) {
   const turns = session.transcript ?? [];
   return (
@@ -104,7 +108,19 @@ function Transcript({
               {t.aid ? <span className={styles.aid}> (ayuda)</span> : null}
               {t.role === "learner" && !t.aid ? (
                 t.disputed ? (
-                  <span className={styles.aid}> · Marcaste que no fue lo que dijiste</span>
+                  <span
+                    className={styles.aid}
+                    tabIndex={-1}
+                    ref={(el) => {
+                      if (el && focusTurn.current === t.n) {
+                        focusTurn.current = null;
+                        el.focus();
+                      }
+                    }}
+                  >
+                    {" "}
+                    · Marcaste que no fue lo que dijiste
+                  </span>
                 ) : (
                   <button
                     type="button"
@@ -139,6 +155,16 @@ export function VoiceFeedback({
   const [local, setLocal] = useState<VoiceFeedbackData | null>(null);
   // La misma clave en un reintento tras una falla de red; una nueva tras cada resultado.
   const key = useRef<string | null>(null);
+  // La sesión se vuelve a leer si al pedir el feedback todavía no tenía la transcripción
+  // guardada (p. ej., se perdió la conexión antes de `ended` y el cierre iba detrás).
+  const refresh = async () => {
+    onSession(
+      await unwrap(
+        api.GET("/api/v1/voice-sessions/{session_id}", { params: { path: { session_id: session.id } } }),
+      ),
+    );
+  };
+  const stale = session.save_transcript && (!session.transcript || session.status === "active");
   const ask = useMutation({
     mutationFn: () => {
       key.current ??= newIdempotencyKey();
@@ -151,18 +177,17 @@ export function VoiceFeedback({
     // El cierre de la sesión puede ir un instante detrás del navegador.
     retry: (count, err) => err instanceof ApiError && err.code === "voice_session_open" && count < 5,
     retryDelay: 1000,
-    onSuccess: async (result) => {
-      key.current = null;
+    onSuccess: (result) => {
+      key.current = null; // un resultado cierra la clave: un `failed` se reintenta con otra
       setLocal(result);
-      if (result.status === "evaluable" || result.status === "not_evaluable") {
-        onSession(
-          await unwrap(
-            api.GET("/api/v1/voice-sessions/{session_id}", { params: { path: { session_id: session.id } } }),
-          ),
-        );
+    },
+    onSettled: async (result) => {
+      if (result?.status === "evaluable" || result?.status === "not_evaluable" || stale) {
+        await refresh().catch(() => undefined);
       }
     },
   });
+  const focusTurn = useRef<number | null>(null);
   const dispute = useMutation({
     mutationFn: (n: number) =>
       unwrap(
@@ -170,7 +195,10 @@ export function VoiceFeedback({
           params: { path: { session_id: session.id, n } },
         }),
       ),
-    onSuccess: onSession,
+    onSuccess: (updated, n) => {
+      focusTurn.current = n;
+      onSession(updated);
+    },
   });
 
   const consent = session.save_transcript;
@@ -184,10 +212,24 @@ export function VoiceFeedback({
   }, [consent, session.feedback, requestFeedback]);
 
   const feedback = session.feedback ?? local;
-  const error = ask.error;
+  const error = ask.isPending ? null : ask.error;
   const unavailable = error instanceof ApiError && UNAVAILABLE.has(error.code);
   const inProgress = error instanceof ApiError && error.code === "feedback_in_progress";
   const observations = feedback?.status === "evaluable" ? (feedback.observations ?? []) : [];
+  const hidden = feedback?.hidden ?? 0;
+  // Se puede volver a pedir tras un `failed` (con otra clave) o tras un error que no es
+  // "no disponible" (red, en curso, cierre atrasado: con la misma clave).
+  const canRetry =
+    consent && !ask.isPending && !unavailable && (feedback?.status === "failed" || (!feedback && !!error));
+  const announcement = ask.isPending
+    ? "Analizando tu conversación…"
+    : feedback?.status === "evaluable"
+      ? `Feedback listo: ${observations.length} ${observations.length === 1 ? "observación" : "observaciones"}${
+          hidden ? `; ${hidden} oculta${hidden === 1 ? "" : "s"} por turnos marcados` : ""
+        }.`
+      : feedback?.status === "not_evaluable" && consent
+        ? `No pudimos comentar esta conversación: ${voiceReason(feedback.reason)}.`
+        : "";
 
   return (
     <section aria-label="Feedback de la práctica" className={feedbackStyles.ai}>
@@ -196,7 +238,10 @@ export function VoiceFeedback({
           No guardamos la transcripción ni pedimos feedback porque no marcaste la casilla.
         </p>
       ) : null}
-      {ask.isPending ? <p role="status">Analizando tu conversación…</p> : null}
+      <p className="visually-hidden" role="status" aria-live="polite">
+        {announcement}
+      </p>
+      {ask.isPending ? <p aria-hidden="true">Analizando tu conversación…</p> : null}
       {feedback?.status === "evaluable" ? <Observations data={feedback} /> : null}
       {feedback?.status === "not_evaluable" && consent ? (
         <p>No pudimos comentar esta conversación: {voiceReason(feedback.reason)}.</p>
@@ -204,27 +249,23 @@ export function VoiceFeedback({
       {feedback?.status === "unknown" ? (
         <Notice tone="note">Estamos verificando el feedback de esta práctica; no se volverá a pedir solo.</Notice>
       ) : null}
-      {feedback?.status === "failed" ? (
+      {unavailable || feedback?.status === "failed" ? <p>El feedback no está disponible ahora.</p> : null}
+      {inProgress ? <p>El feedback sigue en curso. Vuelve a pedirlo en unos segundos.</p> : null}
+      {!unavailable && !inProgress ? <ErrorNotice error={error} /> : null}
+      {canRetry ? (
         <div className={feedbackStyles.actions}>
-          <p>El feedback no está disponible ahora.</p>
-          <Button variant="secondary" busy={ask.isPending} onClick={() => ask.mutate()}>
+          <Button variant="secondary" onClick={() => ask.mutate()}>
             Pedir el feedback otra vez
           </Button>
         </div>
       ) : null}
-      {unavailable ? (
-        <p>El feedback no está disponible ahora.</p>
-      ) : inProgress ? (
-        <p>El feedback sigue en curso. Vuelve en unos segundos.</p>
-      ) : (
-        <ErrorNotice error={error} />
-      )}
       {session.transcript ? (
         <Transcript
           session={session}
           observations={observations}
-          disputing={dispute.isPending}
+          disputing={dispute.isPending || ask.isPending}
           onDispute={(n) => dispute.mutate(n)}
+          focusTurn={focusTurn}
         />
       ) : null}
       <ErrorNotice error={dispute.error} />

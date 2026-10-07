@@ -185,13 +185,22 @@ def feedback_view(
             disputed,
         )
     ]
+    # El nivel de un criterio cuyas observaciones quedaron todas ocultas se juzgó con un turno
+    # disputado (problema de reconocimiento): no se muestra.
+    hidden_criteria = {o["criterion"] for o in stored if o not in shown} - {
+        o["criterion"] for o in shown
+    }
     return {
         "status": feedback.get("status"),
         "reason": feedback.get("reason"),
         "run_id": feedback.get("run_id"),
         "label": feedback.get("label"),
         "observations": shown,
-        "rubric_levels": feedback.get("rubric_levels", {}),
+        "rubric_levels": {
+            k: v
+            for k, v in (feedback.get("rubric_levels") or {}).items()
+            if k not in hidden_criteria
+        },
         "hidden": len(stored) - len(shown),
     }
 

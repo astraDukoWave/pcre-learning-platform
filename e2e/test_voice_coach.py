@@ -75,7 +75,10 @@ def test_voice_coach_conversation(funded_contexts: Contexts) -> None:
     page.get_by_text(re.compile(r"Transcripción \(\d+ turnos\)")).click()
     highlighted = feedback.locator("details li mark")
     expect(highlighted).to_have_count(2)
-    expect(highlighted.first).to_contain_text("like some")
+    # Cada evidencia se marca en el turno que cita, no en cualquiera.
+    cited = feedback.locator("details li").filter(has_text="information about the evening")
+    expect(cited.locator("mark")).to_have_count(1)
+    expect(cited.locator("mark")).to_contain_text("like some")
     page.screenshot(path=str(RESULTS / "coach-ended.png"), full_page=True)
 
     # «Eso no fue lo que dije» en el turno citado oculta su observación.
@@ -87,7 +90,9 @@ def test_voice_coach_conversation(funded_contexts: Contexts) -> None:
     # Valoración de la sesión.
     page.get_by_role("radio", name="4").check()
     page.get_by_role("button", name="Enviar valoración").click()
-    expect(page.get_by_text("Gracias: tu valoración", exact=False)).to_be_visible()
+    expect(
+        page.get_by_text("Gracias: tu valoración ayuda a mejorar las prácticas de voz.")
+    ).to_be_visible()
     page.screenshot(path=str(RESULTS / "coach-feedback.png"), full_page=True)
 
 

@@ -236,6 +236,7 @@ def test_a_disputed_turn_hides_its_observations(
     assert turns[5]["disputed"] and not turns[2]["disputed"]
     shown = res.json()["feedback"]
     assert [o["turn"] for o in shown["observations"]] == [2] and shown["hidden"] == 1
+    assert shown["rubric_levels"] == {"task": 2}  # el nivel juzgado con el turno 5 se oculta
     # Marcar otra vez no cambia nada; las del coach y las inexistentes no se marcan.
     assert dispute(student, session_id, 5).status_code == 200
     assert dispute(student, session_id, 1).status_code == 422  # turno del coach
