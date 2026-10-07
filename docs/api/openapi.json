@@ -2100,6 +2100,113 @@
         }
       }
     },
+    "/api/v1/voice-sessions/{session_id}/feedback": {
+      "post": {
+        "tags": [
+          "voice"
+        ],
+        "summary": "Request Voice Feedback",
+        "operationId": "request_voice_feedback_api_v1_voice_sessions__session_id__feedback_post",
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Session Id"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 80,
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VoiceFeedbackOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/voice-sessions/{session_id}/turns/{n}/flag": {
+      "post": {
+        "tags": [
+          "voice"
+        ],
+        "summary": "Flag Voice Turn",
+        "operationId": "flag_voice_turn_api_v1_voice_sessions__session_id__turns__n__flag_post",
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Session Id"
+            }
+          },
+          {
+            "name": "n",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "maximum": 10000,
+              "minimum": 1,
+              "title": "N"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VoiceSessionOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/admin/content/revisions": {
       "get": {
         "tags": [
@@ -3912,7 +4019,8 @@
             "enum": [
               "lesson",
               "general",
-              "ai_observation"
+              "ai_observation",
+              "voice"
             ],
             "title": "Context Type"
           },
@@ -3979,7 +4087,7 @@
           "context_type"
         ],
         "title": "FeedbackIn",
-        "description": "Valoración de una lección o escenario (1–5, comentario opcional) o comentario\ngeneral con la página como contexto (REQ-15)."
+        "description": "Valoración de una lección o escenario (1–5, comentario opcional), de una sesión de voz\n(MVP-02 REQ-06) o comentario general con la página como contexto (REQ-15)."
       },
       "FeedbackOverviewOut": {
         "properties": {
@@ -5514,6 +5622,9 @@
             },
             "type": "array",
             "title": "Latest Errors"
+          },
+          "voice_ai": {
+            "$ref": "#/components/schemas/VoiceAiSummaryOut"
           }
         },
         "type": "object",
@@ -5532,7 +5643,8 @@
           "latest_comments",
           "open_reports",
           "server_errors",
-          "latest_errors"
+          "latest_errors",
+          "voice_ai"
         ],
         "title": "PilotSummaryOut"
       },
@@ -7136,6 +7248,89 @@
         ],
         "title": "ValidationError"
       },
+      "VoiceAiSummaryOut": {
+        "properties": {
+          "voice_minutes": {
+            "type": "number",
+            "title": "Voice Minutes"
+          },
+          "voice_sessions": {
+            "type": "integer",
+            "title": "Voice Sessions"
+          },
+          "end_reasons": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "type": "object",
+            "title": "End Reasons"
+          },
+          "ai_calls": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "type": "object",
+            "title": "Ai Calls"
+          },
+          "month": {
+            "type": "string",
+            "title": "Month"
+          },
+          "month_spent_microusd": {
+            "type": "integer",
+            "title": "Month Spent Microusd"
+          },
+          "month_reserved_microusd": {
+            "type": "integer",
+            "title": "Month Reserved Microusd"
+          },
+          "month_limit_microusd": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Month Limit Microusd"
+          },
+          "disputed_turns": {
+            "type": "integer",
+            "title": "Disputed Turns"
+          },
+          "voice_rating_average": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Voice Rating Average"
+          },
+          "voice_ratings": {
+            "type": "integer",
+            "title": "Voice Ratings"
+          }
+        },
+        "type": "object",
+        "required": [
+          "voice_minutes",
+          "voice_sessions",
+          "end_reasons",
+          "ai_calls",
+          "month",
+          "month_spent_microusd",
+          "month_reserved_microusd",
+          "month_limit_microusd",
+          "disputed_turns",
+          "voice_rating_average",
+          "voice_ratings"
+        ],
+        "title": "VoiceAiSummaryOut"
+      },
       "VoiceAidOut": {
         "properties": {
           "kind": {
@@ -7169,6 +7364,130 @@
           "at_s"
         ],
         "title": "VoiceAidOut"
+      },
+      "VoiceFeedbackOut": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "evaluable",
+              "not_evaluable",
+              "failed",
+              "unknown"
+            ],
+            "title": "Status"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          },
+          "run_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Run Id"
+          },
+          "label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Label"
+          },
+          "observations": {
+            "items": {
+              "$ref": "#/components/schemas/VoiceObservationOut"
+            },
+            "type": "array",
+            "title": "Observations",
+            "default": []
+          },
+          "rubric_levels": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "type": "object",
+            "title": "Rubric Levels",
+            "default": {}
+          },
+          "hidden": {
+            "type": "integer",
+            "title": "Hidden",
+            "default": 0
+          }
+        },
+        "type": "object",
+        "required": [
+          "status"
+        ],
+        "title": "VoiceFeedbackOut",
+        "description": "Feedback final de la sesión (REQ-05): hasta dos observaciones con evidencia. Las que\ntienen evidencia en un turno disputado no se muestran (`hidden` las cuenta)."
+      },
+      "VoiceObservationOut": {
+        "properties": {
+          "index": {
+            "type": "integer",
+            "title": "Index",
+            "default": 0
+          },
+          "criterion": {
+            "type": "string",
+            "title": "Criterion"
+          },
+          "criterion_name_es": {
+            "type": "string",
+            "title": "Criterion Name Es"
+          },
+          "evidence": {
+            "type": "string",
+            "title": "Evidence"
+          },
+          "observation_es": {
+            "type": "string",
+            "title": "Observation Es"
+          },
+          "suggestion_es": {
+            "type": "string",
+            "title": "Suggestion Es"
+          },
+          "turn": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Turn"
+          }
+        },
+        "type": "object",
+        "required": [
+          "criterion",
+          "criterion_name_es",
+          "evidence",
+          "observation_es",
+          "suggestion_es"
+        ],
+        "title": "VoiceObservationOut"
       },
       "VoiceSessionIn": {
         "properties": {
@@ -7314,14 +7633,12 @@
           "feedback": {
             "anyOf": [
               {
-                "additionalProperties": true,
-                "type": "object"
+                "$ref": "#/components/schemas/VoiceFeedbackOut"
               },
               {
                 "type": "null"
               }
-            ],
-            "title": "Feedback"
+            ]
           }
         },
         "type": "object",
@@ -7370,6 +7687,11 @@
           "aid": {
             "type": "boolean",
             "title": "Aid"
+          },
+          "disputed": {
+            "type": "boolean",
+            "title": "Disputed",
+            "default": false
           }
         },
         "type": "object",

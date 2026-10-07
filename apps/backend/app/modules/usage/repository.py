@@ -81,6 +81,33 @@ def run_by_key(s: Session, user_id: uuid.UUID, purpose: str, key: str) -> AiRun 
     ).one_or_none()
 
 
+def live_run_for_target(
+    s: Session,
+    user_id: uuid.UUID,
+    purposes: tuple[str, ...],
+    *,
+    attempt_id: uuid.UUID | None,
+    voice_session_id: uuid.UUID | None,
+) -> AiRun | None:
+    """Una ejecución que no falló para el mismo intento o la misma sesión de voz."""
+    target = (
+        AiRun.attempt_id == attempt_id
+        if attempt_id is not None
+        else AiRun.voice_session_id == voice_session_id
+    )
+    return s.scalars(
+        select(AiRun)
+        .where(
+            AiRun.user_id == user_id,
+            AiRun.purpose.in_(purposes),
+            AiRun.status != "failed",
+            target,
+        )
+        .order_by(AiRun.created_at.desc(), AiRun.id.desc())
+        .limit(1)
+    ).first()
+
+
 def run_for_update(s: Session, run_id: uuid.UUID) -> AiRun | None:
     return s.scalars(select(AiRun).where(AiRun.id == run_id).with_for_update()).one_or_none()
 
@@ -181,3 +208,18 @@ def open_runs(s: Session, purpose: str, created_before: datetime) -> list[AiRun]
             )
         )
     )
+
+
+def latest_run_for_voice_session(
+    s: Session, user_id: uuid.UUID, voice_session_id: uuid.UUID, purpose: str
+) -> AiRun | None:
+    return s.scalars(
+        select(AiRun)
+        .where(
+            AiRun.user_id == user_id,
+            AiRun.voice_session_id == voice_session_id,
+            AiRun.purpose == purpose,
+        )
+        .order_by(AiRun.created_at.desc(), AiRun.id.desc())
+        .limit(1)
+    ).one_or_none()

@@ -6,9 +6,17 @@ import { ErrorNotice } from "../../components/ErrorNotice";
 import { Notice } from "../../components/Notice";
 import styles from "./feedback.module.css";
 
-/** Al terminar una lección o un escenario (REQ-15): utilidad de 1 a 5, comentario opcional
- * (≤ 1 000) y la opción de omitir. */
-export function LessonRating({ itemId, noun }: { itemId: string; noun: string }) {
+/** Al terminar una lección o un escenario (REQ-15) o una práctica de voz (MVP-02 REQ-06):
+ * utilidad de 1 a 5, comentario opcional (≤ 1 000) y la opción de omitir. */
+export function LessonRating({
+  itemId,
+  noun,
+  contextType = "lesson",
+}: {
+  itemId: string;
+  noun: string;
+  contextType?: "lesson" | "voice";
+}) {
   const [rating, setRating] = useState<number | null>(null);
   const [message, setMessage] = useState("");
   const [skipped, setSkipped] = useState(false);
@@ -16,12 +24,15 @@ export function LessonRating({ itemId, noun }: { itemId: string; noun: string })
     mutationFn: () =>
       unwrap(
         api.POST("/api/v1/feedback", {
-          body: { context_type: "lesson", context_id: itemId, rating, message, page: window.location.pathname },
+          body: { context_type: contextType, context_id: itemId, rating, message, page: window.location.pathname },
         }),
       ),
   });
   if (skipped) return null;
-  if (send.isSuccess) return <Notice tone="success">Gracias: tu valoración ayuda a mejorar las lecciones.</Notice>;
+  if (send.isSuccess) {
+    const what = contextType === "voice" ? "las prácticas de voz" : "las lecciones";
+    return <Notice tone="success">Gracias: tu valoración ayuda a mejorar {what}.</Notice>;
+  }
   return (
     <form
       className={styles.form}

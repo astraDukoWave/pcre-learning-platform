@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useReducer, useRef, useState } from "react";
 import { Link, useParams } from "react-router";
 import { api, newIdempotencyKey, unwrap } from "../../api/client";
@@ -7,10 +7,12 @@ import { Button } from "../../components/Button";
 import { Notice } from "../../components/Notice";
 import { Page } from "../../components/Page";
 import { useCapabilities } from "../feedback/capabilities";
+import { LessonRating } from "../feedback/LessonRating";
 import styles from "./CoachPage.module.css";
 import { END_TEXT, type EndReason, PHASE_LABEL, type Turn, initialState, reduce } from "./machine";
 import { useVoiceCapture } from "./useVoiceCapture";
 import { usePcmPlayback } from "./usePcmPlayback";
+import { type VoiceSession, VoiceFeedback } from "./VoiceFeedback";
 
 const UNAVAILABLE_TEXT = {
   disabled: "La práctica por voz no está disponible ahora.",
@@ -54,6 +56,7 @@ export function CoachPage() {
     queryFn: () => unwrap(api.GET("/api/v1/scenarios/{item_id}", { params: { path: { item_id: itemId } } })),
   });
   const capabilities = useCapabilities();
+  const queryClient = useQueryClient();
   const [state, dispatch] = useReducer(reduce, initialState);
   const [save, setSave] = useState(false);
   const [captions, setCaptions] = useState(true);
@@ -118,6 +121,7 @@ export function CoachPage() {
             reason: background.current ? "background" : event.reason,
             durationS: event.duration_s,
           });
+          playback.finish(2); // el coach acaba su frase, 2 s como máximo (EDGE-13)
           teardown();
           break;
       }
@@ -348,26 +352,19 @@ export function CoachPage() {
             <strong>Duración:</strong> {clock(summary.data?.duration_s ?? state.durationS ?? 0)} ·{" "}
             <strong>Ayudas:</strong> {summary.data?.aids.length ?? state.aids.length}
           </p>
-          {summary.data?.transcript ? (
-            <details>
-              <summary>Transcripción ({summary.data.transcript.length} turnos)</summary>
-              <ol className={styles.turns}>
-                {summary.data.transcript.map((t) => (
-                  <li key={t.n} className={t.role === "coach" ? styles.coach : styles.learner}>
-                    <span className={styles.who}>{t.role === "coach" ? "Coach" : "Tú"}</span>{" "}
-                    <span lang="en">{t.text}</span>
-                    {t.aid ? <span className={styles.aid}> (ayuda)</span> : null}
-                  </li>
-                ))}
-              </ol>
-            </details>
-          ) : summary.data && !summary.data.save_transcript ? (
-            <p className={styles.mode}>No guardamos la transcripción porque no marcaste la casilla.</p>
+          {summary.data ? (
+            <VoiceFeedback
+              session={summary.data}
+              onSession={(s: VoiceSession) => queryClient.setQueryData(["voice-session", state.sessionId], s)}
+            />
           ) : null}
           <div className={styles.actions}>
             <Button onClick={() => dispatch({ type: "reset" })}>Intentar de nuevo</Button>
             {textMode}
           </div>
+          {state.sessionId && summary.data?.started_at ? (
+            <LessonRating itemId={state.sessionId} noun="esta práctica de voz" contextType="voice" />
+          ) : null}
         </section>
       ) : null}
 

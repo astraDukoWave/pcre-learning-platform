@@ -11,20 +11,37 @@ export interface Segment {
 
 const QUOTES = /[‘’'`]/g;
 const DQUOTES = /[“”"]/g;
+const DASHES = /[–—]/g;
+// Lo mismo que quita el validador del servidor de los extremos de una evidencia.
+const EDGES = /^[\s.,;:!?"']+|[\s.,;:!?"']+$/g;
 
 function pattern(evidence: string): RegExp | null {
-  const words = evidence
+  const cleaned = evidence
+    .normalize("NFKC")
     .replace(QUOTES, "'")
     .replace(DQUOTES, '"')
-    .trim()
+    .replace(DASHES, "-")
+    .replace(EDGES, "");
+  if (!/[\p{L}\p{N}]/u.test(cleaned)) return null;
+  const words = cleaned
     .split(/\s+/)
     .filter(Boolean)
-    .map((w) => w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&").replace(/'/g, "['‘’`]").replace(/"/g, '["“”]'));
-  return words.length ? new RegExp(words.join("\\s+"), "i") : null;
+    .map((w) =>
+      w
+        .replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+        .replace(/'/g, "['‘’`]")
+        .replace(/"/g, '["“”]')
+        .replace(/-/g, "[-–—]"),
+    );
+  // Palabras completas, como el servidor: «a class» no se marca dentro de «a classroom».
+  return words.length
+    ? new RegExp(`(?<![\\p{L}\\p{N}_])${words.join("\\s+")}(?![\\p{L}\\p{N}_])`, "iu")
+    : null;
 }
 
 /** Parte el texto del alumno en fragmentos y marca la evidencia literal de cada observación
- * (sin distinguir mayúsculas, espacios ni tipo de comillas, como el validador del servidor).
+ * (sin distinguir mayúsculas, espacios, tipo de comillas o guiones ni la puntuación de los
+ * extremos, y solo en palabras completas: como el validador del servidor).
  * Si dos evidencias se cruzan, gana la que aparece primero. */
 export function segments(text: string, evidences: string[]): Segment[] {
   const found: { start: number; end: number; note: number }[] = [];

@@ -20,7 +20,9 @@ router = APIRouter(prefix="/api/v1", tags=["insights"])
 
 
 def get_insights(container: ContainerDep) -> InsightsService:
-    return InsightsService(container.uow, container.clock)
+    return InsightsService(
+        container.uow, container.clock, container.settings.budget_global_monthly_microusd
+    )
 
 
 InsightsDep = Annotated[InsightsService, Depends(get_insights)]

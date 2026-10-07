@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import uuid
 from datetime import datetime
-from typing import Any, Literal
+from typing import Literal
 
 from pydantic import BaseModel, ConfigDict
 
@@ -31,6 +31,33 @@ class VoiceTurnOut(BaseModel):
     text: str
     at_s: float
     aid: bool
+    # "Eso no fue lo que dije": problema de reconocimiento, no error del alumno.
+    disputed: bool = False
+
+
+class VoiceObservationOut(BaseModel):
+    # Posición en la salida del evaluador: la usa el 👍/👎 (`ai_observation`).
+    index: int = 0
+    criterion: str
+    criterion_name_es: str
+    evidence: str
+    observation_es: str
+    suggestion_es: str
+    # Turno del alumno donde aparece la evidencia (para resaltarla en la transcripción).
+    turn: int | None = None
+
+
+class VoiceFeedbackOut(BaseModel):
+    """Feedback final de la sesión (REQ-05): hasta dos observaciones con evidencia. Las que
+    tienen evidencia en un turno disputado no se muestran (`hidden` las cuenta)."""
+
+    status: Literal["evaluable", "not_evaluable", "failed", "unknown"]
+    reason: str | None = None
+    run_id: uuid.UUID | None = None
+    label: str | None = None
+    observations: list[VoiceObservationOut] = []
+    rubric_levels: dict[str, int] = {}
+    hidden: int = 0
 
 
 class VoiceSessionOut(BaseModel):
@@ -49,4 +76,4 @@ class VoiceSessionOut(BaseModel):
     learner_speech_s: float
     aids: list[VoiceAidOut]
     transcript: list[VoiceTurnOut] | None
-    feedback: dict[str, Any] | None
+    feedback: VoiceFeedbackOut | None

@@ -857,6 +857,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/voice-sessions/{session_id}/feedback": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Request Voice Feedback */
+        post: operations["request_voice_feedback_api_v1_voice_sessions__session_id__feedback_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/voice-sessions/{session_id}/turns/{n}/flag": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Flag Voice Turn */
+        post: operations["flag_voice_turn_api_v1_voice_sessions__session_id__turns__n__flag_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/content/revisions": {
         parameters: {
             query?: never;
@@ -1510,15 +1544,15 @@ export interface components {
         };
         /**
          * FeedbackIn
-         * @description Valoración de una lección o escenario (1–5, comentario opcional) o comentario
-         *     general con la página como contexto (REQ-15).
+         * @description Valoración de una lección o escenario (1–5, comentario opcional), de una sesión de voz
+         *     (MVP-02 REQ-06) o comentario general con la página como contexto (REQ-15).
          */
         FeedbackIn: {
             /**
              * Context Type
              * @enum {string}
              */
-            context_type: "lesson" | "general" | "ai_observation";
+            context_type: "lesson" | "general" | "ai_observation" | "voice";
             /** Context Id */
             context_id?: string | null;
             /** Rating */
@@ -2013,6 +2047,7 @@ export interface components {
             server_errors: number;
             /** Latest Errors */
             latest_errors: components["schemas"]["ErrorRowOut"][];
+            voice_ai: components["schemas"]["VoiceAiSummaryOut"];
         };
         /** ProductionOut */
         ProductionOut: {
@@ -2592,6 +2627,35 @@ export interface components {
             /** Context */
             ctx?: Record<string, never>;
         };
+        /** VoiceAiSummaryOut */
+        VoiceAiSummaryOut: {
+            /** Voice Minutes */
+            voice_minutes: number;
+            /** Voice Sessions */
+            voice_sessions: number;
+            /** End Reasons */
+            end_reasons: {
+                [key: string]: number;
+            };
+            /** Ai Calls */
+            ai_calls: {
+                [key: string]: number;
+            };
+            /** Month */
+            month: string;
+            /** Month Spent Microusd */
+            month_spent_microusd: number;
+            /** Month Reserved Microusd */
+            month_reserved_microusd: number;
+            /** Month Limit Microusd */
+            month_limit_microusd: number | null;
+            /** Disputed Turns */
+            disputed_turns: number;
+            /** Voice Rating Average */
+            voice_rating_average: number | null;
+            /** Voice Ratings */
+            voice_ratings: number;
+        };
         /** VoiceAidOut */
         VoiceAidOut: {
             /**
@@ -2603,6 +2667,61 @@ export interface components {
             at_s: number;
             /** Text */
             text?: string | null;
+        };
+        /**
+         * VoiceFeedbackOut
+         * @description Feedback final de la sesión (REQ-05): hasta dos observaciones con evidencia. Las que
+         *     tienen evidencia en un turno disputado no se muestran (`hidden` las cuenta).
+         */
+        VoiceFeedbackOut: {
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "evaluable" | "not_evaluable" | "failed" | "unknown";
+            /** Reason */
+            reason?: string | null;
+            /** Run Id */
+            run_id?: string | null;
+            /** Label */
+            label?: string | null;
+            /**
+             * Observations
+             * @default []
+             */
+            observations: components["schemas"]["VoiceObservationOut"][];
+            /**
+             * Rubric Levels
+             * @default {}
+             */
+            rubric_levels: {
+                [key: string]: number;
+            };
+            /**
+             * Hidden
+             * @default 0
+             */
+            hidden: number;
+        };
+        /** VoiceObservationOut */
+        VoiceObservationOut: {
+            /**
+             * Index
+             * @default 0
+             */
+            index: number;
+            /** Criterion */
+            criterion: string;
+            /** Criterion Name Es */
+            criterion_name_es: string;
+            /** Evidence */
+            evidence: string;
+            /** Observation Es */
+            observation_es: string;
+            /** Suggestion Es */
+            suggestion_es: string;
+            /** Turn */
+            turn?: number | null;
         };
         /** VoiceSessionIn */
         VoiceSessionIn: {
@@ -2669,10 +2788,7 @@ export interface components {
             aids: components["schemas"]["VoiceAidOut"][];
             /** Transcript */
             transcript: components["schemas"]["VoiceTurnOut"][] | null;
-            /** Feedback */
-            feedback: {
-                [key: string]: unknown;
-            } | null;
+            feedback: components["schemas"]["VoiceFeedbackOut"] | null;
         };
         /** VoiceTurnOut */
         VoiceTurnOut: {
@@ -2689,6 +2805,11 @@ export interface components {
             at_s: number;
             /** Aid */
             aid: boolean;
+            /**
+             * Disputed
+             * @default false
+             */
+            disputed: boolean;
         };
         /** WithdrawIn */
         WithdrawIn: {
@@ -4195,6 +4316,71 @@ export interface operations {
             header?: never;
             path: {
                 session_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VoiceSessionOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    request_voice_feedback_api_v1_voice_sessions__session_id__feedback_post: {
+        parameters: {
+            query?: never;
+            header: {
+                "Idempotency-Key": string;
+            };
+            path: {
+                session_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VoiceFeedbackOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    flag_voice_turn_api_v1_voice_sessions__session_id__turns__n__flag_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                session_id: string;
+                n: number;
             };
             cookie?: never;
         };

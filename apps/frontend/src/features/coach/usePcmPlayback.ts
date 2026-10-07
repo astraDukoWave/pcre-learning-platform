@@ -62,8 +62,21 @@ export function usePcmPlayback(rate: number = PLAYBACK_RATE) {
     ctx.current = null;
   }, [flush]);
 
+  /** Al terminar la sesión, el coach acaba su frase: lo que ya está en cola suena hasta
+   * `maxSeconds` (EDGE-13: 2 s como máximo) y luego se cierra. Un nuevo `prime` crea otro
+   * contexto, así que «Intentar de nuevo» no se cruza con este cierre. */
+  const finish = useCallback((maxSeconds: number) => {
+    const audio = ctx.current;
+    ctx.current = null;
+    playing.current = new Set();
+    if (!audio) return;
+    const left = Math.max(0, Math.min(maxSeconds, nextAt.current - audio.currentTime));
+    nextAt.current = 0;
+    window.setTimeout(() => void audio.close().catch(() => undefined), left * 1000);
+  }, []);
+
   return useMemo(
-    () => ({ prime, enqueue, flush, close, setRate }),
-    [prime, enqueue, flush, close, setRate],
+    () => ({ prime, enqueue, flush, close, finish, setRate }),
+    [prime, enqueue, flush, close, finish, setRate],
   );
 }
