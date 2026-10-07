@@ -23,6 +23,7 @@ from app.http.middleware import (
 )
 from app.http.static import mount_frontend
 from app.modules.coaching import router as coaching_router
+from app.modules.coaching.voice import router as voice_router
 from app.modules.content import router_admin as content_admin
 from app.modules.content import router_student as content_student
 from app.modules.identity import router as identity_router
@@ -52,6 +53,11 @@ def create_app(settings: Settings | None = None, *, container: Container | None 
             insights.purge_old_errors()
         except Exception:
             logger.warning("error_events_purge_skipped")
+        # Sesiones de voz huérfanas de un reinicio (REQ-05): se cierran y concilian.
+        try:
+            voice_router.voice_service(container).sweep()
+        except Exception:
+            logger.warning("voice_sweep_skipped")
         yield
 
     def on_server_error(scope: Scope, status: int, exc: BaseException | None) -> None:
@@ -87,6 +93,7 @@ def create_app(settings: Settings | None = None, *, container: Container | None 
     app.include_router(content_admin.reports_router)
     app.include_router(usage_router.router)
     app.include_router(coaching_router.router)
+    app.include_router(voice_router.router)
     if settings.test_clock_active:
         app.include_router(test_clock.router)
     app.include_router(content_admin.router)

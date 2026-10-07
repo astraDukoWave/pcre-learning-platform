@@ -97,6 +97,9 @@ def configure_logging(level: str = "INFO") -> None:
     root.setLevel(level.upper())
     for noisy in ("uvicorn.access",):
         logging.getLogger(noisy).disabled = True
+    # En DEBUG, `websockets` registra las cabeceras del handshake (incluida la llave del
+    # proveedor de voz): nunca baja de INFO.
+    logging.getLogger("websockets").setLevel(max(logging.INFO, root.level))
     for name in ("uvicorn", "uvicorn.error"):
         logging.getLogger(name).handlers[:] = []
         logging.getLogger(name).propagate = True

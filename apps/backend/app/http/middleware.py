@@ -54,15 +54,21 @@ class RequestContextMiddleware:
         token = request_id_var.set(request_id)
         scope.setdefault("state", {})["request_id"] = request_id
         started = time.perf_counter()
-        status = {"code": 500, "started": 0, "reported": 0}
+        # Un WebSocket que no se acepta termina en 403 en el handshake; uno aceptado es 101.
+        # Ninguno de los dos es un error del servidor (solo una excepción lo es).
+        websocket = scope["type"] == "websocket"
+        status = {"code": 403 if websocket else 500, "started": 0, "reported": 0}
 
         async def send_wrapper(message: Message) -> None:
-            if message["type"] == "http.response.start":
+            kind = message["type"]
+            if kind in ("http.response.start", "websocket.http.response.start"):
                 status["code"] = message["status"]
                 status["started"] = 1
                 headers = list(message.get("headers", []))
                 headers.append((b"x-request-id", request_id.encode()))
                 message["headers"] = headers
+            elif kind == "websocket.accept":
+                status["code"], status["started"] = 101, 1
             await send(message)
 
         try:

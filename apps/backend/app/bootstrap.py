@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from typing import Any
+from urllib.parse import urlsplit
 
 from sqlalchemy import Engine
 
@@ -19,6 +20,9 @@ from app.modules.coaching.feedback.ports import FeedbackEvaluator
 from app.modules.coaching.stt.adapters.deepgram import DeepgramSpeechToText
 from app.modules.coaching.stt.adapters.fake import FakeSpeechToText
 from app.modules.coaching.stt.ports import SpeechToText
+from app.modules.coaching.voice.adapters.deepgram_agent import DeepgramVoiceAgent
+from app.modules.coaching.voice.domain import Timings
+from app.modules.coaching.voice.ports import VoiceAgent
 from app.modules.identity.domain import SlidingWindowLimiter
 
 # Login: 5 intentos por minuto y 20 por hora, por email y por IP (§7).
@@ -40,6 +44,8 @@ class Container:
     ready_providers: frozenset[str] = frozenset()
     feedback_evaluator: FeedbackEvaluator | None = None
     speech_to_text: SpeechToText | None = None
+    voice_agent: VoiceAgent | None = None
+    voice_timings: Timings = field(default_factory=Timings)
 
     def provider_ready(self, capability: str) -> bool:
         return capability in self.ready_providers
@@ -65,14 +71,45 @@ def build_speech_to_text(settings: Settings) -> SpeechToText | None:
     return None
 
 
+LOCAL_HOSTS = frozenset({"127.0.0.1", "localhost"})
+
+
+def local_agent_url(url: str | None) -> bool:
+    """`ws://` a localhost, sin usuario ni contraseña (el Deepgram falso de las pruebas)."""
+    if not url:
+        return False
+    parts = urlsplit(url)
+    return (
+        parts.scheme == "ws"
+        and parts.hostname in LOCAL_HOSTS
+        and parts.username is None
+        and parts.password is None
+    )
+
+
+def build_voice_agent(settings: Settings) -> VoiceAgent | None:
+    """Deepgram con llave (G5); el falso solo fuera de producción y en localhost."""
+    model = settings.voice_think_model
+    if settings.voice_provider == "fake":
+        if settings.app_env == "prod" or not local_agent_url(settings.voice_agent_url):
+            return None
+        return DeepgramVoiceAgent(None, model=model, url=str(settings.voice_agent_url))
+    if settings.deepgram_api_key is not None:
+        return DeepgramVoiceAgent(settings.deepgram_api_key.get_secret_value(), model=model)
+    return None
+
+
 def build_container(settings: Settings) -> Container:
     engine = create_db_engine(settings)
     clock: Clock = OffsetClock() if settings.test_clock_active else SystemClock()
     evaluator = build_feedback_evaluator(settings)
     stt = build_speech_to_text(settings)
+    agent = build_voice_agent(settings)
     ready = {"ai_feedback"} if evaluator is not None else set()
     if stt is not None:
         ready.add("stt")
+    if agent is not None:
+        ready.add("voice")
     return Container(
         settings=settings,
         uow=UnitOfWorkFactory(make_sessionmaker(engine)),
@@ -80,5 +117,6 @@ def build_container(settings: Settings) -> Container:
         engine=engine,
         feedback_evaluator=evaluator,
         speech_to_text=stt,
+        voice_agent=agent,
         ready_providers=frozenset(ready),
     )

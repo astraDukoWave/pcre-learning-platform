@@ -61,6 +61,8 @@ class User(Base):
     adult_attested_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     onboarded_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     last_login_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    # MVP-02 REQ-05: aviso de procesamiento de voz (Deepgram) aceptado.
+    voice_notice_accepted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
 
 class AuthSession(Base):

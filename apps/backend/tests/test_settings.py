@@ -70,3 +70,25 @@ def test_database_url_is_required(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.delenv("DATABASE_URL", raising=False)
     with pytest.raises(ValidationError):
         Settings()
+
+
+def test_prod_refuses_the_fake_voice_provider_and_a_custom_agent_url() -> None:
+    """NI-09(5): el Deepgram falso y `VOICE_AGENT_URL` nunca en producción."""
+    prod = {"app_env": "prod", "app_origin": "https://x.example.com"}
+    with pytest.raises(ValidationError):
+        make(**prod, voice_provider="fake")
+    with pytest.raises(ValidationError):
+        make(**prod, voice_agent_url="ws://127.0.0.1:1/x")
+
+
+def test_voice_agent_is_built_only_when_safe() -> None:
+    from app.bootstrap import build_voice_agent
+
+    assert (
+        build_voice_agent(make(voice_provider="fake", voice_agent_url="ws://evil.example/x"))
+        is None
+    )
+    assert build_voice_agent(make(voice_provider="fake")) is None  # falso sin URL local
+    assert build_voice_agent(make(voice_provider="deepgram")) is None  # sin llave
+    local = build_voice_agent(make(voice_provider="fake", voice_agent_url="ws://127.0.0.1:9/x"))
+    assert local is not None and local.provider == "deepgram"

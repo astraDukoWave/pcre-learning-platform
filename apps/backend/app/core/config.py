@@ -83,6 +83,16 @@ class Settings(BaseSettings):
     # Transcripción (REQ-04): Deepgram Nova-3; `fake` (doble determinista) solo fuera de prod.
     stt_provider: Literal["deepgram", "fake"] = "deepgram"
     deepgram_api_key: SecretStr | None = None
+    # Coach de voz (REQ-05): Voice Agent de Deepgram. `fake` habla con el Deepgram falso de
+    # las pruebas en `VOICE_AGENT_URL` (solo localhost y nunca en prod).
+    voice_provider: Literal["deepgram", "fake"] = "deepgram"
+    voice_agent_url: str | None = None
+    voice_max_session_s: int = Field(default=300, ge=1, le=300)
+    voice_listen_model: str = "nova-3"
+    voice_think_provider: str = "open_ai"
+    voice_think_model: str = "gpt-4o-mini"
+    voice_speak_model: str = "aura-2-thalia-en"
+    voice_output_sample_rate: int = Field(default=24_000, ge=8_000, le=48_000)
 
     @field_validator("database_url")
     @classmethod
@@ -113,6 +123,8 @@ class Settings(BaseSettings):
                 raise ValueError("FEEDBACK_PROVIDER=fake no se permite con APP_ENV=prod")
             if self.stt_provider == "fake":
                 raise ValueError("STT_PROVIDER=fake no se permite con APP_ENV=prod")
+            if self.voice_provider == "fake" or self.voice_agent_url:
+                raise ValueError("VOICE_PROVIDER=fake y VOICE_AGENT_URL no se permiten en prod")
         return self
 
     @property
