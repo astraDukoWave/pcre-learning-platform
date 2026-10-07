@@ -19,13 +19,14 @@
 - **Nombre:** "PCRE" (Pattern, Concept, Rules, Examples) es el nombre del
   método de explicación y el nombre de trabajo; el nombre comercial está
   abierto (LB-05). `APP_NAME` lo deja configurable.
-- **Fase actual:** MVP-01 **cerrado** el 6 oct 2026 (verify ✅ y dictamen de activación
-  G1–G4 en `docs/reviews/`); MVP-02 en ejecución en la misma sesión cloud con `/goal`.
-  Gates G1–G4 sin iniciar: dependen de Jonathan.
+- **Fase actual:** MVP-01 **cerrado** el 6 oct 2026 y MVP-02 **cerrado** el 7 oct 2026
+  (verify ✅ y dictámenes de activación G1–G4 y G5a/G5 en `docs/reviews/`). Todo lo de
+  MVP-02 está en `main` y apagado. Gates G1–G5 sin iniciar: dependen de Jonathan. MVP-03
+  espera a G6.
 
 ## 2. Estado real
 
-### ✅ Existe (verificado el 6 oct 2026 sobre `main` @ `4df036c`)
+### ✅ Existe (MVP-01 verificado el 6 oct 2026 sobre `main` @ `4df036c`; MVP-02, el 7 oct 2026 sobre `main` @ `{{SHA_CIERRE}}`)
 
 | Qué | Evidencia |
 |---|---|
@@ -38,6 +39,10 @@
 | Seguridad (§7), accesibilidad (axe, teclado, teléfono) y rendimiento (p95 < 800 ms) | `docs/reviews/mvp-01-seguridad.md`, `e2e/test_accessibility.py`, `docs/reviews/mvp-01-perf-smoke.md` |
 | U1 (4 lecciones, escenario, checkpoint) y diagnóstico inicial en `ready-for-review` | `docs/contenido/revision/{u1,inicial}.md`; lint 0 errores |
 | `deploy.yml` aprobado y apagado; `content-audio.yml` aprobado | Runs de deploy `skipped` en `main` `[verified-this-session]` |
+| **MVP-02** · Presupuestos con reservas atómicas, fail-closed, consumo por alumno y aviso al 80 % | `tests/usage/` `[ci-run]` |
+| **MVP-02** · Feedback con IA con evidencia literal (escritura, entrevista y voz), set de evaluación offline y `feedback-eval.yml` (G5a) | `tests/coaching/test_feedback_*.py`, `test_eval_set.py`, `evals/` `[ci-run]` |
+| **MVP-02** · Transcripción de grabaciones (Deepgram Nova-3) sin tocar disco | `tests/coaching/test_transcription_api.py`, `e2e/test_transcription.py` `[ci-run]` |
+| **MVP-02** · Coach de voz: relay con deadline del servidor, Deepgram falso, pantalla, feedback final, turnos disputados, panel | `tests/coaching/test_voice_*.py`, `e2e/test_voice_coach.py` `[ci-run]`; memoria 124.6 MB con 3 sesiones `[verified-this-session]` |
 
 ### ⏸ Pendiente (humano)
 
@@ -47,6 +52,8 @@
 | G1 deploy · G2 audio · G3 publicación · G4 alumnos reales | `docs/reviews/mvp-01-activacion-cto-review.md` y `docs/runbook.md` |
 | H-6 prueba en iPhone y Android | `docs/runbook.md` §12 |
 | Fuentes de Cambridge y del Consejo de Europa sin consultar (la sesión no llega a esos hosts) | `content/toefl-ibt-2026-b1-b2/sources.yaml`; se confirman en G3 |
+| G5a benchmark del feedback · G5 activación de IA y voz | `docs/reviews/mvp-02-activacion-cto-review.md` y `docs/runbook.md` §14 |
+| H-9 prueba de voz en iPhone y Android con Deepgram real (confirma también la forma de los mensajes, NI-09(4)) | `docs/runbook.md` §15 |
 
 ## 3. Arquitectura
 
@@ -136,6 +143,10 @@ v0.3). Nada de eso entra al repo; los specs lo citan por nombre.
   alumnos externos.
 - **LB-14 · Recordatorios** (correo o mensajería). Trigger: uso recurrente
   menor a 2 días por semana.
+- **LB-15 · Liberar la reserva global al borrar una cuenta con una práctica de IA o voz
+  abierta.** Hoy queda contada en la fila global del mes hasta el cambio de periodo (falla
+  cerrada: reduce el cupo, nunca gasta de más). Trigger: una cuenta borrada con reserva
+  abierta en `/admin/consumo`.
 
 ## 7. Metodología
 
@@ -169,6 +180,9 @@ v0.3). Nada de eso entra al repo; los specs lo citan por nombre.
 | `.claude/settings.json` | Reglas `deny` del agente y hook de arranque |
 | `docs/runbook.md` | Operación: Heroku, GitHub, deploy, rollback, restauración, audio, publicación, invitaciones |
 | `docs/contenido/revision/` | Paquetes de revisión por unidad (`make review-packet UNIT=u1`) |
+| `evals/` | Set de evaluación del feedback y su CLI (`evals/README.md`); el run real es G5a |
+| `apps/backend/tests/fakes/deepgram_agent.py` | Deepgram Voice Agent falso para pruebas, E2E y la medición de memoria |
+| `scripts/perf/voice_memory.py` | Memoria con 3 sesiones de voz (NFR-06) |
 
 ## 9. Variables de entorno (solo placeholders — repo público)
 
@@ -191,6 +205,15 @@ DEEPGRAM_API_KEY=<Heroku Config Vars, proyecto propio de PCRE>
 BUDGET_GLOBAL_MONTHLY_MICROUSD=25000000   # USD 25 al mes (G0)
 BUDGET_USER_MONTHLY_MICROUSD=8000000      # USD 8 por alumno al mes (G0)
 VOICE_MAX_MINUTES_PER_USER_MONTH=60       # (G0)
+GEMINI_PRICE_INPUT_PER_MTOK_MICROUSD=<USD por millón × 1 000 000, de G5a>
+GEMINI_PRICE_OUTPUT_PER_MTOK_MICROUSD=<USD por millón × 1 000 000, de G5a>
+# Opcionales (valores por omisión del 5 oct 2026; se reconfirman en G5)
+STT_PRICE_PER_MIN_MICROUSD=4300
+VOICE_PRICE_PER_MIN_MICROUSD=75000
+VOICE_THINK_PROVIDER=open_ai
+VOICE_THINK_MODEL=gpt-4o-mini
+# Nunca en producción (la app no arranca): FEEDBACK_PROVIDER=fake, STT_PROVIDER=fake,
+# VOICE_PROVIDER=fake, VOICE_AGENT_URL
 
 # GitHub (Settings → Environments / Variables)
 # environment production: secret HEROKU_API_KEY (con revisor obligatorio)
@@ -201,12 +224,16 @@ VOICE_MAX_MINUTES_PER_USER_MONTH=60       # (G0)
 
 ## 10. Próxima sesión — cola
 
-1. MVP-02 CS-01 → … → CS-08 en la sesión cloud en curso (`/goal`); su cierre deja
-   `docs/reviews/mvp-02-verify.md` y `docs/reviews/mvp-02-activacion-cto-review.md`.
-2. Jonathan: H-1b y después G1 → G2 → G3 → G4 con el dictamen de MVP-01 y el runbook.
-3. G5/G5a (IA y voz) solo después de G4 y con el dictamen de MVP-02.
+1. Jonathan: H-1b y después G1 → G2 → G3 → G4 con `docs/reviews/mvp-01-activacion-cto-review.md`
+   y el runbook (§1–§12).
+2. Jonathan: G5a → G5 → H-9 con `docs/reviews/mvp-02-activacion-cto-review.md` y el runbook
+   (§14–§15). Su decisión 1 dice si G5 va antes o después de G4.
+3. Agente (sesión nueva, al recibir la URL del run de G5a): commitear
+   `docs/reviews/mvp-02-feedback-eval.md` y proponer `GEMINI_MODEL` y sus precios; al recibir
+   el checklist de H-9, registrarlo y corregir lo que salga (forma de los mensajes de la Voice
+   Agent API, NI-09(4)).
 4. G6 (MVP-03) cuando U1 esté revisada y el examen de los primeros clientes confirmado.
 
 ---
 
-*Última actualización: 6 oct 2026 (cierre de MVP-01).*
+*Última actualización: 7 oct 2026 (cierre de MVP-02).*

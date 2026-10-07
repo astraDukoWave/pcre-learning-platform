@@ -18,8 +18,12 @@ Para cualquier asunto de privacidad, escribe a {{PRIVACY_CONTACT_EMAIL}}.
 - **Lo que nos cuentas:** valoraciones, comentarios y reportes de contenido.
 - **Uso del producto:** eventos con identificadores técnicos (por ejemplo, "completaste una lección"), nunca el texto que escribes.
 - **Registros técnicos:** errores del servidor con un identificador de la petición, sin tus respuestas ni tus datos personales; se borran a los 30 días.
+- **Práctica con IA** (solo cuando esté activada): el feedback automático de tus textos; la transcripción de tus grabaciones cuando la pides; de cada práctica de voz con el coach, la duración y las ayudas que pediste y, **solo si marcas la casilla "Guardar la transcripción y el feedback en mi progreso"**, la transcripción de la conversación y su feedback; y un registro de cada uso de la IA (para qué fue, cuánto duró y cuánto costó), sin tu texto.
 
-**Tus grabaciones de voz no salen de tu dispositivo:** en esta versión se reproducen en tu navegador y no se envían ni se guardan en nuestros servidores.
+**Tu voz:**
+
+- **Grabaciones de las actividades de habla.** Se quedan en tu navegador. Solo si pides la transcripción automática, la grabación se envía a Deepgram para transcribirla; no la guardamos ni en nuestros servidores ni en disco, y solo conservamos el texto transcrito.
+- **Práctica por voz con el coach.** Tu voz viaja en tiempo real a Deepgram para que el coach te entienda y te responda. No guardamos el audio de la conversación.
 
 No pedimos datos sensibles. No usamos cookies de publicidad ni herramientas de analítica de terceros: solo una cookie técnica de sesión (`__Host-pcre_session`) para mantenerte dentro de tu cuenta.
 
@@ -29,21 +33,25 @@ No pedimos datos sensibles. No usamos cookies de publicidad ni herramientas de a
 - Guardar tu práctica, programar tus repasos y mostrarte tu progreso.
 - Corregir y mejorar el contenido con tus reportes y comentarios.
 - Mantener el servicio funcionando y resolver errores.
+- Cuando estén activados: darte feedback automático orientativo sobre lo que escribes o dices, transcribir tus grabaciones y conversar contigo en la práctica por voz. El feedback automático no es una calificación oficial. Siempre puedes practicar sin IA: autoevaluación con la rúbrica y práctica por texto.
+- Controlar el gasto de la IA con topes por persona y en total.
 
 No vendemos tus datos ni los usamos para publicidad.
 
 ## Quién más interviene
 
 - **Heroku** (Salesforce) aloja la aplicación y la base de datos en Estados Unidos. Por eso tus datos se transfieren y se guardan fuera de México.
-- Si más adelante activamos la práctica de voz con IA o el feedback con IA, intervendrán otros proveedores (por ejemplo, Deepgram y Google). Te lo diremos en este aviso, con una nueva versión, antes de activarlo.
+- **Deepgram** (Estados Unidos), solo cuando la voz o la transcripción estén activadas. Recibe tu voz para transcribir tus grabaciones y, en la práctica con el coach, para reconocer lo que dices, generar las respuestas del coach y convertirlas en voz. Para generar esas respuestas, Deepgram usa como encargado suyo un modelo de lenguaje de otro proveedor (por ejemplo, OpenAI); ese proveedor recibe el texto de la conversación, no tu audio.
+- **Google** (Gemini API, Estados Unidos), solo cuando el feedback con IA esté activado. Recibe el texto que escribiste o la transcripción de tu grabación o de tu conversación, junto con la consigna y la rúbrica, para generar el feedback. No recibe tu correo ni tu nombre.
+- En ambos casos tus datos se transfieren fuera de México. Estos proveedores actúan como encargados: los tratan para darnos el servicio y no para fines propios, según sus condiciones de uso de API.
 
 ## Tus derechos
 
 Puedes acceder a tus datos, corregirlos, cancelarlos u oponerte a su uso:
 
-- **Acceso:** en "Perfil", descarga tus datos en un archivo.
+- **Acceso:** en "Perfil", descarga tus datos en un archivo; incluye las transcripciones y el feedback que guardaste.
 - **Rectificación:** en "Perfil", cambia tu nombre, tu zona horaria y tu meta.
-- **Cancelación:** en "Perfil", borra tu cuenta. Se borran tu cuenta y todo lo que guardamos de ti; no se puede deshacer.
+- **Cancelación:** en "Perfil", borra tu cuenta. Se borran tu cuenta y todo lo que guardamos de ti, incluidas las transcripciones y el feedback; no se puede deshacer.
 - **Oposición y revocación del consentimiento:** escribe a {{PRIVACY_CONTACT_EMAIL}}.
 
 Respondemos en los plazos que marca la ley aplicable.
