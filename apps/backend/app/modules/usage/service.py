@@ -44,6 +44,29 @@ class BudgetExhausted(ServiceUnavailable):
 
 
 @dataclass(frozen=True)
+class RunView:
+    id: uuid.UUID
+    user_id: uuid.UUID
+    purpose: str
+    status: str
+    attempt_id: uuid.UUID | None
+    output: dict[str, Any] | None
+    error_code: str | None
+
+
+def _view(run: AiRun) -> RunView:
+    return RunView(
+        id=run.id,
+        user_id=run.user_id,
+        purpose=run.purpose,
+        status=run.status,
+        attempt_id=run.attempt_id,
+        output=run.output,
+        error_code=run.error_code,
+    )
+
+
+@dataclass(frozen=True)
 class Reservation:
     run_id: uuid.UUID
     amount: int
@@ -131,9 +154,8 @@ class UsageService:
         now = self.clock.now()
         period = domain.period_of(now)
         with self.uow() as s:
-            existing = repository.run_by_key(s, user_id, purpose, idempotency_key)
-            if existing is not None:
-                return Reservation(existing.id, existing.reserved_microusd, existing=True)
+            # El bloqueo global serializa las reservas: la búsqueda por clave va después, así
+            # dos peticiones con la misma clave nunca crean dos ejecuciones.
             global_row = repository.lock_budget(
                 s,
                 scope="global",
@@ -141,6 +163,9 @@ class UsageService:
                 limit=self.settings.budget_global_monthly_microusd,
                 now=now,
             )
+            existing = repository.run_by_key(s, user_id, purpose, idempotency_key)
+            if existing is not None:
+                return Reservation(existing.id, existing.reserved_microusd, existing=True)
             user_row = repository.lock_budget(
                 s,
                 scope="user",
@@ -289,6 +314,25 @@ class UsageService:
                 "cost_microusd": cost,
             },
         )
+
+    # -- consulta de ejecuciones ---------------------------------------------------------
+
+    def run_view(self, run_id: uuid.UUID) -> RunView | None:
+        with self.uow() as s:
+            run = repository.run(s, run_id)
+            return _view(run) if run is not None else None
+
+    def run_by_key(self, user_id: uuid.UUID, purpose: str, key: str) -> RunView | None:
+        with self.uow() as s:
+            run = repository.run_by_key(s, user_id, purpose, key)
+            return _view(run) if run is not None else None
+
+    def latest_for_attempt(
+        self, user_id: uuid.UUID, attempt_id: uuid.UUID, purposes: tuple[str, ...]
+    ) -> RunView | None:
+        with self.uow() as s:
+            run = repository.latest_run_for_attempt(s, user_id, attempt_id, purposes)
+            return _view(run) if run is not None else None
 
     # -- admin --------------------------------------------------------------------------
 

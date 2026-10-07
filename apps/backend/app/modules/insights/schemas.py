@@ -14,16 +14,22 @@ class FeedbackIn(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
-    context_type: Literal["lesson", "general"]
+    context_type: Literal["lesson", "general", "ai_observation"]
     context_id: uuid.UUID | None = None
-    rating: int | None = Field(default=None, ge=1, le=5)
+    rating: int | None = Field(default=None, ge=0, le=5)
     message: str = Field(default="", max_length=1000)
     page: str | None = Field(default=None, max_length=200)
+    # 👍/👎 de una observación del feedback con IA (MVP-02 REQ-02): su posición (0–2).
+    observation: int | None = Field(default=None, ge=0, le=2)
 
     @model_validator(mode="after")
     def _check(self) -> FeedbackIn:
-        if self.context_type == "lesson" and (self.context_id is None or self.rating is None):
+        if self.context_type == "lesson" and (self.context_id is None or not self.rating):
             raise ValueError("una valoración de lección lleva la lección y una nota de 1 a 5")
+        if self.context_type == "ai_observation" and (
+            self.context_id is None or self.rating not in (0, 1) or self.observation is None
+        ):
+            raise ValueError("👍/👎 lleva la ejecución, la observación y 1 (útil) o 0 (no útil)")
         if self.context_type == "general" and not self.message.strip():
             raise ValueError("escribe tu comentario")
         return self

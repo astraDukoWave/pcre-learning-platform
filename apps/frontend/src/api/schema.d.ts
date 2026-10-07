@@ -724,6 +724,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/attempts/{attempt_id}/feedback": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Request Feedback */
+        post: operations["request_feedback_api_v1_attempts__attempt_id__feedback_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/content/revisions": {
         parameters: {
             query?: never;
@@ -967,6 +984,47 @@ export interface components {
             total: number;
             /** Units */
             units: components["schemas"]["UnitAdvanceOut"][];
+        };
+        /** AiFeedbackOut */
+        AiFeedbackOut: {
+            /**
+             * Run Id
+             * Format: uuid
+             */
+            run_id: string;
+            /**
+             * Attempt Id
+             * Format: uuid
+             */
+            attempt_id: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "evaluable" | "not_evaluable" | "failed" | "unknown";
+            /** Reason */
+            reason: string | null;
+            /** Label */
+            label: string;
+            /** Observations */
+            observations: components["schemas"]["AiObservationOut"][];
+            /** Rubric Levels */
+            rubric_levels: {
+                [key: string]: number;
+            };
+        };
+        /** AiObservationOut */
+        AiObservationOut: {
+            /** Criterion */
+            criterion: string;
+            /** Criterion Name Es */
+            criterion_name_es: string;
+            /** Evidence */
+            evidence: string;
+            /** Observation Es */
+            observation_es: string;
+            /** Suggestion Es */
+            suggestion_es: string;
         };
         /** AidContentOut */
         AidContentOut: {
@@ -1344,7 +1402,7 @@ export interface components {
              * Context Type
              * @enum {string}
              */
-            context_type: "lesson" | "general";
+            context_type: "lesson" | "general" | "ai_observation";
             /** Context Id */
             context_id?: string | null;
             /** Rating */
@@ -1356,6 +1414,8 @@ export interface components {
             message: string;
             /** Page */
             page?: string | null;
+            /** Observation */
+            observation?: number | null;
         };
         /** FeedbackOverviewOut */
         FeedbackOverviewOut: {
@@ -3634,6 +3694,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["UsageOverviewOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    request_feedback_api_v1_attempts__attempt_id__feedback_post: {
+        parameters: {
+            query?: never;
+            header: {
+                "Idempotency-Key": string;
+            };
+            path: {
+                attempt_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AiFeedbackOut"];
                 };
             };
             /** @description Validation Error */

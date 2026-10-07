@@ -22,6 +22,7 @@ from app.http.middleware import (
     build_csp,
 )
 from app.http.static import mount_frontend
+from app.modules.coaching import router as coaching_router
 from app.modules.content import router_admin as content_admin
 from app.modules.content import router_student as content_student
 from app.modules.identity import router as identity_router
@@ -85,6 +86,7 @@ def create_app(settings: Settings | None = None, *, container: Container | None 
     app.include_router(insights_router.router)
     app.include_router(content_admin.reports_router)
     app.include_router(usage_router.router)
+    app.include_router(coaching_router.router)
     if settings.test_clock_active:
         app.include_router(test_clock.router)
     app.include_router(content_admin.router)

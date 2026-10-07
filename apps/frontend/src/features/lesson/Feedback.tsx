@@ -1,4 +1,6 @@
 import { Highlight } from "../../components/Highlight";
+import { AiFeedback } from "../feedback/AiFeedback";
+import type { AiFeedback as AiFeedbackData } from "../feedback/aiFeedback";
 import { MarginNote } from "../../components/MarginNote";
 import styles from "./Feedback.module.css";
 import { SelfAssessment } from "./SelfAssessment";
@@ -141,6 +143,14 @@ function ProductionFeedback({
         </p>
       ) : null}
       {notEvaluable ? <p>No se evaluó porque no hubo grabación. Puedes intentarlo de nuevo cuando quieras.</p> : null}
+      {writing && shown.id ? (
+        <AiFeedback
+          attemptId={shown.id}
+          text={String(shown.response.text ?? "")}
+          stored={(shown.result.ai_feedback as AiFeedbackData | undefined) ?? null}
+          onSaved={onUpdate}
+        />
+      ) : null}
       {pending && rubric && shown.id ? (
         <SelfAssessment attemptId={shown.id} rubric={rubric} onSaved={onUpdate} />
       ) : null}

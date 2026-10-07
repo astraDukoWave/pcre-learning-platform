@@ -15,6 +15,7 @@ from app.modules.identity.models import User, UserRole
 from app.modules.insights.models import ErrorEvent, ProductEvent, UserFeedback
 from app.modules.practice.models import AssessmentRun, Attempt, LessonProgress
 from app.modules.progress.models import ReviewSchedule
+from app.modules.usage.models import AiRun
 
 
 def add(s: Session, row: ProductEvent | UserFeedback | ErrorEvent) -> None:
@@ -202,3 +203,11 @@ def _feedback_row(f: UserFeedback, email: str) -> dict[str, Any]:
         "page": f.page,
         "created_at": f.created_at.isoformat(),
     }
+
+
+def ai_run_owner(s: Session, run_id: uuid.UUID) -> uuid.UUID | None:
+    return s.scalar(
+        select(AiRun.user_id).where(
+            AiRun.id == run_id, AiRun.purpose.in_(("writing_feedback", "speaking_feedback"))
+        )
+    )

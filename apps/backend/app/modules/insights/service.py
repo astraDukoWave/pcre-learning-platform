@@ -15,6 +15,7 @@ from typing import Any
 from sqlalchemy.orm import Session
 
 from app.core.clock import Clock
+from app.core.errors import NotFound
 from app.db.uow import UnitOfWorkFactory
 from app.modules.insights import domain, repository
 from app.modules.insights.models import ErrorEvent, ProductEvent, UserFeedback
@@ -52,10 +53,16 @@ class InsightsService:
         rating: int | None,
         message: str,
         page: str | None,
+        observation: int | None = None,
     ) -> uuid.UUID:
         now = self.clock.now()
         feedback_id = uuid.uuid4()
         with self.uow() as s:
+            if context_type == "ai_observation":
+                # Solo sobre un feedback propio; ajeno o inexistente → 404 (EDGE-06).
+                if context_id is None or repository.ai_run_owner(s, context_id) != user_id:
+                    raise NotFound()
+                page = f"observation:{observation}"
             repository.add(
                 s,
                 UserFeedback(

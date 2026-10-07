@@ -150,3 +150,22 @@ def runs_by_purpose(s: Session, period: str) -> dict[str, int]:
         select(AiRun.purpose, func.count()).where(AiRun.period == period).group_by(AiRun.purpose)
     )
     return {purpose: int(n) for purpose, n in rows}
+
+
+def latest_run_for_attempt(
+    s: Session, user_id: uuid.UUID, attempt_id: uuid.UUID, purposes: tuple[str, ...]
+) -> AiRun | None:
+    return s.scalars(
+        select(AiRun)
+        .where(
+            AiRun.user_id == user_id,
+            AiRun.attempt_id == attempt_id,
+            AiRun.purpose.in_(purposes),
+        )
+        .order_by(AiRun.created_at.desc(), AiRun.id.desc())
+        .limit(1)
+    ).one_or_none()
+
+
+def run(s: Session, run_id: uuid.UUID) -> AiRun | None:
+    return s.get(AiRun, run_id)
