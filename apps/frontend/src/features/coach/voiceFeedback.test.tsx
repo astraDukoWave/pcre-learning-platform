@@ -99,7 +99,7 @@ describe("voice session feedback", () => {
   it("a disputed turn hides its note", async () => {
     let disputed = false;
     renderWith(session({ feedback: FEEDBACK as VoiceSession["feedback"] }), (req) => {
-      expect(req.url).toContain("/turns/4/dispute");
+      expect(req.url).toContain("/turns/4/flag");
       disputed = true;
       const base = session();
       return json(

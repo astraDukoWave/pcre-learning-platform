@@ -164,7 +164,7 @@ export function VoiceFeedback({
   const dispute = useMutation({
     mutationFn: (n: number) =>
       unwrap(
-        api.POST("/api/v1/voice-sessions/{session_id}/turns/{n}/dispute", {
+        api.POST("/api/v1/voice-sessions/{session_id}/turns/{n}/flag", {
           params: { path: { session_id: session.id, n } },
         }),
       ),

@@ -129,9 +129,9 @@ def request_voice_feedback(
 
 
 @router.post(
-    "/api/v1/voice-sessions/{session_id}/turns/{n}/dispute", response_model=VoiceSessionOut
+    "/api/v1/voice-sessions/{session_id}/turns/{n}/flag", response_model=VoiceSessionOut
 )
-def dispute_voice_turn(
+def flag_voice_turn(
     session_id: uuid.UUID,
     n: Annotated[int, Path(ge=1, le=10_000)],
     ctx: AuthDep,

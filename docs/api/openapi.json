@@ -2153,13 +2153,13 @@
         }
       }
     },
-    "/api/v1/voice-sessions/{session_id}/turns/{n}/dispute": {
+    "/api/v1/voice-sessions/{session_id}/turns/{n}/flag": {
       "post": {
         "tags": [
           "voice"
         ],
-        "summary": "Dispute Voice Turn",
-        "operationId": "dispute_voice_turn_api_v1_voice_sessions__session_id__turns__n__dispute_post",
+        "summary": "Flag Voice Turn",
+        "operationId": "flag_voice_turn_api_v1_voice_sessions__session_id__turns__n__flag_post",
         "parameters": [
           {
             "name": "session_id",

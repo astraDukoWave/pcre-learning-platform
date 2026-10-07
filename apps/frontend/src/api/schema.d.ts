@@ -874,7 +874,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/voice-sessions/{session_id}/turns/{n}/dispute": {
+    "/api/v1/voice-sessions/{session_id}/turns/{n}/flag": {
         parameters: {
             query?: never;
             header?: never;
@@ -883,8 +883,8 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Dispute Voice Turn */
-        post: operations["dispute_voice_turn_api_v1_voice_sessions__session_id__turns__n__dispute_post"];
+        /** Flag Voice Turn */
+        post: operations["flag_voice_turn_api_v1_voice_sessions__session_id__turns__n__flag_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -4369,7 +4369,7 @@ export interface operations {
             };
         };
     };
-    dispute_voice_turn_api_v1_voice_sessions__session_id__turns__n__dispute_post: {
+    flag_voice_turn_api_v1_voice_sessions__session_id__turns__n__flag_post: {
         parameters: {
             query?: never;
             header?: never;

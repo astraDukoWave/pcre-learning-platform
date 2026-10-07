@@ -170,7 +170,7 @@ def ask(acct: Account, session_id: str, key: str | None = None) -> Any:
 
 
 def dispute(acct: Account, session_id: str, n: int) -> Any:
-    return acct.post(f"/api/v1/voice-sessions/{session_id}/turns/{n}/dispute")
+    return acct.post(f"/api/v1/voice-sessions/{session_id}/turns/{n}/flag")
 
 
 def reviews(db: Session, user_id: uuid.UUID) -> int:

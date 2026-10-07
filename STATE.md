@@ -169,8 +169,8 @@ Ninguna.
   directorio que importa la release. Sin rúbrica no se llama al proveedor (`failed`,
   `rubric_missing`). (2) Rutas: `POST /api/v1/voice-sessions/{id}/feedback`
   (`Idempotency-Key`; 409 si la sesión sigue abierta) y
-  `POST /api/v1/voice-sessions/{id}/turns/{n}/dispute` (solo turnos propios; idempotente). La
-  pantalla pide el feedback una vez al terminar. (3) Los 30 s de voz se miden de
+  `POST /api/v1/voice-sessions/{id}/turns/{n}/flag` (la de `docs/arquitectura.md`; solo
+  turnos propios; idempotente). La pantalla pide el feedback una vez al terminar. (3) Los 30 s de voz se miden de
   `UserStartedSpeaking` al `ConversationText` del alumno, sin los ecos de «repetir»
   (`learner_speech_ms`); el mínimo es configurable (`VOICE_MIN_LEARNER_SPEECH_S`, 1 s en el E2E).
   (4) Se evalúan solo los turnos del alumno sin ayudas, unidos por ` | ` como dice el prompt
