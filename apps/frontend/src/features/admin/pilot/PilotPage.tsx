@@ -68,6 +68,13 @@ export function PilotPage() {
                   ? "sin presupuesto"
                   : `${usd(s.voice_ai.month_spent_microusd)} de ${usd(s.voice_ai.month_limit_microusd)}`,
               ],
+              ["Turnos «Eso no fue lo que dije»", s.voice_ai.disputed_turns],
+              [
+                "Valoración de las prácticas de voz",
+                s.voice_ai.voice_rating_average === null
+                  ? "sin valoraciones"
+                  : `${s.voice_ai.voice_rating_average} (${s.voice_ai.voice_ratings})`,
+              ],
             ].map(([label, value]) => (
               <div key={String(label)} className={styles.stat}>
                 <strong>{value}</strong>
