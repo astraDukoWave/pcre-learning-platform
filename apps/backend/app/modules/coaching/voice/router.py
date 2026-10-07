@@ -128,9 +128,7 @@ def request_voice_feedback(
     )
 
 
-@router.post(
-    "/api/v1/voice-sessions/{session_id}/turns/{n}/flag", response_model=VoiceSessionOut
-)
+@router.post("/api/v1/voice-sessions/{session_id}/turns/{n}/flag", response_model=VoiceSessionOut)
 def flag_voice_turn(
     session_id: uuid.UUID,
     n: Annotated[int, Path(ge=1, le=10_000)],
