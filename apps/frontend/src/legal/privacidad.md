@@ -43,7 +43,7 @@ No vendemos tus datos ni los usamos para publicidad.
 - **Heroku** (Salesforce) aloja la aplicación y la base de datos en Estados Unidos. Por eso tus datos se transfieren y se guardan fuera de México.
 - **Deepgram** (Estados Unidos), solo cuando la voz o la transcripción estén activadas. Recibe tu voz para transcribir tus grabaciones y, en la práctica con el coach, para reconocer lo que dices, generar las respuestas del coach y convertirlas en voz. Para generar esas respuestas, Deepgram usa como encargado suyo un modelo de lenguaje de otro proveedor (por ejemplo, OpenAI); ese proveedor recibe el texto de la conversación, no tu audio.
 - **Google** (Gemini API, Estados Unidos), solo cuando el feedback con IA esté activado. Recibe el texto que escribiste o la transcripción de tu grabación o de tu conversación, junto con la consigna y la rúbrica, para generar el feedback. No recibe tu correo ni tu nombre.
-- En ambos casos tus datos se transfieren fuera de México. Estos proveedores actúan como encargados: los tratan para darnos el servicio y no para fines propios, según sus condiciones de uso de API.
+- En ambos casos tus datos se transfieren fuera de México. Estos proveedores actúan como encargados: usamos sus servicios de pago para empresas, en los que tratan tus datos para darnos el servicio y no para entrenar sus modelos ni para fines propios, según sus condiciones de uso.
 
 ## Tus derechos
 

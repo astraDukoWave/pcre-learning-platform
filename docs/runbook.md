@@ -350,6 +350,8 @@ ofrece la alternativa sin costo (autoevaluación o práctica por texto).
 1. Proyecto de Google **solo para PCRE** (no el de CareerAI), con facturación y una alerta de
    presupuesto: https://console.cloud.google.com/billing → Presupuestos y alertas → Crear,
    USD 25 al mes, alertas al 50, 80 y 100 %. La alerta avisa; el tope real lo pone la app.
+   La facturación activa es obligatoria: en el nivel gratuito de la Gemini API, Google puede
+   usar los datos para mejorar sus productos, y el aviso de privacidad dice que no.
 2. Llave de la Gemini API de ese proyecto: https://aistudio.google.com/apikey → Crear llave en
    el proyecto de PCRE. No la pegues en ningún chat.
 3. Environment `evals` con revisor obligatorio y su secret (repo → Settings → Environments →
@@ -383,9 +385,12 @@ ofrece la alternativa sin costo (autoevaluación o práctica por texto).
 2. Billing → saldo prepagado (sugerido: USD 10) y **Auto-reload apagado**. El saldo es el
    tope duro del proveedor: si se acaba, la voz y la transcripción fallan cerradas (503 o
    `provider_error`) y la app ofrece la alternativa.
-3. API Keys → Create a New API Key, rol `Member`, sin vencimiento corto; cópiala directo al
+3. Confirma en la configuración del proyecto o de la cuenta que **no** participa en el
+   programa de mejora de modelos de Deepgram (Model Improvement Program o equivalente): el
+   aviso de privacidad dice que el proveedor no usa los datos para entrenar.
+4. API Keys → Create a New API Key, rol `Member`, sin vencimiento corto; cópiala directo al
    paso 14.3.
-4. Confirma en https://developers.deepgram.com/docs/voice-agent-llm-models que el modelo de
+5. Confirma en https://developers.deepgram.com/docs/voice-agent-llm-models que el modelo de
    `VOICE_THINK_MODEL` (por omisión `gpt-4o-mini` de `open_ai`) sigue en el nivel estándar,
    y en https://deepgram.com/pricing que el Voice Agent estándar sigue en USD 0.075/min y
    Nova-3 pregrabado en USD 0.0043/min. Si cambió, ajusta `VOICE_PRICE_PER_MIN_MICROUSD` o

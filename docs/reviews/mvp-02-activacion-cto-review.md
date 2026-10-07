@@ -40,6 +40,7 @@
 | Forma exacta de `Settings`, `InjectUserMessage`, `UpdatePrompt`, `InjectAgentMessage` y `KeepAlive` frente a la Voice Agent API real | Referencia de Deepgram del 5 oct 2026 (D1 del plan); el proxy de la sesión bloquea el dominio | `[inherited-unverified]` (NI-09(4)); se confirma en H-9 |
 | Precios: Voice Agent USD 0.075/min, Nova-3 USD 0.0043/min; modelo del agente en el nivel estándar | deepgram.com/pricing y la lista de modelos (5 oct 2026) | `[inherited-unverified]`; Jonathan los reconfirma en el runbook §14.2 |
 | Modelo y precio de Gemini | G5a (`feedback-eval.yml`) | Pendiente de G5a |
+| Los proveedores no usan los datos para entrenar (Gemini con facturación activa; Deepgram fuera de su programa de mejora de modelos) | Condiciones de cada proveedor; la sesión no llega a sus consolas | `[inherited-unverified]`; Jonathan lo confirma en el runbook §14.1 y §14.2 |
 | Ruleset de `main` | `rules/branches/main` → `deletion`, `non_fast_forward`, `pull_request` | `[verified-this-session]`; **sin** `required_status_checks` (H-1b sigue pendiente) |
 
 ## Peor costo calculado con los topes (valores firmados en G0)
@@ -73,9 +74,11 @@ configuración; no hace falta tocar código.
 1. **G5a antes de G5.** *Por qué:* `GEMINI_MODEL` y sus precios salen del benchmark. Sin un
    modelo que cumpla la regla de selección, `AI_FEEDBACK_ENABLED` no se enciende; la
    transcripción y la voz pueden ir sin el feedback.
-2. **Proyectos y llaves propios de PCRE** (Google y Deepgram, no los de CareerAI), con el
-   saldo de Deepgram prepagado y Auto-reload apagado. *Por qué:* separa el gasto y el
-   radio de una llave filtrada, y pone un tope duro en el proveedor más caro.
+2. **Proyectos y llaves propios de PCRE** (Google y Deepgram, no los de CareerAI), con
+   facturación activa en Google y el saldo de Deepgram prepagado con Auto-reload apagado.
+   *Por qué:* separa el gasto y el radio de una llave filtrada y pone un tope duro en el
+   proveedor más caro. Además, el nivel gratuito de la Gemini API puede usar los datos
+   para mejorar productos de Google, y el aviso de privacidad promete que no.
 3. **El aviso de privacidad que apruebes en G4 debe ser el de este ciclo** (menciona a
    Deepgram y Google). Si invitas alumnos antes de aprobarlo, publica una versión nueva
    (encabezado y `CONSENT_VERSION`) antes de G5. *Por qué:* la app no pide volver a aceptar
