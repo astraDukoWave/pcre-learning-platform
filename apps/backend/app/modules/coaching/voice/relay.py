@@ -79,6 +79,7 @@ class RelayHooks(Protocol):
         transcript: list[dict[str, Any]] | None = None,
         aids: list[dict[str, Any]] | None = None,
         learner_speech_ms: int = 0,
+        provider_seconds: float | None = None,
     ) -> dict[str, Any]: ...
 
     def session_alive(self, auth_session_id: uuid.UUID) -> bool: ...
@@ -121,6 +122,8 @@ class VoiceRelay:
         # Voz del alumno: de `UserStartedSpeaking` a su `ConversationText` (REQ-05, ≥ 30 s).
         self.learner_speech_s = 0.0
         self._speaking_since: float | None = None
+        # Desde la conexión con el proveedor (cobra por tiempo conectado), en reloj monótono.
+        self._provider_since: float | None = None
         self._audio = domain.RateWindow(domain.MAX_AUDIO_FRAMES_PER_S)
         self._control = domain.RateWindow(domain.MAX_CONTROL_PER_S)
 
@@ -174,6 +177,7 @@ class VoiceRelay:
             return await self._end(client, self._reason)
         try:
             self._link = await self.agent.connect(self.t.provider_connect_s)
+            self._provider_since = self.now()
             await self._link.send_json(self.agent_settings)
             await asyncio.wait_for(self._await_applied(client), self.t.provider_connect_s)
         except (AgentConnectFailed, AgentClosed, TimeoutError) as exc:
@@ -184,6 +188,8 @@ class VoiceRelay:
         started_at = await asyncio.to_thread(self.hooks.mark_active, self.ticket.id)
         if started_at is None:  # la sesión ya se cerró (stop o barrido): sin conversación
             return await self._end(client, self._reason if self._ended.is_set() else "user_stop")
+        if self._ended.is_set():  # un stop llegó mientras se activaba: sin `ready`
+            return await self._end(client, self._reason)
         self._started = self._last_audio = self._last_voice = self.now()
         remaining = (self.ticket.deadline_at - started_at).total_seconds()
         seconds = max(0.0, min(self.ticket.max_seconds, remaining))
@@ -194,7 +200,15 @@ class VoiceRelay:
             "voice_session_started",
             extra={"session_ref": session_ref(self.ticket.id), "seconds": math.ceil(seconds)},
         )
-        await self._safe_send(client, {"type": "ready", "seconds": math.ceil(seconds)})
+        output = self.agent_settings.get("audio", {}).get("output", {})
+        await self._safe_send(
+            client,
+            {
+                "type": "ready",
+                "seconds": math.ceil(seconds),
+                "sample_rate": output.get("sample_rate"),  # PCM16 del coach (REQ-05)
+            },
+        )
         self._tasks = [
             asyncio.create_task(self._from_client(client)),
             asyncio.create_task(self._from_provider(client)),
@@ -241,16 +255,31 @@ class VoiceRelay:
             with contextlib.suppress(asyncio.CancelledError, Exception):
                 await task
         if self._link is not None:
-            with contextlib.suppress(Exception):
+            try:
                 await asyncio.wait_for(self._link.close(), self.t.provider_close_s)
-        summary = await asyncio.to_thread(
-            self.hooks.finish,
-            self.ticket.id,
-            reason=reason,
-            transcript=self.transcript.as_list(),
-            aids=self.aids,
-            learner_speech_ms=round(self.learner_speech_s * 1000),
-        )
+            except Exception:
+                # Sin respuesta al cierre: se corta el transporte, no se espera al ping.
+                with contextlib.suppress(Exception):
+                    self._link.abort()
+        PENDING_STOP.discard(self.ticket.id)
+        try:
+            summary = await asyncio.to_thread(
+                self.hooks.finish,
+                self.ticket.id,
+                reason=reason,
+                transcript=self.transcript.as_list(),
+                aids=self.aids,
+                learner_speech_ms=round(self.learner_speech_s * 1000),
+                provider_seconds=(
+                    self.now() - self._provider_since if self._provider_since is not None else None
+                ),
+            )
+        except Exception:
+            # La base falló al cerrar: el barrido concilia la sesión; el alumno igual se entera.
+            logger.exception("voice_finish_failed")
+            summary = {}
+        # Si la sesión ya estaba cerrada (barrido o stop), manda el motivo guardado.
+        reason = str(summary.get("end_reason") or reason)
         logger.info(
             "voice_session_ended",
             extra={
@@ -312,7 +341,7 @@ class VoiceRelay:
             return
         try:
             data = json.loads(raw)
-        except ValueError:
+        except (ValueError, RecursionError):  # JSON roto o anidado sin fin: `bad_message`
             data = None
         kind = data.get("type") if isinstance(data, dict) else None
         if kind == "stop":
@@ -326,7 +355,7 @@ class VoiceRelay:
         assert self._link is not None
         entry: dict[str, Any] = {"kind": kind, "at_s": round(self._elapsed(), 1)}
         if kind == "repeat":
-            self.transcript.pending_aid_text = domain.REPEAT_REQUEST
+            self.transcript.pending_repeats += 1
             await self._link.send_json(
                 {"type": "InjectUserMessage", "content": domain.REPEAT_REQUEST}
             )
@@ -360,8 +389,9 @@ class VoiceRelay:
                 turn = self.transcript.add(
                     str(message.get("role")), str(message.get("content", "")), self._elapsed()
                 )
-                if turn.role == "learner":
-                    if self._speaking_since is not None and not turn.aid:
+                if turn.role == "learner" and not turn.aid:
+                    # El eco de «repetir» no es voz del alumno: no cuenta ni reinicia el silencio.
+                    if self._speaking_since is not None:
                         self.learner_speech_s += self.now() - self._speaking_since
                     self._speaking_since = None
                     self._learner_spoke()
@@ -385,6 +415,10 @@ class VoiceRelay:
                 )
                 self.request_end("provider_error")
                 return
+            elif kind == "InjectionRefused":
+                # «Repetir» rechazado (p. ej., mientras el coach habla): sin eco que marcar.
+                self.transcript.pending_repeats = max(0, self.transcript.pending_repeats - 1)
+                await self._safe_send(client, {"type": "error", "code": "aid_refused"})
             elif kind == "Warning":
                 logger.warning("voice_provider_warning", extra={"code": str(message.get("code"))})
 

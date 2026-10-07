@@ -25,6 +25,10 @@ class AgentLink(Protocol):
 
     async def close(self) -> None: ...
 
+    def abort(self) -> None:
+        """Corta la conexión sin esperar al proveedor (no contestó el cierre a tiempo)."""
+        ...
+
 
 class VoiceAgent(Protocol):
     provider: str

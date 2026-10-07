@@ -9,12 +9,17 @@ El relay toca la base desde otros hilos: estas pruebas usan commits reales
 from __future__ import annotations
 
 import asyncio
+import contextlib
+import dataclasses
 import json
+import logging
+import math
+import threading
 import time
 import uuid
 from collections.abc import Iterator
-from dataclasses import dataclass
-from datetime import timedelta
+from dataclasses import dataclass, field
+from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any
 
@@ -65,6 +70,7 @@ class World:
     container: Container
     fake: FakeDeepgramAgent
     scenario_id: str
+    clients: list[TestClient] = field(default_factory=list)
 
     def student(self, name: str) -> tuple[TestClient, str, uuid.UUID]:
         email = f"{name}@race.example.com"
@@ -74,6 +80,7 @@ class World:
             self.app, base_url="https://testserver", headers={"Origin": TEST_ORIGIN}
         )
         client.__enter__()
+        self.clients.append(client)
         csrf = login(client, email)
         self.container.login_limiter.reset()
         return client, csrf, user_id
@@ -83,6 +90,7 @@ class World:
 def world(committed_container: Container, tmp_path: Path) -> Iterator[World]:
     with FakeDeepgramAgent() as fake:
         c = committed_container
+        started = c.clock.now()
         c.settings = c.settings.model_copy(update={**VOICE, "voice_agent_url": fake.url})
         c.voice_agent = DeepgramVoiceAgent(None, model="fake-agent", url=fake.url)
         c.ready_providers = frozenset({"voice"})
@@ -100,7 +108,21 @@ def world(committed_container: Container, tmp_path: Path) -> Iterator[World]:
                 editorial.publish(uuid.UUID(str(rev["id"])), by=admin_id)
                 scenario_id = str(rev["item_id"])
         assert scenario_id
-        yield World(create_app(c.settings, container=c), c, fake, scenario_id)
+        world = World(create_app(c.settings, container=c), c, fake, scenario_id)
+        yield world
+        # Ningún relay ni stop pendiente sobrevive a la prueba; los clientes se cierran.
+        end = time.monotonic() + 5
+        while voice_relay.LIVE and time.monotonic() < end:
+            time.sleep(0.02)
+        assert not voice_relay.LIVE and not voice_relay.PENDING_STOP
+        for client in world.clients:
+            client.__exit__(None, None, None)
+        with c.uow() as s:  # 500 esperados de un handler roto a propósito (commits reales)
+            s.execute(
+                delete(ErrorEvent).where(
+                    ErrorEvent.route.like("/ws/%"), ErrorEvent.occurred_at >= started
+                )
+            )
         with c.uow() as s:  # las sesiones referencian el contenido: se van con sus usuarios
             s.execute(
                 delete(VoiceSession).where(
@@ -186,15 +208,23 @@ def session_row(c: Container, session_id: str) -> VoiceSession:
 
 def test_create_checks_notice_scenario_and_reserves(world: World) -> None:
     client, csrf, user_id = world.student("crea")
-    assert create(client, csrf, world.scenario_id, notice=False).json()["error"]["code"] == (
-        "voice_notice_required"
+    no_notice = create(client, csrf, world.scenario_id, notice=False)
+    assert no_notice.status_code == 422
+    assert no_notice.json()["error"]["code"] == "voice_notice_required"
+    keyless = client.post(
+        "/api/v1/voice-sessions",
+        json={"scenario_id": world.scenario_id, "accept_voice_notice": True},
+        headers={"X-CSRF-Token": csrf},
     )
+    assert keyless.status_code == 422
     assert create(client, csrf, str(uuid.uuid4())).status_code == 404
     res = create(client, csrf, world.scenario_id)
     assert res.status_code == 201, res.text
     body = res.json()
     assert body["status"] == "reserved" and body["ws_path"] == f"/ws/voice/{body['id']}"
     assert body["max_seconds"] == 300 and body["save_transcript"] is True
+    deadline = datetime.fromisoformat(body["deadline_at"])
+    assert deadline - datetime.fromisoformat(body["created_at"]) == timedelta(seconds=330)
     with world.container.uow() as s:
         user = s.get(User, user_id)
         assert user is not None and user.voice_notice_accepted_at is not None
@@ -212,8 +242,11 @@ def test_same_key_one_live_session_per_learner_and_global_quota(world: World) ->
     key = str(uuid.uuid4())
     first = create(client, csrf, world.scenario_id, key=key).json()
     assert create(client, csrf, world.scenario_id, key=key).json()["id"] == first["id"]
-    second = create(client, csrf, world.scenario_id)
+    second_key = str(uuid.uuid4())
+    second = create(client, csrf, world.scenario_id, key=second_key)
     assert second.status_code == 409 and second.json()["error"]["code"] == "voice_session_exists"
+    assert create(client, csrf, world.scenario_id, key=second_key).status_code == 409
+    assert run_of(world.container, first["id"]).reserved_microusd == 375_000
     for i in (1, 2):
         other, other_csrf, _ = world.student(f"cupo{i}")
         assert create(other, other_csrf, world.scenario_id).status_code == 201
@@ -225,10 +258,12 @@ def test_same_key_one_live_session_per_learner_and_global_quota(world: World) ->
         assert [(r.status, r.error_code) for r in runs] == [("failed", "voice_busy")]
         budget = s.scalars(select(BudgetPeriod).where(BudgetPeriod.user_id == fourth_id)).one()
         assert budget.reserved_microusd == 0
-        assert s.scalar(select(ErrorEvent).where(ErrorEvent.status_code == 503)) is None
+        request_id = busy.headers["x-request-id"]
+        assert s.scalar(select(ErrorEvent).where(ErrorEvent.request_id == request_id)) is None
 
 
 def test_websocket_checks_origin_owner_and_a_single_connection(world: World) -> None:
+    started = world.container.clock.now()
     client, csrf, _ = world.student("ws")
     session_id = create(client, csrf, world.scenario_id).json()["id"]
     with (
@@ -257,7 +292,14 @@ def test_websocket_checks_origin_owner_and_a_single_connection(world: World) -> 
     wait_closed(session_id)
     assert len(world.fake.connections) == 1
     with world.container.uow() as s:  # ni los rechazos ni el cierre son errores del servidor
-        assert s.scalar(select(ErrorEvent).where(ErrorEvent.route.like("/ws/%"))) is None
+        assert (
+            s.scalar(
+                select(ErrorEvent).where(
+                    ErrorEvent.route.like("/ws/%"), ErrorEvent.occurred_at >= started
+                )
+            )
+            is None
+        )
 
 
 def test_conversation_relays_audio_transcript_and_aids(world: World) -> None:
@@ -267,7 +309,7 @@ def test_conversation_relays_audio_transcript_and_aids(world: World) -> None:
     session_id = create(client, csrf, world.scenario_id).json()["id"]
     with connect(client, session_id) as ws:
         ready, _ = receive_until(ws, "ready")
-        assert ready["seconds"] == 300
+        assert ready["seconds"] == 300 and ready["sample_rate"] == 24_000
         greeting, _ = receive_until(ws, "transcript")
         opening = world.fake.connections[0].received[0]["agent"]["greeting"]
         assert greeting["turn"]["role"] == "coach" and greeting["turn"]["text"] == opening
@@ -278,14 +320,19 @@ def test_conversation_relays_audio_transcript_and_aids(world: World) -> None:
         learner, _ = receive_until(ws, "transcript")
         assert learner["turn"]["role"] == "learner" and learner["turn"]["aid"] is False
         receive_until(ws, "agent_done")
+        time.sleep(0.15)
         ws.send_json({"type": "aid", "kind": "repeat"})
         repeat, _ = receive_until(ws, "transcript")
         assert repeat["turn"]["text"] == "Could you repeat that, please?"
         assert repeat["turn"]["aid"] is True
         receive_until(ws, "agent_done")
+        time.sleep(0.15)
         ws.send_json({"type": "aid", "kind": "slower"})
+        time.sleep(0.15)
+        to_provider = len(world.fake.connections[0].received)
         ws.send_json({"type": "aid", "kind": "hint"})
         hint, _ = receive_until(ws, "hint")
+        assert len(world.fake.connections[0].received) == to_provider  # la pista no va al proveedor
         assert hint["text"] == "Ask about the time first."  # primera pista del escenario
         ws.send_json({"type": "aid", "kind": "magic"})
         bad, _ = receive_until(ws, "error")
@@ -297,19 +344,23 @@ def test_conversation_relays_audio_transcript_and_aids(world: World) -> None:
     received = world.fake.connections[0].types()
     assert received[0] == "Settings"
     assert "InjectUserMessage" in received and "UpdatePrompt" in received
+    by_type = {m["type"]: m for m in world.fake.connections[0].received}
+    assert by_type["InjectUserMessage"]["content"] == "Could you repeat that, please?"
+    assert "slowly" in by_type["UpdatePrompt"]["prompt"].lower()
     settings = world.fake.connections[0].received[0]
     assert settings["agent"]["think"]["prompt"].startswith("You are ")
     assert "authorization" not in world.fake.connections[0].headers  # sin llave con el falso
     row = session_row(world.container, session_id)
     assert row.status == "ended" and row.end_reason == "user_stop"
     assert [a["kind"] for a in row.aids] == ["repeat", "slower", "hint"]
-    assert all(isinstance(a["at_s"], float) for a in row.aids)
+    times = [a["at_s"] for a in row.aids]
+    assert times[0] < times[1] < times[2]  # cada ayuda con su hora
     assert row.transcript is not None and len(row.transcript) >= 4
     run = run_of(world.container, session_id)
     assert row.ended_at is not None and row.started_at is not None
     seconds = (row.ended_at - row.started_at).total_seconds()
     assert run.status == "succeeded" and run.observed_units is not None
-    assert run.observed_units >= int(seconds)
+    assert run.observed_units == max(1, math.ceil(seconds))
     assert run.cost_microusd == -(-75_000 * run.observed_units // 60)
 
 
@@ -348,8 +399,9 @@ def test_server_deadline_closes_the_provider_and_settles(world: World) -> None:
     conn = world.fake.connections[0]
     assert conn.applied_at is not None and conn.closed_at is not None
     assert abs((conn.closed_at - conn.applied_at) - 3.0) <= 0.5
+    assert ended["duration_s"] <= 3  # nunca más que el máximo (lo cobrado)
     run = run_of(world.container, body["id"])
-    assert run.status == "succeeded" and run.observed_units in (3, 4)
+    assert run.status == "succeeded" and run.observed_units == 3
     assert run.cost_microusd == -(-75_000 * run.observed_units // 60)
     with world.container.uow() as s:
         budget = s.scalars(select(BudgetPeriod).where(BudgetPeriod.user_id == run.user_id)).one()
@@ -422,7 +474,7 @@ def test_silence_invites_then_ends(world: World) -> None:
     assert "InjectAgentMessage" in world.fake.connections[0].types()
 
 
-def test_provider_error_suggests_text_mode_and_releases_when_never_started(
+def test_provider_closing_before_settings_ends_with_provider_error(
     world: World,
 ) -> None:
     world.fake.reject = True
@@ -434,8 +486,10 @@ def test_provider_error_suggests_text_mode_and_releases_when_never_started(
     wait_closed(session_id)
     row = session_row(world.container, session_id)
     assert row.status == "failed"
+    # Nunca empezó, pero el proveedor aceptó la conexión: se concilia ese segundo (no se
+    # asume consumo cero). Sin conexión, en cambio, se libera todo.
     run = run_of(world.container, session_id)
-    assert run.status == "failed" and run.cost_microusd == 0  # nunca empezó: sin costo
+    assert run.status == "succeeded" and run.observed_units == 1
 
 
 def test_stop_without_a_connection_and_reading_a_session(world: World) -> None:
@@ -572,6 +626,7 @@ def test_stop_while_the_relay_is_starting_never_converses(world: World) -> None:
     assert summary["status"] == "failed" and summary["end_reason"] == "user_stop"
     assert world.fake.connections == []  # nunca habló con el proveedor
     assert run_of(world.container, session_id).status == "failed"  # reserva liberada
+    assert uuid.UUID(session_id) not in voice_relay.PENDING_STOP
 
 
 def test_a_session_closed_meanwhile_is_not_activated(world: World) -> None:
@@ -583,7 +638,10 @@ def test_a_session_closed_meanwhile_is_not_activated(world: World) -> None:
     asyncio.run(relay.run(channel))
     assert not any(isinstance(m, dict) and m.get("type") == "ready" for m in channel.sent)
     assert world.fake.wait_closed() is not None  # el proveedor se cerró sin conversar
-    assert session_row(world.container, session_id).status == "failed"
+    assert world.fake.connections[-1].types() == ["Settings"]
+    row = session_row(world.container, session_id)
+    assert row.status == "failed" and row.end_reason == "expired"  # el relay no lo pisó
+    assert run_of(world.container, session_id).status == "failed"
 
 
 def test_a_failing_session_check_does_not_stop_the_deadline(
@@ -644,7 +702,10 @@ def test_a_dying_task_or_activation_error_still_closes_and_settles(
     assert ended["reason"] == "provider_error"
     wait_closed(second, world.container)
     assert world.fake.connections[-1].closed_at is not None
-    assert run_of(world.container, second).status == "failed"  # nunca empezó: se libera
+    # Nunca empezó, pero el proveedor estuvo conectado: se cobra ese tiempo (ronda 2).
+    run = run_of(world.container, second)
+    assert run.status == "succeeded" and run.observed_units is not None
+    assert 1 <= run.observed_units <= 3
 
 
 def test_sweep_releases_reservations_left_without_a_session(world: World) -> None:
@@ -685,22 +746,321 @@ def test_no_key_reaches_the_browser_or_debug_logs(
     key = "clave-secreta-de-prueba-voz-123"
     world.container.voice_agent = DeepgramVoiceAgent(key, model="fake-agent", url=world.fake.url)
     world.app = create_app(world.container.settings, container=world.container)
+    root = logging.getLogger()
+    saved = (root.handlers[:], root.level, logging.getLogger("websockets").level)
     configure_logging("DEBUG")
     try:
         client, csrf, _ = world.student("llave")
         created = create(client, csrf, world.scenario_id)
         seen = [created.text]
         with connect(client, created.json()["id"]) as ws:
-            for _ in range(6):
-                message = ws.receive()
-                seen.append(message.get("text") or "")
+            done, before = receive_until(ws, "agent_done")
+            seen += [json.dumps(m) for m in (*before, done) if isinstance(m, dict)]
             ws.send_json({"type": "stop"})
             _, rest = receive_until(ws, "ended", limit=80)
             seen += [json.dumps(m) for m in rest if isinstance(m, dict)]
         wait_closed(created.json()["id"], world.container)
         seen.append(client.get(f"/api/v1/voice-sessions/{created.json()['id']}").text)
     finally:
-        configure_logging("INFO")
+        # El handler de configure_logging escribe en el stdout de capsys, que se cierra.
+        root.handlers[:] = saved[0]
+        root.setLevel(saved[1])
+        logging.getLogger("websockets").setLevel(saved[2])
     assert world.fake.connections[-1].headers.get("authorization") == f"Token {key}"
     assert all(key not in text for text in seen)
     assert key not in capsys.readouterr().out
+
+
+def test_rollback_turns_off_reserved_sessions_too(world: World) -> None:
+    """Verificador ronda 2: con VOICE_ENABLED apagado (rollback), el WebSocket de una sesión
+    ya reservada se rechaza antes de `accept()` y nunca llega al proveedor."""
+    client, csrf, _ = world.student("rollback")
+    session_id = create(client, csrf, world.scenario_id).json()["id"]
+    world.container.settings = world.container.settings.model_copy(update={"voice_enabled": False})
+    world.app = create_app(world.container.settings, container=world.container)
+    off = TestClient(world.app, base_url="https://testserver", headers={"Origin": TEST_ORIGIN})
+    off.cookies.set(SESSION_COOKIE, client.cookies.get(SESSION_COOKIE) or "")
+    with pytest.raises(WebSocketDisconnect) as closed, connect(off, session_id):
+        pass
+    assert closed.value.code == 1008
+    assert world.fake.connections == []
+
+
+def test_a_claimed_session_whose_relay_never_starts_is_closed(
+    world: World, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Verificador ronda 2: si el handler falla entre `claim()` y el relay, la sesión se
+    cierra y se libera ahí mismo, y no queda en PENDING_STOP."""
+    from app.modules.coaching.voice import router as voice_router
+
+    def broken(*args: Any, **kwargs: Any) -> Any:
+        raise RuntimeError("escenario roto")
+
+    monkeypatch.setattr(voice_router, "build_settings", broken)
+    client, csrf, _ = world.student("sinrelay")
+    session_id = create(client, csrf, world.scenario_id).json()["id"]
+    with contextlib.suppress(Exception), connect(client, session_id):
+        pass  # el handler falla después de accept(): no hay nada que recibir
+    end = time.monotonic() + 5
+    while session_row(world.container, session_id).status == "reserved":
+        assert time.monotonic() < end, "la sesión reclamada no se cerró"
+        time.sleep(0.02)
+    row = session_row(world.container, session_id)
+    assert row.status == "failed" and row.end_reason == "disconnect"
+    with world.container.uow() as s:  # el fallo del handler sí es un 500 del servidor
+        assert s.scalar(select(ErrorEvent).where(ErrorEvent.route.like("/ws/%"))) is not None
+    assert run_of(world.container, session_id).status == "failed"
+    assert uuid.UUID(session_id) not in voice_relay.PENDING_STOP
+    assert create(client, csrf, world.scenario_id).status_code == 201  # sin 409
+
+
+def test_provider_error_mid_session_ends_and_settles(world: World) -> None:
+    """EDGE-12: un `Error` del proveedor después de aplicar la configuración termina la sesión
+    con `provider_error` y se concilia el tiempo conectado."""
+    world.fake.error_after_settings = True
+    try:
+        client, csrf, _ = world.student("errorproveedor")
+        session_id = create(client, csrf, world.scenario_id).json()["id"]
+        with connect(client, session_id) as ws:
+            ended, _ = receive_until(ws, "ended", limit=80)
+        assert ended["reason"] == "provider_error"
+        wait_closed(session_id, world.container)
+        assert world.fake.connections[-1].closed_at is not None
+        run = run_of(world.container, session_id)
+        assert run.status == "succeeded" and run.observed_units is not None
+        assert run.observed_units >= 1
+    finally:
+        world.fake.error_after_settings = False
+
+
+def test_stop_with_a_live_relay_ends_the_conversation(world: World) -> None:
+    """Detener por HTTP (la pestaña perdió el WebSocket de control) con el relay vivo."""
+    client, csrf, _ = world.student("detenvivo")
+    session_id = create(client, csrf, world.scenario_id).json()["id"]
+    with connect(client, session_id) as ws:
+        receive_until(ws, "agent_done")
+        res = client.post(
+            f"/api/v1/voice-sessions/{session_id}/stop", headers={"X-CSRF-Token": csrf}
+        )
+        assert res.status_code == 200
+        ended, _ = receive_until(ws, "ended", limit=80)
+    assert ended["reason"] == "user_stop"
+    wait_closed(session_id, world.container)
+    assert run_of(world.container, session_id).status == "succeeded"
+
+
+def test_provider_that_never_applies_settings_times_out(world: World) -> None:
+    """Conexión con el proveedor sin `SettingsApplied` a tiempo → `provider_error`, sin
+    conversación y con el tiempo conectado conciliado."""
+    world.fake.settings_delay_s = 4.0  # FAST.provider_connect_s = 3
+    try:
+        client, csrf, _ = world.student("lento")
+        session_id = create(client, csrf, world.scenario_id).json()["id"]
+        with connect(client, session_id) as ws:
+            ended, _ = receive_until(ws, "ended", limit=80)
+        assert ended["reason"] == "provider_error"
+        wait_closed(session_id, world.container)
+        assert session_row(world.container, session_id).status == "failed"
+        assert world.fake.connections[-1].types() == ["Settings"]
+    finally:
+        world.fake.settings_delay_s = 0.0
+
+
+def test_logout_is_detected_on_the_next_control_message(world: World) -> None:
+    """REQ-05: la sesión de la app se revisa en cada mensaje de control, no solo cada 30 s."""
+    world.container.voice_timings = dataclasses.replace(FAST, auth_check_s=30.0)
+    client, csrf, _ = world.student("logoutcontrol")
+    session_id = create(client, csrf, world.scenario_id).json()["id"]
+    with connect(client, session_id) as ws:
+        receive_until(ws, "agent_done")
+        other_tab = TestClient(
+            world.app, base_url="https://testserver", headers={"Origin": TEST_ORIGIN}
+        )
+        other_tab.cookies = client.cookies
+        other_tab.post("/api/v1/auth/logout", headers={"X-CSRF-Token": csrf})
+        ws.send_json({"type": "aid", "kind": "hint"})
+        ended, _ = receive_until(ws, "ended", limit=80)
+    assert ended["reason"] == "logout"
+    wait_closed(session_id, world.container)
+    assert session_row(world.container, session_id).aids == []
+
+
+def test_connections_after_the_grace_or_without_origin_or_cookie_are_refused(
+    world: World,
+) -> None:
+    client, csrf, _ = world.student("tarde")
+    session_id = create(client, csrf, world.scenario_id).json()["id"]
+    bare = TestClient(world.app, base_url="https://testserver")
+    with (
+        pytest.raises(WebSocketDisconnect) as no_origin,
+        bare.websocket_connect(
+            f"/ws/voice/{session_id}",
+            headers={"cookie": f"{SESSION_COOKIE}={client.cookies.get(SESSION_COOKIE)}"},
+        ),
+    ):
+        pass
+    assert no_origin.value.code == 1008
+    with (
+        pytest.raises(WebSocketDisconnect) as no_cookie,
+        bare.websocket_connect(f"/ws/voice/{session_id}", headers={"origin": TEST_ORIGIN}),
+    ):
+        pass
+    assert no_cookie.value.code == 1008
+    with world.container.uow() as s:
+        row = s.get(VoiceSession, uuid.UUID(session_id))
+        assert row is not None
+        row.created_at = row.created_at - timedelta(seconds=31)
+    with pytest.raises(WebSocketDisconnect) as late, connect(client, session_id):
+        pass
+    assert late.value.code == 1008
+    assert world.fake.connections == []
+    row = session_row(world.container, session_id)
+    assert row.status == "reserved" and row.connected_at is None
+
+
+def test_sweep_keeps_live_sessions_within_the_margin_and_runs_on_create(world: World) -> None:
+    """Una `active` con el deadline vencido hace menos de 60 s sigue viva; una huérfana del
+    mismo alumno no bloquea su siguiente sesión (el barrido corre al crear)."""
+    from app.modules.coaching.voice.router import voice_service
+
+    client, csrf, _ = world.student("margen")
+    live_id = create(client, csrf, world.scenario_id).json()["id"]
+    c = world.container
+    with c.uow() as s:
+        row = s.get(VoiceSession, uuid.UUID(live_id))
+        assert row is not None
+        now = c.clock.now()
+        row.status, row.started_at = "active", now - timedelta(seconds=330)
+        row.deadline_at = now - timedelta(seconds=30)
+    assert voice_service(c).sweep() == 0
+    assert session_row(c, live_id).status == "active"
+    with c.uow() as s:
+        row = s.get(VoiceSession, uuid.UUID(live_id))
+        assert row is not None
+        row.deadline_at = c.clock.now() - timedelta(minutes=2)
+    assert create(client, csrf, world.scenario_id).status_code == 201
+    assert session_row(c, live_id).status == "expired"
+    assert run_of(c, live_id).cost_microusd == 375_000
+
+
+def test_oversized_frames_are_dropped_and_keepalive_only_when_quiet(world: World) -> None:
+    from app.modules.coaching.voice.domain import MAX_FRAME_BYTES
+
+    client, csrf, _ = world.student("grande")
+    session_id = create(client, csrf, world.scenario_id).json()["id"]
+    with connect(client, session_id) as ws:
+        receive_until(ws, "agent_done")
+        before = world.fake.connections[0].types().count("KeepAlive")
+        for _ in range(10):  # audio continuo: sin KeepAlive
+            ws.send_bytes(b"\x00" * 100)
+            time.sleep(0.1)
+        assert world.fake.connections[0].types().count("KeepAlive") == before
+        ws.send_bytes(b"\x00" * (MAX_FRAME_BYTES + 1))
+        ws.send_bytes(b"\x00" * 100)
+        time.sleep(0.2)
+        ws.send_json({"type": "stop"})
+        receive_until(ws, "ended", limit=80)
+    wait_closed(session_id, world.container)
+    assert world.fake.connections[0].audio_bytes == 11 * 100
+
+
+def test_concurrent_creation_respects_both_quotas(world: World) -> None:
+    """AC-07 con concurrencia real: cuatro alumnos a la vez → tres 201 y un 503; un alumno
+    con dos claves a la vez → un 201 y un 409, nunca un 500."""
+    students = [world.student(f"simultaneo{i}") for i in range(4)]
+    barrier = threading.Barrier(4)
+    codes: list[int] = [0] * 4
+
+    def worker(i: int) -> None:
+        client, csrf, _ = students[i]
+        barrier.wait()
+        codes[i] = create(client, csrf, world.scenario_id).status_code
+
+    threads = [threading.Thread(target=worker, args=(i,)) for i in range(4)]
+    for t in threads:
+        t.start()
+    for t in threads:
+        t.join(30)
+    assert sorted(codes) == [201, 201, 201, 503]
+    from app.modules.coaching.voice.router import voice_service
+
+    for _, _, user_id in students:  # deja libre el cupo global
+        with world.container.uow() as s:
+            ids = s.scalars(
+                select(VoiceSession.id).where(
+                    VoiceSession.user_id == user_id, VoiceSession.status == "reserved"
+                )
+            ).all()
+        for sid in ids:
+            voice_service(world.container).finish(sid, reason="user_stop")
+    client, csrf, _ = world.student("doble")
+    pair = threading.Barrier(2)
+    both: list[int] = [0, 0]
+
+    def same_learner(i: int) -> None:
+        pair.wait()
+        both[i] = create(client, csrf, world.scenario_id).status_code
+
+    threads = [threading.Thread(target=same_learner, args=(i,)) for i in range(2)]
+    for t in threads:
+        t.start()
+    for t in threads:
+        t.join(30)
+    assert sorted(both) == [201, 409]
+
+
+class DeafLink:
+    """Proveedor que no contesta el cierre (partición de red o proveedor colgado)."""
+
+    def __init__(self) -> None:
+        self.aborted = False
+
+    async def send_json(self, message: dict[str, Any]) -> None: ...
+
+    async def send_audio(self, chunk: bytes) -> None: ...
+
+    async def recv(self) -> bytes | dict[str, Any]:
+        await asyncio.sleep(3600)
+        return {}
+
+    async def close(self) -> None:
+        await asyncio.sleep(3600)
+
+    def abort(self) -> None:
+        self.aborted = True
+
+
+def test_a_provider_that_ignores_the_close_is_aborted(world: World) -> None:
+    """Verificador ronda 2: si el proveedor no contesta el cierre en `provider_close_s`, se
+    corta el transporte (sin esperar al ping de 20 s) y se concilia igual."""
+    client, csrf, user_id = world.student("sordo")
+    session_id = create(client, csrf, world.scenario_id).json()["id"]
+    _, relay = relay_for(world, session_id, user_id)
+    link = DeafLink()
+    relay._link = link
+    t0 = time.monotonic()
+    summary = asyncio.run(relay._close(MemoryChannel(), "disconnect"))
+    assert link.aborted and time.monotonic() - t0 < FAST.provider_close_s + 1.0
+    assert summary["status"] == "failed"
+
+
+def test_a_failing_finish_still_tells_the_learner(
+    world: World, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Verificador ronda 2: si la base falla al cerrar, el alumno igual recibe `ended` y el
+    barrido concilia después."""
+    from app.modules.coaching.voice.service import VoiceService
+
+    def broken(self: Any, session_id: uuid.UUID, **kwargs: Any) -> Any:
+        raise RuntimeError("base caída al cerrar")
+
+    monkeypatch.setattr(VoiceService, "finish", broken)
+    client, csrf, _ = world.student("finishfalla")
+    session_id = create(client, csrf, world.scenario_id).json()["id"]
+    with connect(client, session_id) as ws:
+        receive_until(ws, "agent_done")
+        ws.send_json({"type": "stop"})
+        ended, _ = receive_until(ws, "ended", limit=80)
+    assert ended["reason"] == "user_stop"
+    wait_closed(session_id)
+    assert session_row(world.container, session_id).status == "active"  # queda para el barrido

@@ -6,6 +6,7 @@ de huérfanas (MVP-02 REQ-05). Solo base de datos y presupuesto; el relay (asín
 from __future__ import annotations
 
 import logging
+import math
 import uuid
 from dataclasses import dataclass
 from datetime import datetime, timedelta
@@ -164,7 +165,7 @@ class VoiceService:
     @staticmethod
     def _raise(problem: str) -> None:
         if problem == "session_exists":
-            raise Conflict("Ya tienes una sesión de voz abierta.", code="voice_session_exists")
+            raise Conflict("Ya tienes una práctica de voz abierta.", code="voice_session_exists")
         raise VoiceBusy()
 
     # -- conexión y cierre (los llama el relay) -------------------------------------------
@@ -210,16 +211,43 @@ class VoiceService:
         transcript: list[dict[str, Any]] | None = None,
         aids: list[dict[str, Any]] | None = None,
         learner_speech_ms: int = 0,
+        provider_seconds: float | None = None,
     ) -> dict[str, Any]:
         """Cierra la sesión (idempotente) y concilia: segundos facturables = fin − inicio,
-        hasta el máximo. Una sesión que nunca empezó libera la reserva."""
+        o el tiempo conectado al proveedor si fue mayor (el proveedor cobra la conexión,
+        aunque la conversación no haya empezado), hasta el máximo. Sin conexión ni inicio,
+        se libera la reserva."""
+        return self._finish(
+            session_id,
+            reason=reason,
+            transcript=transcript,
+            aids=aids,
+            learner_speech_ms=learner_speech_ms,
+            provider_seconds=provider_seconds,
+        )[0]
+
+    def _finish(
+        self,
+        session_id: uuid.UUID,
+        *,
+        reason: str,
+        transcript: list[dict[str, Any]] | None = None,
+        aids: list[dict[str, Any]] | None = None,
+        learner_speech_ms: int = 0,
+        provider_seconds: float | None = None,
+        only_unconnected: bool = False,
+    ) -> tuple[dict[str, Any], bool]:
+        """Devuelve el resumen y si la sesión quedó en manos del relay (`only_unconnected`
+        con un WebSocket que ya la reclamó: no se cierra aquí)."""
         now = self.clock.now()
         with self.uow() as s:
             session = repository.get(s, session_id, lock=True)
             if session is None:
                 raise NotFound()
             if session.status in CLOSED:
-                return _summary(session)
+                return _summary(session), False
+            if only_unconnected and session.connected_at is not None:
+                return _summary(session), True
             started = session.started_at
             session.status = "ended" if started is not None else "failed"
             session.ended_at = now
@@ -229,11 +257,14 @@ class VoiceService:
             if session.save_transcript and transcript is not None:
                 session.transcript = list(transcript)
             run_id = session.ai_run_id
-            seconds = min(domain.billable_seconds(started, now), session.max_seconds)
+            billed = domain.billable_seconds(started, now)
+            if provider_seconds:
+                billed = max(billed, math.ceil(provider_seconds))
+            seconds = min(billed, session.max_seconds)
             summary = _summary(session)
             user_id = session.user_id
         if run_id is not None:
-            if started is None:
+            if seconds == 0:
                 self.usage.release(run_id, error_code=reason)
             else:
                 self.usage.settle(
@@ -250,7 +281,7 @@ class VoiceService:
                 "aids": len(aids or []),
             },
         )
-        return summary
+        return summary, False
 
     def sweep(self) -> int:
         """Huérfanas (REQ-05): `reserved` de más de 2 min → `expired` y se libera; `active`
@@ -305,16 +336,12 @@ class VoiceService:
     ) -> tuple[dict[str, Any], bool]:
         """`POST /stop` sin relay vivo. Una sesión que nunca conectó se cierra y se libera.
         Una ya reclamada por un WebSocket (el relay está arrancando) no se toca aquí:
-        devuelve `True` para que el relay la detenga al registrarse."""
+        devuelve `True` para que el relay la detenga al registrarse. La revisión y el cierre
+        van bajo el mismo lock que `claim()`: no se cruzan."""
         with self.uow() as s:
-            session = repository.for_user(s, user_id, session_id)
-            if session is None:
+            if repository.for_user(s, user_id, session_id) is None:
                 raise NotFound()
-            if session.status in CLOSED:
-                return _summary(session), False
-            if session.connected_at is not None:
-                return _summary(session), True
-        return self.finish(session_id, reason="user_stop"), False
+        return self._finish(session_id, reason="user_stop", only_unconnected=True)
 
     def session_alive(self, auth_session_id: uuid.UUID) -> bool:
         return self.identity.session_is_active(auth_session_id)
@@ -322,7 +349,7 @@ class VoiceService:
 
 def _summary(session: VoiceSession) -> dict[str, Any]:
     duration = (
-        domain.billable_seconds(session.started_at, session.ended_at)
+        min(domain.billable_seconds(session.started_at, session.ended_at), session.max_seconds)
         if session.ended_at is not None
         else None
     )
