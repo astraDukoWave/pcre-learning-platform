@@ -76,7 +76,8 @@ anotan en el registro; cualquier otra desviación queda `pending-human`.
 | MVP-02 | CS-01 · presupuestos y consumo | `feat/mvp02-cs01-usage` | [#15](https://github.com/astraDukoWave/pcre-learning-platform/pull/15) | `6577467` (head `f8f8459`) | [37515756992](https://github.com/astraDukoWave/pcre-learning-platform/actions/runs/37515756992) ✅ 8 jobs + ci-gate | migración `usage_v1`; reservas con bloqueo global → alumno; AC-01 con dos hilos contra PostgreSQL; vista `/admin/consumo` con aviso al 80 %; `make verify` exit 0 (293 pruebas backend, 28 Vitest, 6 migraciones nuevas); NI-05 | 6 oct 2026 |
 | MVP-02 | CS-02 · evaluador de feedback y set de evaluación | `feat/mvp02-cs02-feedback-eval` | [#16](https://github.com/astraDukoWave/pcre-learning-platform/pull/16) | `304c6da` (head `5a8a3ed`) | [37549251549](https://github.com/astraDukoWave/pcre-learning-platform/actions/runs/37549251549) ✅ 8 jobs + ci-gate | `make verify` exit 0 (325 pruebas backend); AC-03 con salidas rotas, evidencia inventada, URLs y puntajes en español, campos de más; AC-05 offline: 27 casos, referencia ✅, adversarial y con contradicciones ❌; `feedback-eval.yml` con actionlint; [verificador independiente](https://github.com/astraDukoWave/pcre-learning-platform/pull/16#issuecomment-6027722929): 4 bloqueantes y 13 menores corregidos en `e288bb4`/`5456e02`; NI-06, NI-07 | 6 oct 2026 |
 | MVP-02 | CS-03 · feedback de escritura de extremo a extremo | `feat/mvp02-cs03-writing-feedback` | [#17](https://github.com/astraDukoWave/pcre-learning-platform/pull/17) | `fd68ce4` (head `8940117`) | [37549544782](https://github.com/astraDukoWave/pcre-learning-platform/actions/runs/37549544782) ✅ 8 jobs + ci-gate | `make verify` exit 0 (334 pruebas backend, 32 Vitest); AC-04: misma llave y peticiones posteriores no cobran dos veces, `unknown` conserva la reserva y no se reintenta, `failed` libera y permite reintentar; no evaluable sin repaso; 👍/👎 por observación con dueño; repaso por dificultad confirmada; AC-02 (parte de escritura): 503 esperado sin capacidad o presupuesto y E2E con la autoevaluación como alternativa; E2E del feedback con el evaluador falso | 6 oct 2026 |
-| MVP-02 | CS-04 · transcripción de grabaciones | `feat/mvp02-cs04-transcription` | se completa al abrir | se completa al mergear | se completa al terminar | `make verify` exit 0 (357 pruebas backend, 37 Vitest); AC-06: el audio nunca toca disco (prueba con escritura a disco y temporales bloqueados, 1.5 MB), 413 y 422 por tamaño, tipo y duración, comparación de la repetición con fixtures; entrevista confirmada o disputada antes del feedback; idempotencia, `unknown` sin reintento y `failed` reintentable; AC-02 (transcripción): 503 esperado y sin botón con la capacidad apagada; E2E grabar → transcribir (falso) → comparar y entrevista → feedback; NI-08 | 7 oct 2026 |
+| MVP-02 | CS-04 · transcripción de grabaciones | `feat/mvp02-cs04-transcription` | [#18](https://github.com/astraDukoWave/pcre-learning-platform/pull/18) | `8dc7ef7` (head `c9a819b`) | [37551177973](https://github.com/astraDukoWave/pcre-learning-platform/actions/runs/37551177973) ✅ 8 jobs + ci-gate | `make verify` exit 0 (357 pruebas backend, 37 Vitest); AC-06: el audio nunca toca disco (prueba con escritura a disco y temporales bloqueados, 1.5 MB), 413 y 422 por tamaño, tipo y duración, comparación de la repetición con fixtures; entrevista confirmada o disputada antes del feedback; idempotencia, `unknown` sin reintento y `failed` reintentable; AC-02 (transcripción): 503 esperado y sin botón con la capacidad apagada; E2E grabar → transcribir (falso) → comparar y entrevista → feedback; NI-08 | 7 oct 2026 |
+| MVP-02 | CS-05 · sesiones de voz: backend y Deepgram falso | `feat/mvp02-cs05-voice` | se completa al abrir | se completa al mergear | se completa al terminar | `make verify` exit 0 (376 pruebas backend, 7 migraciones nuevas probadas); migración `voice_v1`; AC-07 (Origin ajeno, sesión ajena y segunda conexión rechazadas antes de `accept()`; 409 y 503 de cupo), AC-08 (con `VOICE_MAX_SESSION_S=3` el falso registra el cierre a 3 ± 0.5 s; `ended(deadline)` y conciliación), AC-09 (desconexión → proveedor cerrado en ≤ 2 s; logout), AC-10 (barrido de huérfanas), AC-11 (ayudas con hora; `InjectUserMessage` y `UpdatePrompt`), sin consentimiento solo duración y ayudas, `KeepAlive`, silencio y límites por segundo; un WebSocket ya no se registra como 500 en `error_events`; con el Deepgram falso (`tests/fakes/deepgram_agent.py`); verificador independiente antes del merge; NI-09 | 7 oct 2026 |
 
 ## Desviaciones
 
@@ -143,6 +144,19 @@ Ninguna.
   que la interfaz no envíe el audio cuando la transcripción está apagada. El formulario
   multipart se lee en memoria con el parser de bajo nivel de `python-multipart`
   (`app/http/multipart.py`), porque `UploadFile` pasa a disco desde 1 MB.
+
+- **NI-09 · Detalles de la sesión de voz** (MVP-02 CS-05). (1) `POST /voice-sessions` recibe,
+  además de `scenario_id`, `accept_voice_notice` (registra `users.voice_notice_accepted_at`
+  la primera vez; sin aviso aceptado → 422) y `save_transcript` (el consentimiento por
+  sesión). (2) `deadline_at` = creación + máximo + 30 s de gracia, como pide REQ-05; la
+  conversación dura el máximo desde `SettingsApplied` y nunca pasa de `deadline_at`, así la
+  reserva (máximo × precio) cubre lo facturable. (3) El 503 "Intenta en unos minutos"
+  (`voice_busy`) es esperado como los de NI-05: no entra a `error_events`. (4) La forma de
+  `Settings`, `InjectUserMessage`, `UpdatePrompt`, `InjectAgentMessage` y `KeepAlive` sigue la
+  referencia de la Voice Agent API citada en el spec; el dominio de Deepgram está bloqueado
+  por el proxy de esta sesión, así que la forma exacta se confirma en la prueba manual de G5
+  `[inherited-unverified]`. (5) `VOICE_PROVIDER=fake` y `VOICE_AGENT_URL` (solo `ws://`
+  localhost) conectan con el Deepgram falso; ambos están prohibidos en producción.
 
 ## Loop humano vigente
 
