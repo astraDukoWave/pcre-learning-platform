@@ -11,6 +11,7 @@
 from __future__ import annotations
 
 import math
+from collections import deque
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from typing import Literal
@@ -79,18 +80,17 @@ def cost_microusd(seconds: int, price_per_min_microusd: int) -> int:
 
 @dataclass
 class RateWindow:
-    """Cuenta eventos por ventana de un segundo; `allow` dice si cabe uno más."""
+    """Ventana deslizante de un segundo: `allow` dice si cabe un evento más."""
 
     limit: int
-    window_start: float = 0.0
-    count: int = 0
+    stamps: deque[float] = field(default_factory=deque)
 
     def allow(self, now: float) -> bool:
-        if now - self.window_start >= 1.0:
-            self.window_start, self.count = now, 0
-        if self.count >= self.limit:
+        while self.stamps and now - self.stamps[0] >= 1.0:
+            self.stamps.popleft()
+        if len(self.stamps) >= self.limit:
             return False
-        self.count += 1
+        self.stamps.append(now)
         return True
 
 

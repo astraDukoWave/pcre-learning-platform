@@ -11,6 +11,7 @@ import logging
 import uuid
 from collections.abc import Callable
 from dataclasses import dataclass
+from datetime import datetime
 from typing import Any
 
 from app.core.clock import Clock
@@ -254,6 +255,17 @@ class UsageService:
             run.error_code = error_code
             run.finished_at = now
         logger.warning("ai_run_unknown", extra={"purpose": run.purpose, "error_code": error_code})
+
+    def stale_open_runs(
+        self, purpose: str, *, created_before: datetime
+    ) -> list[tuple[uuid.UUID, uuid.UUID | None]]:
+        """Ejecuciones `reserved` o `running` de `purpose` creadas antes de `created_before`:
+        `(id, voice_session_id)`, para que su dueño las concilie."""
+        with self.uow() as s:
+            return [
+                (run.id, run.voice_session_id)
+                for run in repository.open_runs(s, purpose, created_before)
+            ]
 
     def attach_voice_session(self, run_id: uuid.UUID, voice_session_id: uuid.UUID) -> None:
         """La reserva de voz se hace antes de crear la sesión; aquí se enlazan."""

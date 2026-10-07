@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import asyncio
 import contextlib
+import hashlib
 import json
 import logging
 import math
@@ -42,6 +43,13 @@ logger = logging.getLogger("app.coaching.voice")
 LIVE: dict[uuid.UUID, VoiceRelay] = {}
 # Cierres que siguen aunque se cancele el handler del WebSocket (referencia fuerte).
 _CLOSING: set[asyncio.Task[dict[str, Any]]] = set()
+# Sesiones con un `POST /stop` que llegó entre la conexión y el arranque del relay.
+PENDING_STOP: set[uuid.UUID] = set()
+
+
+def session_ref(session_id: uuid.UUID) -> str:
+    """Hash corto del id de la sesión para los logs (REQ-07)."""
+    return hashlib.sha256(str(session_id).encode()).hexdigest()[:12]
 
 
 class ClientChannel(Protocol):
@@ -59,7 +67,9 @@ class ClientChannel(Protocol):
 class RelayHooks(Protocol):
     """Operaciones síncronas (base de datos) que el relay corre en un hilo."""
 
-    def mark_active(self, session_id: uuid.UUID) -> datetime: ...
+    def mark_active(self, session_id: uuid.UUID) -> datetime | None:
+        """Hora de inicio; `None` si la sesión ya no está `reserved` (se detuvo o venció)."""
+        ...
 
     def finish(
         self,
@@ -68,6 +78,7 @@ class RelayHooks(Protocol):
         reason: str,
         transcript: list[dict[str, Any]] | None = None,
         aids: list[dict[str, Any]] | None = None,
+        learner_speech_ms: int = 0,
     ) -> dict[str, Any]: ...
 
     def session_alive(self, auth_session_id: uuid.UUID) -> bool: ...
@@ -107,6 +118,9 @@ class VoiceRelay:
         self._last_audio = 0.0
         self._last_voice = 0.0
         self._invited = False
+        # Voz del alumno: de `UserStartedSpeaking` a su `ConversationText` (REQ-05, ≥ 30 s).
+        self.learner_speech_s = 0.0
+        self._speaking_since: float | None = None
         self._audio = domain.RateWindow(domain.MAX_AUDIO_FRAMES_PER_S)
         self._control = domain.RateWindow(domain.MAX_CONTROL_PER_S)
 
@@ -119,51 +133,96 @@ class VoiceRelay:
 
     async def run(self, client: ClientChannel) -> dict[str, Any]:
         LIVE[self.ticket.id] = self
+        if self.ticket.id in PENDING_STOP:  # un POST /stop llegó antes que el relay
+            PENDING_STOP.discard(self.ticket.id)
+            self.request_end("user_stop")
         try:
             return await self._run(client)
         except asyncio.CancelledError:
             # El handler se canceló (cliente perdido o apagado): el cierre con el proveedor
             # y la conciliación siguen en su propia tarea.
             self._client_gone = True
-            reason = self._reason if self._ended.is_set() else "disconnect"
-            self._finish_in_background(client, reason)
+            self._finish_in_background(
+                client, self._reason if self._ended.is_set() else "disconnect"
+            )
             raise
+        except Exception:
+            # Un error propio (p. ej. de base de datos al activar): igual se cierra y concilia.
+            logger.exception("voice_relay_failed")
+            self._finish_in_background(client, "provider_error")
+            assert self._closing is not None
+            return await asyncio.shield(self._closing)
         finally:
-            LIVE.pop(self.ticket.id, None)
+            if self._closing is None:
+                LIVE.pop(self.ticket.id, None)
 
     def _finish_in_background(self, client: ClientChannel, reason: str) -> None:
         if self._closing is None:
             self._closing = asyncio.get_running_loop().create_task(self._close(client, reason))
+            # El relay sigue en LIVE hasta que termina de cerrar: un POST /stop lo encuentra.
+            self._closing.add_done_callback(lambda _: LIVE.pop(self.ticket.id, None))
         _CLOSING.add(self._closing)
         self._closing.add_done_callback(_CLOSING.discard)
 
+    async def _end(self, client: ClientChannel, reason: str) -> dict[str, Any]:
+        self._finish_in_background(client, reason)
+        assert self._closing is not None
+        return await asyncio.shield(self._closing)
+
     async def _run(self, client: ClientChannel) -> dict[str, Any]:
+        if self._ended.is_set():
+            return await self._end(client, self._reason)
         try:
             self._link = await self.agent.connect(self.t.provider_connect_s)
             await self._link.send_json(self.agent_settings)
             await asyncio.wait_for(self._await_applied(client), self.t.provider_connect_s)
         except (AgentConnectFailed, AgentClosed, TimeoutError) as exc:
             logger.warning("voice_provider_unavailable", extra={"error": type(exc).__name__})
-            self._closing = asyncio.get_running_loop().create_task(
-                self._close(client, "provider_error")
-            )
-            return await asyncio.shield(self._closing)
+            return await self._end(client, "provider_error")
+        if self._ended.is_set():  # se detuvo mientras se conectaba: sin conversación
+            return await self._end(client, self._reason)
         started_at = await asyncio.to_thread(self.hooks.mark_active, self.ticket.id)
+        if started_at is None:  # la sesión ya se cerró (stop o barrido): sin conversación
+            return await self._end(client, self._reason if self._ended.is_set() else "user_stop")
         self._started = self._last_audio = self._last_voice = self.now()
         remaining = (self.ticket.deadline_at - started_at).total_seconds()
-        self._end_at = self._started + max(0.0, min(self.ticket.max_seconds, remaining))
-        await self._safe_send(
-            client,
-            {"type": "ready", "seconds": math.ceil(self._end_at - self._started)},
+        seconds = max(0.0, min(self.ticket.max_seconds, remaining))
+        self._end_at = self._started + seconds
+        # El deadline tiene su propio temporizador: no depende de ninguna tarea ni de la base.
+        deadline = asyncio.get_running_loop().call_later(seconds, self.request_end, "deadline")
+        logger.info(
+            "voice_session_started",
+            extra={"session_ref": session_ref(self.ticket.id), "seconds": math.ceil(seconds)},
         )
+        await self._safe_send(client, {"type": "ready", "seconds": math.ceil(seconds)})
         self._tasks = [
             asyncio.create_task(self._from_client(client)),
             asyncio.create_task(self._from_provider(client)),
             asyncio.create_task(self._tick(client)),
         ]
+        for task in self._tasks:
+            task.add_done_callback(self._task_done)
         await self._ended.wait()
-        self._closing = asyncio.get_running_loop().create_task(self._close(client, self._reason))
-        return await asyncio.shield(self._closing)
+        deadline.cancel()
+        return await self._end(client, self._reason)
+
+    def _task_done(self, task: asyncio.Task[None]) -> None:
+        """Una tarea que muere por un error no deja la sesión sin vigilancia: se cierra."""
+        if task.cancelled() or task.exception() is None:
+            return
+        logger.error(
+            "voice_relay_task_failed",
+            exc_info=(type(task.exception()), task.exception(), None),  # type: ignore[arg-type]
+        )
+        self.request_end("provider_error")
+
+    async def _alive(self) -> bool:
+        """¿Sigue la sesión de la app? Un error transitorio de la base no corta la voz."""
+        try:
+            return await asyncio.to_thread(self.hooks.session_alive, self.auth_session_id)
+        except Exception:
+            logger.warning("voice_session_check_failed")
+            return True
 
     async def _await_applied(self, client: ClientChannel) -> None:
         assert self._link is not None
@@ -190,6 +249,17 @@ class VoiceRelay:
             reason=reason,
             transcript=self.transcript.as_list(),
             aids=self.aids,
+            learner_speech_ms=round(self.learner_speech_s * 1000),
+        )
+        logger.info(
+            "voice_session_ended",
+            extra={
+                "session_ref": session_ref(self.ticket.id),
+                "end_reason": reason,
+                "duration_s": summary.get("duration_s"),
+                "aids": len(self.aids),
+                "turns": len(self.transcript.turns),
+            },
         )
         if not self._client_gone:
             await self._safe_send(
@@ -237,7 +307,7 @@ class VoiceRelay:
         if not self._control.allow(self.now()):
             await self._safe_send(client, {"type": "error", "code": "rate_limited"})
             return
-        if not await asyncio.to_thread(self.hooks.session_alive, self.auth_session_id):
+        if not await self._alive():
             self.request_end("logout")
             return
         try:
@@ -291,9 +361,14 @@ class VoiceRelay:
                     str(message.get("role")), str(message.get("content", "")), self._elapsed()
                 )
                 if turn.role == "learner":
+                    if self._speaking_since is not None and not turn.aid:
+                        self.learner_speech_s += self.now() - self._speaking_since
+                    self._speaking_since = None
                     self._learner_spoke()
                 await self._safe_send(client, {"type": "transcript", "turn": turn.as_dict()})
             elif kind == "UserStartedSpeaking":
+                if self._speaking_since is None:
+                    self._speaking_since = self.now()
                 self._learner_spoke()
                 await self._safe_send(client, {"type": "user_started_speaking"})
             elif kind == "AgentStartedSpeaking":
@@ -301,7 +376,13 @@ class VoiceRelay:
             elif kind == "AgentAudioDone":
                 await self._safe_send(client, {"type": "agent_done"})
             elif kind == "Error":
-                logger.warning("voice_provider_error", extra={"code": str(message.get("code"))})
+                logger.warning(
+                    "voice_provider_error",
+                    extra={
+                        "session_ref": session_ref(self.ticket.id),
+                        "code": str(message.get("code")),
+                    },
+                )
                 self.request_end("provider_error")
                 return
             elif kind == "Warning":
@@ -346,6 +427,6 @@ class VoiceRelay:
                 return
             if now - last_auth >= self.t.auth_check_s:
                 last_auth = now
-                if not await asyncio.to_thread(self.hooks.session_alive, self.auth_session_id):
+                if not await self._alive():
                     self.request_end("logout")
                     return

@@ -51,6 +51,8 @@ class VoiceSession(Base):
     started_at: Mapped[datetime | None] = mapped_column(TS)
     ended_at: Mapped[datetime | None] = mapped_column(TS)
     end_reason: Mapped[str | None] = mapped_column(String(20))
+    # Voz del alumno medida por el relay (REQ-05: feedback final con ≥ 30 s).
+    learner_speech_ms: Mapped[int] = mapped_column(Integer, server_default=text("0"), default=0)
     aids: Mapped[list[dict[str, Any]]] = mapped_column(
         JSONB, server_default=text("'[]'::jsonb"), default=list
     )
