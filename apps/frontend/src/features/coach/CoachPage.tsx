@@ -121,6 +121,7 @@ export function CoachPage() {
             reason: background.current ? "background" : event.reason,
             durationS: event.duration_s,
           });
+          playback.finish(2); // el coach acaba su frase, 2 s como máximo (EDGE-13)
           teardown();
           break;
       }
