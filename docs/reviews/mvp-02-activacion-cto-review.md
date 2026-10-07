@@ -2,7 +2,7 @@
 
 - **Ciclo:** MVP-02 · Coach de IA y voz.
 - **Artefactos revisados:** spec `docs/specs/mvp-02-coach-ia-voz.md` @ `9aa2e2c` (REQ-08,
-  NFR-01 a NFR-08); código y workflows en `main` @ `{{SHA_CIERRE}}` (CS-01 a CS-07);
+  NFR-01 a NFR-08); código y workflows en `main` @ `180a40b` (CS-01 a CS-07);
   `docs/runbook.md` §14 y §15, `.github/workflows/feedback-eval.yml`, `evals/README.md`, el
   aviso de privacidad (`apps/frontend/src/legal/privacidad.md`) y
   `docs/reviews/mvp-02-verify.md`.

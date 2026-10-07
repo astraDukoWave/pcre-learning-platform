@@ -2,7 +2,7 @@
 
 - **Spec:** `docs/specs/mvp-02-coach-ia-voz.md` @ `9aa2e2c` · **Plan:**
   `docs/plans/mvp-02-coach-ia-voz-plan.md` @ `0100c0a`.
-- **Código verificado:** `main` @ `{{SHA_CIERRE}}` (merge de CS-07, PR #21; CS-01 a CS-07,
+- **Código verificado:** `main` @ `180a40b` (merge de CS-07, PR #21; CS-01 a CS-07,
   PRs #15 a #21).
 - **Fecha:** 7 oct 2026. Formato: skill `verify` según `docs/sdd/proceso.md` §9.
 - **Verificadores independientes:** subagentes de contexto fresco antes del merge de CS-02,
@@ -12,18 +12,36 @@
 
 ## Evidencia base
 
-- **CI de `main` @ `{{SHA_CIERRE}}`:** run {{RUN_CIERRE}} ✅ `backend`, `migrations`,
+- **CI de `main` @ `180a40b`:** run [37651574105](https://github.com/astraDukoWave/pcre-learning-platform/actions/runs/37651574105) ✅ `backend`, `migrations`,
   `content`, `frontend`, `contract`, `e2e`, `image`, `workflows` y `ci-gate` `[ci-run]`.
   Cada PR de MVP-02 tiene su run en verde en el registro de `STATE.md`.
-- **`make verify` sobre `main` @ `{{SHA_CIERRE}}`** `[verified-this-session]`:
+- **`make verify` en un clon limpio** de `main` @ `180a40b`, tras el hook de arranque
+  (`CLAUDE_CODE_REMOTE=true scripts/dev/cloud-session-start.sh`) `[verified-this-session]`:
 
   ```
-{{VERIFY_OUTPUT}}
+  == PCRE · arranque de la sesión cloud
+    ok    PostgreSQL y bases pcre, pcre_test, pcre_migcheck
+    ok    uv sync (apps/backend)
+    ok    npm ci (apps/frontend)
+  == make verify
+  All checks passed!
+  211 files already formatted
+  Contracts: 4 kept, 0 broken.
+  Success: no issues found in 190 source files
+  418 passed in 99.71s (0:01:39)
+  migraciones nuevas probadas: 7
+  toefl-ibt-2026-b1-b2: 0 errores, 23 advertencias, 7 ítems
+   Test Files  14 passed (14)
+        Tests  58 passed (58)
+  bundle limpio: sin llaves ni hosts de proveedores en apps/frontend/dist
+  contrato OK: OpenAPI y tipos sin diferencias
+  make verify: OK
+  make verify exit 0
   ```
 
-- **E2E local:** `e2e/test_voice_coach.py` (3), `test_ai_feedback.py` (2),
-  `test_transcription.py` (2) y `test_accessibility.py` (4) en verde con Chromium
-  `[verified-this-session]`; en la CI, job `e2e` del run anterior `[ci-run]`.
+- **E2E local:** `e2e/test_voice_coach.py` (3), `test_ai_feedback.py` (2) y
+  `test_accessibility.py` (4) en verde con Chromium `[verified-this-session]`; las 20 pruebas
+  E2E, en el job `e2e` del run anterior `[ci-run]`.
 
 ## 1. Código vs. spec (por AC)
 
@@ -63,9 +81,9 @@
 
 ## 2. Tests automatizados
 
-- Backend: {{N_BACKEND}} pruebas contra PostgreSQL 16 real, sin red (`pytest-socket`); ruff,
+- Backend: 418 pruebas contra PostgreSQL 16 real, sin red (`pytest-socket`); ruff,
   mypy estricto e import-linter (4 contratos) `[verified-this-session]`.
-- Frontend: {{N_VITEST}} pruebas de Vitest, `tsc -b`, ESLint sin advertencias, build y grep
+- Frontend: 58 pruebas de Vitest, `tsc -b`, ESLint sin advertencias, build y grep
   del bundle.
 - Contrato API: `docs/api/openapi.json` y `schema.d.ts` sin diferencias `[ci-run]`.
 - Migraciones nuevas de MVP-02: `usage_v1` y `voice_v1`, ambas *expand* (job `migrations`)

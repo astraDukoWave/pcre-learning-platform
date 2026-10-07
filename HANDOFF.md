@@ -26,7 +26,7 @@
 
 ## 2. Estado real
 
-### ✅ Existe (MVP-01 verificado el 6 oct 2026 sobre `main` @ `4df036c`; MVP-02, el 7 oct 2026 sobre `main` @ `{{SHA_CIERRE}}`)
+### ✅ Existe (MVP-01 verificado el 6 oct 2026 sobre `main` @ `4df036c`; MVP-02, el 7 oct 2026 sobre `main` @ `180a40b`)
 
 | Qué | Evidencia |
 |---|---|
