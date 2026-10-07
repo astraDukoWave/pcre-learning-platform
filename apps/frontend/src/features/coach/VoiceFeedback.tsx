@@ -7,6 +7,7 @@ import { Button } from "../../components/Button";
 import { ErrorNotice } from "../../components/ErrorNotice";
 import { Highlight } from "../../components/Highlight";
 import { Notice } from "../../components/Notice";
+import { Thumbs } from "../feedback/AiFeedback";
 import { reasonText, segments } from "../feedback/aiFeedback";
 import feedbackStyles from "../feedback/feedback.module.css";
 import styles from "./CoachPage.module.css";
@@ -45,6 +46,7 @@ function Observations({ data }: { data: VoiceFeedbackData }) {
               </p>
               <p>{o.observation_es}</p>
               <p>{o.suggestion_es}</p>
+              {data.run_id ? <Thumbs runId={data.run_id} index={o.index ?? i} /> : null}
             </li>
           ))}
         </ol>

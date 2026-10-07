@@ -150,10 +150,14 @@ class UsageService:
         attempt_id: uuid.UUID | None = None,
         voice_session_id: uuid.UUID | None = None,
         voice_seconds: int | None = None,
+        one_per_target: tuple[str, ...] | None = None,
     ) -> Reservation:
         """Reserva `amount` micro-USD en el presupuesto global y en el del alumno y crea la
         ejecución `reserved`. Con la misma clave devuelve la ejecución existente. Para voz,
-        `voice_seconds` es el máximo de la sesión y cuenta contra los minutos del alumno."""
+        `voice_seconds` es el máximo de la sesión y cuenta contra los minutos del alumno.
+        Con `one_per_target` (propósitos), si el intento o la sesión de voz ya tienen una
+        ejecución que no falló, la devuelve en vez de crear otra: dos peticiones con claves
+        distintas a la vez nunca pagan dos llamadas (REQ-02: solo se reintenta tras `failed`)."""
         if self.settings.budget_global_monthly_microusd is None or (
             self.settings.budget_user_monthly_microusd is None
         ):
@@ -173,6 +177,16 @@ class UsageService:
             existing = repository.run_by_key(s, user_id, purpose, idempotency_key)
             if existing is not None:
                 return Reservation(existing.id, existing.reserved_microusd, existing=True)
+            if one_per_target and (attempt_id is not None or voice_session_id is not None):
+                live = repository.live_run_for_target(
+                    s,
+                    user_id,
+                    one_per_target,
+                    attempt_id=attempt_id,
+                    voice_session_id=voice_session_id,
+                )
+                if live is not None:
+                    return Reservation(live.id, live.reserved_microusd, existing=True)
             user_row = repository.lock_budget(
                 s,
                 scope="user",

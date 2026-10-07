@@ -320,6 +320,14 @@ class VoiceService:
         for run_id in spent:
             self.usage.expire_as_spent(run_id, error_code="expired")
             logger.warning("voice_session_expired_active")
+        # Feedback y transcripciones que quedaron abiertas por una caída a mitad de la llamada
+        # (dura ≤ 20 s): resultado desconocido, con la reserva completa como gasto. Sin esto,
+        # un `running` huérfano respondería "sigue en curso" para siempre.
+        for purpose in ("writing_feedback", "speaking_feedback", "transcription"):
+            for run_id, _ in self.usage.stale_open_runs(
+                purpose, created_before=now - timedelta(minutes=ORPHAN_RUN_MINUTES)
+            ):
+                self.usage.mark_unknown(run_id, error_code="orphaned")
         return len(released) + len(spent)
 
     # -- lectura y parada ----------------------------------------------------------------

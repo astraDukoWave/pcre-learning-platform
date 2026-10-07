@@ -39,9 +39,13 @@ def emit(s: Session, user_id: uuid.UUID, name: str, now: datetime, **props: Any)
 
 
 class InsightsService:
-    def __init__(self, uow: UnitOfWorkFactory, clock: Clock) -> None:
+    def __init__(
+        self, uow: UnitOfWorkFactory, clock: Clock, budget_limit_microusd: int | None = None
+    ) -> None:
         self.uow = uow
         self.clock = clock
+        # Tope global configurado: el panel lo muestra aunque el mes no tenga reservas aún.
+        self.budget_limit_microusd = budget_limit_microusd
 
     # -- alumno -------------------------------------------------------------------------
 
@@ -119,7 +123,9 @@ class InsightsService:
         reasons = repository.voice_end_reasons(s, since)
         ratings = repository.voice_ratings(s, since)
         budget = repository.global_budget(s, now.strftime("%Y-%m"))
-        limit, reserved, spent = budget if budget is not None else (None, 0, 0)
+        limit, reserved, spent = (
+            budget if budget is not None else (self.budget_limit_microusd, 0, 0)
+        )
         return {
             "voice_minutes": round(repository.voice_seconds_since(s, since) / 60, 1),
             "voice_sessions": sum(reasons.values()),

@@ -119,12 +119,25 @@ describe("voice session feedback", () => {
     expect(within(item as HTMLElement).getByText(/Marcaste que no fue lo que dijiste/)).toBeInTheDocument();
   });
 
-  it("explains too little speech, missing consent and lets a failure be retried", async () => {
+  it("explains too little speech and asks nothing without consent", async () => {
     expect(voiceReason("too_little_speech")).toContain("menos de 30 segundos");
-    renderWith(session({ save_transcript: false, transcript: null }), () => {
-      throw new Error("sin consentimiento no se pide nada");
-    });
+    const fetchFn = renderWith(session({ save_transcript: false, transcript: null }), () =>
+      json(500, {}),
+    );
     expect(screen.getByText(/no marcaste la casilla/)).toBeInTheDocument();
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    expect(fetchFn).not.toHaveBeenCalled();
+  });
+
+  it("each observation can be rated with its index in the evaluator output", async () => {
+    const shown = { ...FEEDBACK, observations: [{ ...FEEDBACK.observations[0], index: 1 }] };
+    const fetchFn = renderWith(session({ feedback: shown as VoiceSession["feedback"] }), () =>
+      json(201, { id: "00000000-0000-4000-8000-0000000000ee" }),
+    );
+    await userEvent.click(screen.getByRole("button", { name: /Me sirvió/ }));
+    await waitFor(() => expect(fetchFn).toHaveBeenCalledTimes(1));
+    const body = (await (fetchFn.mock.calls[0]?.[0] as Request).json()) as Record<string, unknown>;
+    expect(body).toMatchObject({ context_type: "ai_observation", context_id: RUN, observation: 1, rating: 1 });
   });
 
   it("offers a retry after a failed feedback", async () => {

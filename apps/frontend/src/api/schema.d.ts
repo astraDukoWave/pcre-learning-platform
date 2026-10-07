@@ -2705,6 +2705,11 @@ export interface components {
         };
         /** VoiceObservationOut */
         VoiceObservationOut: {
+            /**
+             * Index
+             * @default 0
+             */
+            index: number;
             /** Criterion */
             criterion: string;
             /** Criterion Name Es */

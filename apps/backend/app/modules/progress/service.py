@@ -86,6 +86,60 @@ def record_outcome(
     return changed
 
 
+def review_snapshot(
+    s: Session, user_id: uuid.UUID, objectives: list[str]
+) -> dict[str, dict[str, Any] | None]:
+    """Estado de los repasos de esos objetivos (bloqueados), para poder deshacer un cambio."""
+    out: dict[str, dict[str, Any] | None] = {}
+    for code in objectives:
+        row = s.scalar(
+            select(ReviewSchedule)
+            .where(ReviewSchedule.user_id == user_id, ReviewSchedule.objective_code == code)
+            .with_for_update()
+        )
+        out[code] = (
+            None
+            if row is None
+            else {
+                "stage": row.stage,
+                "due_at": row.due_at.isoformat(),
+                "last_outcome": row.last_outcome,
+            }
+        )
+    return out
+
+
+def restore_reviews(
+    s: Session,
+    user_id: uuid.UUID,
+    before: dict[str, dict[str, Any] | None],
+    after: dict[str, dict[str, Any] | None],
+    now: datetime,
+) -> list[str]:
+    """Devuelve cada repaso a `before` solo si sigue como lo dejó el cambio (`after`): si otra
+    práctica lo movió después, no se toca. Devuelve los objetivos restaurados."""
+    restored = []
+    current = review_snapshot(s, user_id, list(before))
+    for code, previous in before.items():
+        if current.get(code) != after.get(code) or current.get(code) is None:
+            continue
+        row = s.scalar(
+            select(ReviewSchedule).where(
+                ReviewSchedule.user_id == user_id, ReviewSchedule.objective_code == code
+            )
+        )
+        assert row is not None
+        if previous is None:
+            s.delete(row)
+        else:
+            row.stage = int(previous["stage"])
+            row.due_at = datetime.fromisoformat(str(previous["due_at"]))
+            row.last_outcome = str(previous["last_outcome"])
+            row.updated_at = now
+        restored.append(code)
+    return restored
+
+
 @dataclass(frozen=True)
 class Viewer:
     user_id: uuid.UUID

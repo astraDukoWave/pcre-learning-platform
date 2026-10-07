@@ -117,8 +117,9 @@ class TranscriptionFlowService:
             provider=stt.provider,
             model=stt.model,
             attempt_id=target.attempt_id,
+            one_per_target=(PURPOSE,),
         )
-        if reservation.existing:  # otra petición con la misma clave llegó primero
+        if reservation.existing:  # otra petición (misma clave o mismo intento) llegó primero
             view = self.usage.run_view(reservation.run_id)
             assert view is not None
             return self._from_run(view, target)

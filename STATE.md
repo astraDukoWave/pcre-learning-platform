@@ -176,9 +176,15 @@ Ninguna.
   (4) Se evalúan solo los turnos del alumno sin ayudas, unidos por ` | ` como dice el prompt
   `voice-v1`. Una observación cuya evidencia cruza turnos se descarta (no se puede resaltar ni
   disputar); si no queda ninguna, el resultado es `not_evaluable/no_valid_evidence`. (5) La
-  dificultad se confirma al evaluar, con los turnos disputados hasta ese momento, y programa
-  el repaso de los objetivos del escenario. Una disputa posterior oculta la observación, pero
-  no deshace el repaso (repasar no penaliza). (6) La valoración de la sesión usa el contexto
+  dificultad se confirma al guardar el resultado, con los turnos disputados en ese momento, y
+  programa el repaso de los objetivos del escenario. Si una disputa posterior deja sin
+  observaciones visibles, el repaso vuelve al estado anterior, salvo que otra práctica lo haya
+  movido: la disputa es un problema de reconocimiento, no un error del alumno. (7) Una sesión
+  tiene una sola ejecución de feedback que no falló: la revisión va dentro de la reserva, con
+  el lock global, así que dos peticiones con claves distintas a la vez no pagan dos llamadas
+  (lo mismo para el feedback de escritura y la transcripción de un intento). El barrido al
+  arrancar pasa a `unknown` las ejecuciones de feedback o transcripción abiertas por más de
+  10 min (una caída a mitad de la llamada). (6) La valoración de la sesión usa el contexto
   `voice` de `user_feedback`, que ya permitía la tabla, con 404 si la sesión es ajena. El panel
   cuenta los turnos disputados como problemas de reconocimiento, nunca su texto.
 

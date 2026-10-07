@@ -238,7 +238,8 @@ def test_a_disputed_turn_hides_its_observations(
     assert [o["turn"] for o in shown["observations"]] == [2] and shown["hidden"] == 1
     # Marcar otra vez no cambia nada; las del coach y las inexistentes no se marcan.
     assert dispute(student, session_id, 5).status_code == 200
-    assert dispute(student, session_id, 1).status_code == 422
+    assert dispute(student, session_id, 1).status_code == 422  # turno del coach
+    assert dispute(student, session_id, 4).status_code == 422  # eco de «repetir» (ayuda)
     assert dispute(student, session_id, 99).status_code == 422
     again = ask(student, session_id).json()
     assert [o["turn"] for o in again["observations"]] == [2] and again["hidden"] == 1
@@ -377,3 +378,192 @@ def test_revision_of_the_scenario_carries_the_rubric(
 ) -> None:
     rev = db.get(ContentRevision, scenario[1])
     assert rev is not None and rev.body["rubric"] == "transfer"
+
+
+def voice_feedback_service(container: Container) -> Any:
+    from app.modules.coaching.voice.router import get_voice_feedback
+
+    return get_voice_feedback(container)
+
+
+def seed_review(db: Session, user_id: uuid.UUID, clock: FakeClock) -> None:
+    db.add(
+        ReviewSchedule(
+            id=uuid.uuid4(),
+            user_id=user_id,
+            objective_code="U1.T",
+            stage=2,
+            due_at=clock.now() + timedelta(days=7),
+            last_outcome="correct",
+            updated_at=clock.now(),
+        )
+    )
+    db.flush()
+
+
+def review_state(db: Session, user_id: uuid.UUID) -> tuple[int, str]:
+    row = db.scalars(
+        select(ReviewSchedule).where(
+            ReviewSchedule.user_id == user_id, ReviewSchedule.objective_code == "U1.T"
+        )
+    ).one()
+    db.refresh(row)
+    return row.stage, row.last_outcome
+
+
+def test_disputing_every_cited_turn_undoes_the_review(
+    student: Account,
+    scenario: tuple[uuid.UUID, uuid.UUID],
+    db: Session,
+    clock: FakeClock,
+) -> None:
+    """REQ-05: la disputa es problema de reconocimiento, no error del alumno. Si ya no queda
+    ninguna observación visible, el repaso que programó el feedback vuelve a como estaba."""
+    seed_review(db, student.id, clock)
+    session_id = ended_session(db, clock, student.id, scenario)
+    assert len(ask(student, session_id).json()["observations"]) == 2
+    assert review_state(db, student.id) == (0, "incorrect")
+    dispute(student, session_id, 2)
+    assert review_state(db, student.id) == (0, "incorrect")  # aún queda una observación
+    dispute(student, session_id, 5)
+    assert review_state(db, student.id) == (2, "correct")  # deshecho
+    dispute(student, session_id, 5)  # repetir no lo vuelve a tocar
+    assert review_state(db, student.id) == (2, "correct")
+
+
+def test_a_dispute_made_while_evaluating_counts(
+    student: Account,
+    scenario: tuple[uuid.UUID, uuid.UUID],
+    db: Session,
+    clock: FakeClock,
+    container: Container,
+    evaluator: FakeFeedbackEvaluator,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Verificador de CS-07: lo que se muestra y la dificultad confirmada se calculan con la
+    transcripción al guardar, no con la que se leyó antes de llamar."""
+    session_id = ended_session(db, clock, student.id, scenario)
+    original = evaluator.evaluate
+
+    def slow(prompt: str, request: Any) -> Any:
+        service = voice_feedback_service(container)
+        for n in (2, 5):
+            service.flag_turn(student.id, uuid.UUID(session_id), n)
+        return original(prompt, request)
+
+    monkeypatch.setattr(evaluator, "evaluate", slow)
+    body = ask(student, session_id).json()
+    assert body["status"] == "evaluable" and body["observations"] == [] and body["hidden"] == 2
+    assert reviews(db, student.id) == 0
+
+
+def test_a_paid_result_is_rebuilt_if_saving_failed(
+    student: Account,
+    scenario: tuple[uuid.UUID, uuid.UUID],
+    db: Session,
+    clock: FakeClock,
+    evaluator: FakeFeedbackEvaluator,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Verificador de CS-07: si falla el guardado después de liquidar, el reintento muestra
+    el resultado pagado (desde `ai_runs.output`) sin otra llamada."""
+    from app.modules.progress import service as progress_service
+
+    session_id = ended_session(db, clock, student.id, scenario)
+    real = progress_service.record_outcome
+
+    def broken(*args: Any, **kwargs: Any) -> Any:
+        raise RuntimeError("choque al guardar el repaso")
+
+    monkeypatch.setattr(progress_service, "record_outcome", broken)
+    assert ask(student, session_id).status_code == 500
+    monkeypatch.setattr(progress_service, "record_outcome", real)
+    body = ask(student, session_id).json()
+    assert body["status"] == "evaluable" and len(body["observations"]) == 2
+    assert len(evaluator.calls) == 1 and reviews(db, student.id) == 1
+
+
+def test_a_key_from_another_session_is_always_a_conflict(
+    student: Account,
+    scenario: tuple[uuid.UUID, uuid.UUID],
+    db: Session,
+    clock: FakeClock,
+) -> None:
+    first = ended_session(db, clock, student.id, scenario)
+    key = "33333333-3333-4333-8333-333333333333"
+    assert ask(student, first, key=key).json()["status"] == "evaluable"
+    stored = ended_session(db, clock, student.id, scenario)
+    ask(student, stored)
+    short = ended_session(db, clock, student.id, scenario, speech_ms=5_000)
+    for other in (stored, short):
+        res = ask(student, other, key=key)
+        assert res.status_code == 409 and res.json()["error"]["code"] == "idempotency_conflict"
+
+
+def test_unknown_voice_feedback_is_never_repeated(
+    student: Account,
+    scenario: tuple[uuid.UUID, uuid.UUID],
+    db: Session,
+    clock: FakeClock,
+    evaluator: FakeFeedbackEvaluator,
+) -> None:
+    turns = [dict(t) for t in TURNS]
+    turns[1]["text"] = "I would like to join an evening course [[fake:unknown]] this month."
+    session_id = ended_session(db, clock, student.id, scenario, transcript=turns)
+    first = ask(student, session_id).json()
+    assert first["status"] == "unknown"
+    again = ask(student, session_id).json()  # clave nueva: no se vuelve a llamar
+    assert again["status"] == "unknown" and len(evaluator.calls) == 1
+    run = db.get(AiRun, uuid.UUID(first["run_id"]))
+    assert run is not None and run.status == "unknown" and run.reserved_microusd > 0
+
+
+def test_orphaned_feedback_runs_become_unknown_on_sweep(
+    student: Account, container: Container, db: Session, clock: FakeClock
+) -> None:
+    """Verificador de CS-07: una ejecución que quedó `running` tras una caída pasa a
+    `unknown` (con la reserva como gasto) en el barrido, en vez de "sigue en curso" siempre."""
+    from app.modules.coaching.voice.router import voice_service
+    from app.modules.usage.service import UsageService
+
+    usage = UsageService(container.uow, container.clock, container.settings, lambda _: True)
+    reservation = usage.reserve(
+        student.id,
+        purpose="speaking_feedback",
+        amount=1_000,
+        idempotency_key="huerfana",
+        provider="fake",
+    )
+    usage.mark_running(reservation.run_id)
+    clock.advance(timedelta(minutes=11))
+    voice_service(container).sweep()
+    run = db.get(AiRun, reservation.run_id)
+    assert run is not None
+    db.refresh(run)
+    assert run.status == "unknown" and run.error_code == "orphaned"
+
+
+def test_voice_observations_take_thumbs_and_the_panel_shows_the_configured_cap(
+    student: Account,
+    admin: Account,
+    scenario: tuple[uuid.UUID, uuid.UUID],
+    db: Session,
+    clock: FakeClock,
+    container: Container,
+) -> None:
+    cap = container.settings.budget_global_monthly_microusd
+    voice_ai = admin.client.get("/api/v1/admin/pilot/summary").json()["voice_ai"]
+    assert voice_ai["month_limit_microusd"] == cap  # sin reservas en el mes todavía
+    session_id = ended_session(db, clock, student.id, scenario)
+    body = ask(student, session_id).json()
+    assert [o["index"] for o in body["observations"]] == [0, 1]
+    res = student.post(
+        "/api/v1/feedback",
+        json={
+            "context_type": "ai_observation",
+            "context_id": body["run_id"],
+            "rating": 1,
+            "observation": body["observations"][1]["index"],
+        },
+    )
+    assert res.status_code == 201  # type: ignore[attr-defined]

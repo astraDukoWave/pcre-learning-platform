@@ -799,10 +799,23 @@ def test_log_lines_carry_scenario_and_user_ref_but_never_transcript_text(
             receive_until(ws, "ended")
         wait_closed(session_id, world.container)
         out = capsys.readouterr().out
+        world.fake.error_after_settings = True  # y una sesión con `Error` del proveedor
+        failing = create(client, csrf, world.scenario_id).json()["id"]
+        with connect(client, failing) as ws:
+            receive_until(ws, "ended", limit=80)
+        wait_closed(failing, world.container)
+        provider_out = capsys.readouterr().out
     finally:
+        world.fake.error_after_settings = False
         root.handlers[:] = saved[0]
         root.setLevel(saved[1])
         logging.getLogger("websockets").setLevel(saved[2])
+    errors = [
+        json.loads(line)
+        for line in provider_out.splitlines()
+        if line.startswith("{") and '"voice_provider_error"' in line
+    ]
+    assert errors and errors[0]["code"] == "FAKE" and errors[0]["session_ref"] != failing
     lines = [json.loads(line) for line in out.splitlines() if line.startswith("{")]
     by_msg = {line["msg"]: line for line in lines}
     started = by_msg["voice_session_started"]
@@ -811,8 +824,14 @@ def test_log_lines_carry_scenario_and_user_ref_but_never_transcript_text(
     ended = by_msg["voice_session_ended"]
     assert ended["end_reason"] == "user_stop" and ended["aids"] == 1 and ended["turns"] >= 2
     assert ended["duration_s"] is not None
-    finished = [line for line in lines if line["msg"] == "ai_run_finished"]
-    assert any(line["purpose"] == "voice_session" for line in finished)
+    finished = [
+        line
+        for line in lines
+        if line["msg"] == "ai_run_finished" and line["purpose"] == "voice_session"
+    ]
+    assert finished and finished[0]["run_status"] == "succeeded"
+    assert {"model", "latency_ms", "cost_microusd"} <= set(finished[0])
+    assert finished[0]["model"] == "fake-agent" and finished[0]["cost_microusd"] > 0
     for text in (greeting["turn"]["text"], *LEARNER_LINES, "Ask about the time first."):
         assert text not in out
 
@@ -1110,3 +1129,152 @@ def test_a_failing_finish_still_tells_the_learner(
     assert ended["reason"] == "user_stop"
     wait_closed(session_id)
     assert session_row(world.container, session_id).status == "active"  # queda para el barrido
+
+
+def feedback_world(world: World, tmp_path: Path) -> Any:
+    """El mundo de voz con el feedback encendido (evaluador falso y rúbrica del contenido)."""
+    from app.modules.coaching.feedback.adapters.fake import FakeFeedbackEvaluator
+
+    c = world.container
+    evaluator = FakeFeedbackEvaluator()
+    c.feedback_evaluator = evaluator
+    c.ready_providers = frozenset({"voice", "ai_feedback"})
+    c.settings = c.settings.model_copy(
+        update={
+            "ai_feedback_enabled": True,
+            "gemini_price_input_per_mtok_microusd": 100_000,
+            "gemini_price_output_per_mtok_microusd": 400_000,
+            "feedback_provider": "fake",
+            "content_dir": tmp_path / "voz",
+        }
+    )
+    world.app = create_app(c.settings, container=c)
+    return evaluator
+
+
+def committed_ended_session(world: World, user_id: uuid.UUID) -> str:
+    from app.modules.content.models import ContentRevision
+
+    c = world.container
+    now = c.clock.now()
+    words = "I would like to join an evening course this month."
+    turns = [
+        {"n": 1, "role": "coach", "text": "Hi!", "at_s": 0.0, "aid": False},
+        {"n": 2, "role": "learner", "text": words, "at_s": 2.0, "aid": False},
+        {"n": 3, "role": "coach", "text": "Sure.", "at_s": 5.0, "aid": False},
+        {
+            "n": 4,
+            "role": "learner",
+            "text": "How much does the course cost for one month?",
+            "at_s": 8.0,
+            "aid": False,
+        },
+    ]
+    with c.uow() as s:
+        revision_id = s.scalars(
+            select(ContentRevision.id).where(
+                ContentRevision.item_id == uuid.UUID(world.scenario_id),
+                ContentRevision.status == "published",
+            )
+        ).one()
+        row = VoiceSession(
+            id=uuid.uuid4(),
+            user_id=user_id,
+            scenario_item_id=uuid.UUID(world.scenario_id),
+            scenario_revision_id=revision_id,
+            status="ended",
+            max_seconds=300,
+            save_transcript=True,
+            created_at=now - timedelta(minutes=5),
+            deadline_at=now,
+            connected_at=now - timedelta(minutes=5),
+            started_at=now - timedelta(minutes=5),
+            ended_at=now - timedelta(minutes=1),
+            end_reason="user_stop",
+            learner_speech_ms=45_000,
+            aids=[],
+            transcript=turns,
+        )
+        s.add(row)
+        return str(row.id)
+
+
+def in_parallel(*calls: Any) -> list[Any]:
+    barrier = threading.Barrier(len(calls))
+    results: list[Any] = [None] * len(calls)
+
+    def run(i: int) -> None:
+        barrier.wait()
+        results[i] = calls[i]()
+
+    threads = [threading.Thread(target=run, args=(i,)) for i in range(len(calls))]
+    for t in threads:
+        t.start()
+    for t in threads:
+        t.join(30)
+    return results
+
+
+def test_concurrent_feedback_requests_with_different_keys_make_one_call(
+    world: World, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Verificador de CS-07 (bloqueante): dos peticiones a la vez con claves distintas
+    comparten una sola reserva y una sola llamada (REQ-02: solo se reintenta tras `failed`).
+    Las dos pasan la revisión previa antes de reservar (barrera), como en la carrera real."""
+    from app.modules.usage.service import UsageService
+
+    evaluator = feedback_world(world, tmp_path)
+    both_checked = threading.Barrier(2, timeout=10)
+    original = UsageService.latest_for_voice_session
+
+    def checked(self: Any, *args: Any) -> Any:
+        found = original(self, *args)
+        both_checked.wait()
+        return found
+
+    monkeypatch.setattr(UsageService, "latest_for_voice_session", checked)
+    client, csrf, user_id = world.student("feedbackdoble")
+    other = TestClient(world.app, base_url="https://testserver", headers={"Origin": TEST_ORIGIN})
+    other.__enter__()
+    world.clients.append(other)
+    other.cookies.set(SESSION_COOKIE, client.cookies.get(SESSION_COOKIE) or "")
+    session_id = committed_ended_session(world, user_id)
+
+    def ask(c: TestClient) -> Any:
+        return lambda: c.post(
+            f"/api/v1/voice-sessions/{session_id}/feedback",
+            headers={"X-CSRF-Token": csrf, "Idempotency-Key": str(uuid.uuid4())},
+        )
+
+    results = in_parallel(ask(client), ask(other))
+    codes = sorted(r.status_code for r in results)
+    assert codes in ([200, 200], [200, 409]), codes
+    assert len(evaluator.calls) == 1
+    with world.container.uow() as s:
+        runs = s.scalars(
+            select(AiRun).where(AiRun.user_id == user_id, AiRun.purpose == "speaking_feedback")
+        ).all()
+        assert len(runs) == 1 and runs[0].status == "succeeded"
+
+
+def test_concurrent_flags_on_two_turns_both_persist(world: World, tmp_path: Path) -> None:
+    """Verificador de CS-07: dos «Eso no fue lo que dije» a la vez no se pisan."""
+    feedback_world(world, tmp_path)
+    client, csrf, user_id = world.student("dosmarcas")
+    other = TestClient(world.app, base_url="https://testserver", headers={"Origin": TEST_ORIGIN})
+    other.__enter__()
+    world.clients.append(other)
+    other.cookies.set(SESSION_COOKIE, client.cookies.get(SESSION_COOKIE) or "")
+    session_id = committed_ended_session(world, user_id)
+
+    def flag(c: TestClient, n: int) -> Any:
+        return lambda: c.post(
+            f"/api/v1/voice-sessions/{session_id}/turns/{n}/flag",
+            headers={"X-CSRF-Token": csrf},
+        )
+
+    for _ in range(3):
+        results = in_parallel(flag(client, 2), flag(other, 4))
+        assert [r.status_code for r in results] == [200, 200]
+    turns = {t["n"]: t for t in session_row(world.container, session_id).transcript or []}
+    assert turns[2].get("disputed") and turns[4].get("disputed")

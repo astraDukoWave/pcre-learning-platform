@@ -36,6 +36,8 @@ class VoiceTurnOut(BaseModel):
 
 
 class VoiceObservationOut(BaseModel):
+    # Posición en la salida del evaluador: la usa el 👍/👎 (`ai_observation`).
+    index: int = 0
     criterion: str
     criterion_name_es: str
     evidence: str

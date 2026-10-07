@@ -2,10 +2,11 @@
 
 Arranca el Deepgram falso (`apps/backend/tests/fakes/deepgram_agent.py`) y el servidor con las
 banderas de WebSocket de `heroku.yml` (`--ws-max-size 1048576`, un worker), crea tres alumnos
-por invitación, abre tres sesiones de voz y manda frames de 1 MiB (el máximo) a más de 50 por
-segundo durante `--seconds`. Mide el RSS del proceso del servidor (`/proc/<pid>/status`) cada
-medio segundo. Umbral: 300 MB. No es un gate de CI: el resultado se registra en el reporte de
-verify. Nunca toca un proveedor real ni producción.
+por invitación, abre tres sesiones de voz y manda frames de 1 MiB (el máximo) tan rápido como
+los acepta el WebSocket, hasta 60 por segundo (en la práctica, unos 28), durante `--seconds`.
+Mide el RSS del proceso del servidor (`/proc/<pid>/status`) cada medio segundo. Umbral: 300 MB.
+No es un gate de CI: el resultado se registra en el reporte de verify. Nunca toca un proveedor
+real ni producción.
 
 Preparación y corrida (desde `apps/backend`, con una base desechable):
 
@@ -191,7 +192,7 @@ async def session(
         while time.monotonic() < end:
             await ws.send(FRAME)
             sent += 1
-            await asyncio.sleep(1 / 60)  # por encima del límite de 50 por segundo
+            await asyncio.sleep(1 / 60)  # a lo sumo 60 por segundo; el envío de 1 MiB frena
         await ws.send(json.dumps({"type": "stop"}))
         await asyncio.sleep(1)
         reader.cancel()

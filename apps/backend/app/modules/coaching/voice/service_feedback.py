@@ -3,11 +3,13 @@
 Solo con el consentimiento de la sesión y al menos `VOICE_MIN_LEARNER_SPEECH_S` (30 s) de voz
 del alumno: sus turnos (sin las ayudas) se evalúan con la rúbrica del escenario, hasta dos
 observaciones con evidencia literal. Mismas reglas que REQ-02: reserva antes de llamar, la
-misma clave devuelve lo mismo, solo se reintenta tras `failed` y un `unknown` no se repite.
+misma clave devuelve lo mismo, solo se reintenta tras `failed` y un `unknown` no se repite;
+dos peticiones a la vez con claves distintas comparten una sola ejecución.
 Una dificultad es confirmada si su observación es válida y su turno no está disputado;
 entonces se programa el repaso de los objetivos del escenario. "Eso no fue lo que dije" en un
 turno lo marca como disputado: se ocultan sus observaciones y se registra como problema de
-reconocimiento, nunca como error del alumno.
+reconocimiento, nunca como error del alumno; si ya no queda ninguna observación visible, el
+repaso que había programado el feedback se deshace (salvo que otra práctica lo moviera).
 """
 
 from __future__ import annotations
@@ -41,6 +43,42 @@ logger = logging.getLogger("app.coaching.voice")
 
 PURPOSE: Final = "speaking_feedback"
 MAX_OBSERVATIONS = 2
+STORED: Final = ("evaluable", "not_evaluable")
+
+
+def result_from_output(
+    output: dict[str, Any],
+    run_id: uuid.UUID,
+    rubric: dict[str, Any] | None,
+    turns: list[dict[str, Any]],
+) -> dict[str, Any]:
+    """Resultado que se guarda en la sesión a partir de la salida validada del evaluador.
+
+    La evidencia tiene que estar completa en un turno del alumno: una cita que cruza turnos
+    (` | `) no se puede resaltar ni disputar, y se descarta como inventada. Cada observación
+    conserva su posición en la salida (`index`, para el 👍/👎) y su turno."""
+    names = {c.id: c.name_es for c in criteria_from(rubric)}
+    observations = [
+        {
+            **o,
+            "index": i,
+            "criterion_name_es": names.get(o["criterion"], o["criterion"]),
+            "turn": domain.turn_for(o["evidence"], turns),
+        }
+        for i, o in enumerate(output.get("observations", []))
+    ]
+    observations = [o for o in observations if o["turn"] is not None]
+    status, reason = output.get("status"), output.get("reason")
+    if status == "evaluable" and not observations:
+        status, reason = "not_evaluable", "no_valid_evidence"
+    return {
+        "status": status,
+        "reason": reason,
+        "run_id": str(run_id),
+        "label": LABEL,
+        "observations": observations,
+        "rubric_levels": output.get("rubric_levels", {}) if status == "evaluable" else {},
+    }
 
 
 class VoiceFeedbackService:
@@ -60,17 +98,20 @@ class VoiceFeedbackService:
 
     def request(self, user_id: uuid.UUID, session_id: uuid.UUID, key: str) -> dict[str, Any]:
         with self.uow() as s:
-            session = repository.for_user(s, user_id, session_id)
-            if session is None:
+            if repository.for_user(s, user_id, session_id) is None:
                 raise NotFound()
+        # La clave se revisa antes que todo lo demás: usada con otra sesión → 409 siempre.
+        same_key = self.usage.run_by_key(user_id, PURPOSE, key)
+        if same_key is not None and same_key.voice_session_id != session_id:
+            raise Conflict("Esta clave ya se usó con otra sesión.", code="idempotency_conflict")
+        with self.uow() as s:
+            session = repository.for_user(s, user_id, session_id)
+            assert session is not None
             if session.status in repository.LIVE:
                 raise Conflict("La sesión sigue abierta.", code="voice_session_open")
             if not session.save_transcript:
                 return self._shown({"status": "not_evaluable", "reason": "no_consent"})
-            if session.feedback is not None and session.feedback.get("status") in (
-                "evaluable",
-                "not_evaluable",
-            ):
+            if session.feedback is not None and session.feedback.get("status") in STORED:
                 return self._shown(session.feedback, session.transcript)
             transcript = list(session.transcript or [])
             speech_s = (session.learner_speech_ms or 0) / 1000
@@ -78,20 +119,16 @@ class VoiceFeedbackService:
         turns = domain.learner_turns(transcript)
         if not turns or speech_s < self.settings.voice_min_learner_speech_s:
             result = {"status": "not_evaluable", "reason": "too_little_speech", "label": LABEL}
-            self._store(user_id, session_id, result, body, confirmed=False)
-            return self._shown(result)
+            return self._store(user_id, session_id, result, body)
         self.usage.require("ai_feedback")
         if self.evaluator is None:
             raise CapabilityDisabled()
-        same_key = self.usage.run_by_key(user_id, PURPOSE, key)
         if same_key is not None:
-            if same_key.voice_session_id != session_id:
-                raise Conflict("Esta clave ya se usó con otra sesión.", code="idempotency_conflict")
-            return self._from_run(same_key, session_id, transcript)
+            return self._from_run(same_key, user_id, session_id, body, turns)
         latest = self.usage.latest_for_voice_session(user_id, session_id, PURPOSE)
         if latest is not None and latest.status != "failed":
-            return self._from_run(latest, session_id, transcript)
-        return self._evaluate(user_id, session_id, key, body, turns, transcript)
+            return self._from_run(latest, user_id, session_id, body, turns)
+        return self._evaluate(user_id, session_id, key, body, turns)
 
     def _evaluate(
         self,
@@ -100,7 +137,6 @@ class VoiceFeedbackService:
         key: str,
         body: dict[str, Any],
         turns: list[dict[str, Any]],
-        transcript: list[dict[str, Any]],
     ) -> dict[str, Any]:
         evaluator = self.evaluator
         assert evaluator is not None
@@ -134,11 +170,12 @@ class VoiceFeedbackService:
             prompt_version=request.prompt_version,
             rubric_version=f"{request.rubric_id}-v{request.rubric_version}",
             voice_session_id=session_id,
+            one_per_target=(PURPOSE,),
         )
-        if reservation.existing:
+        if reservation.existing:  # otra petición (misma clave o misma sesión) llegó primero
             view = self.usage.run_view(reservation.run_id)
             assert view is not None
-            return self._from_run(view, session_id, transcript)
+            return self._from_run(view, user_id, session_id, body, turns)
         run_id = reservation.run_id
         self.usage.mark_running(run_id)
         try:
@@ -163,32 +200,9 @@ class VoiceFeedbackService:
             output=output,
             latency_ms=reply.latency_ms,
         )
-        names = {c.id: c.name_es for c in criteria_from(rubric)}
-        # La evidencia tiene que estar completa en un turno del alumno: una cita que cruza
-        # turnos (` | `) no se puede resaltar ni disputar, y se descarta como inventada.
-        observations = [
-            {
-                **o,
-                "criterion_name_es": names.get(o["criterion"], o["criterion"]),
-                "turn": domain.turn_for(o["evidence"], turns),
-            }
-            for o in output.get("observations", [])
-        ]
-        observations = [o for o in observations if o["turn"] is not None]
-        status, reason = output["status"], output.get("reason")
-        if status == "evaluable" and not observations:
-            status, reason = "not_evaluable", "no_valid_evidence"
-        result = {
-            "status": status,
-            "reason": reason,
-            "run_id": str(run_id),
-            "label": LABEL,
-            "observations": observations,
-            "rubric_levels": output.get("rubric_levels", {}) if status == "evaluable" else {},
-        }
-        shown = domain.feedback_view(result, transcript) or result
-        self._store(user_id, session_id, result, body, confirmed=bool(shown["observations"]))
-        return self._shown(result, transcript)
+        return self._store(
+            user_id, session_id, result_from_output(output, run_id, rubric, turns), body
+        )
 
     def _store(
         self,
@@ -196,22 +210,29 @@ class VoiceFeedbackService:
         session_id: uuid.UUID,
         result: dict[str, Any],
         body: dict[str, Any],
-        *,
-        confirmed: bool,
-    ) -> None:
+    ) -> dict[str, Any]:
+        """Guarda el resultado con la fila bloqueada. Lo que se muestra y si la dificultad es
+        confirmada se calculan con la transcripción de ese momento: una disputa hecha mientras
+        se evaluaba ya cuenta."""
         now = self.clock.now()
         with self.uow() as s:
             session = repository.get(s, session_id, lock=True)
             if session is None or not session.save_transcript:
-                return
-            session.feedback = result
-            if confirmed:
-                # Dificultad confirmada (observación válida en un turno no disputado): se
-                # repasa el objetivo del escenario como un fallo en repaso.
+                return self._shown(result)
+            if session.feedback is not None and session.feedback.get("status") in STORED:
+                return self._shown(session.feedback, session.transcript)  # otro llegó antes
+            transcript = list(session.transcript or [])
+            shown = self._shown(result, transcript)
+            stored = dict(result)
+            if shown["observations"]:
+                # Dificultad confirmada: repaso de los objetivos del escenario como un fallo
+                # en repaso. Se guarda el estado anterior para deshacerlo si se disputa.
+                objectives = [str(o) for o in body.get("objectives", [])]
+                before = progress_service.review_snapshot(s, user_id, objectives)
                 progress_service.record_outcome(
                     s,
                     user_id=user_id,
-                    objectives=[str(o) for o in body.get("objectives", [])],
+                    objectives=objectives,
                     outcome="incorrect",
                     aided=bool(session.aids),
                     mode="review",
@@ -219,17 +240,32 @@ class VoiceFeedbackService:
                     now=now,
                     intervals_hours=self.settings.review_intervals,
                 )
+                after = progress_service.review_snapshot(s, user_id, objectives)
+                stored["review"] = {"before": before, "after": after}
+            session.feedback = stored
+        return shown
 
     def _from_run(
-        self, run: RunView, session_id: uuid.UUID, transcript: list[dict[str, Any]]
+        self,
+        run: RunView,
+        user_id: uuid.UUID,
+        session_id: uuid.UUID,
+        body: dict[str, Any],
+        turns: list[dict[str, Any]],
     ) -> dict[str, Any]:
         if run.status in ("reserved", "running"):
             raise Conflict("El feedback anterior sigue en curso.", code="feedback_in_progress")
         with self.uow() as s:
             session = repository.get(s, session_id)
             stored = session.feedback if session is not None else None
-        if run.status == "succeeded" and stored is not None:
+            transcript = session.transcript if session is not None else None
+        if stored is not None and stored.get("status") in STORED:
             return self._shown(stored, transcript)
+        if run.status == "succeeded" and run.output is not None:
+            # Pagado pero sin guardar (falló el guardado): se reconstruye sin otra llamada.
+            rubric = rubric_by_id(self.settings.content_dir, str(body.get("rubric", "")))
+            result = result_from_output(run.output, run.id, rubric, turns)
+            return self._store(user_id, session_id, result, body)
         status = "unknown" if run.status == "unknown" else "failed"
         return self._shown({"status": status, "reason": run.error_code, "run_id": str(run.id)})
 
@@ -242,14 +278,21 @@ class VoiceFeedbackService:
         return out
 
     def flag_turn(self, user_id: uuid.UUID, session_id: uuid.UUID, n: int) -> dict[str, Any]:
-        """ "Eso no fue lo que dije": el turno del alumno queda disputado (idempotente)."""
+        """ "Eso no fue lo que dije": el turno del alumno queda disputado (idempotente). Con la
+        fila bloqueada, dos marcas a la vez no se pisan."""
+        now = self.clock.now()
         with self.uow() as s:
-            session = repository.for_user(s, user_id, session_id)
-            if session is None:
+            if repository.for_user(s, user_id, session_id) is None:
                 raise NotFound()
+            session = repository.get(s, session_id, lock=True)
+            assert session is not None
             turns = list(session.transcript or [])
             index = next(
-                (i for i, t in enumerate(turns) if t.get("n") == n and t.get("role") == "learner"),
+                (
+                    i
+                    for i, t in enumerate(turns)
+                    if t.get("n") == n and t.get("role") == "learner" and not t.get("aid")
+                ),
                 None,
             )
             if index is None:
@@ -258,6 +301,14 @@ class VoiceFeedbackService:
                 )
             turns[index] = {**turns[index], "disputed": True}
             session.transcript = turns
+            feedback = session.feedback
+            review = (feedback or {}).get("review")
+            view = domain.feedback_view(feedback, turns)
+            if feedback is not None and review and view is not None and not view["observations"]:
+                # Ya no queda ninguna dificultad confirmada: el repaso que programó el
+                # feedback se deshace (problema de reconocimiento, no error del alumno).
+                progress_service.restore_reviews(s, user_id, review["before"], review["after"], now)
+                session.feedback = {k: v for k, v in feedback.items() if k != "review"}
             summary = _summary(session)
         logger.info("voice_turn_disputed", extra={"session_ref": session_ref(session_id)})
         return summary

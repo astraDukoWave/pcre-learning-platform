@@ -7442,6 +7442,11 @@
       },
       "VoiceObservationOut": {
         "properties": {
+          "index": {
+            "type": "integer",
+            "title": "Index",
+            "default": 0
+          },
           "criterion": {
             "type": "string",
             "title": "Criterion"

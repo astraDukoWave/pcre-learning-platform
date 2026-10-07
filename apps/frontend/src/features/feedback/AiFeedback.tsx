@@ -12,7 +12,7 @@ import { type AiFeedback as AiFeedbackData, reasonText, segments } from "./aiFee
 
 const UNAVAILABLE = new Set(["capability_disabled", "budget_exhausted"]);
 
-function Thumbs({ runId, index }: { runId: string; index: number }) {
+export function Thumbs({ runId, index }: { runId: string; index: number }) {
   const [sent, setSent] = useState<0 | 1 | null>(null);
   const vote = useMutation({
     mutationFn: (rating: 0 | 1) =>
