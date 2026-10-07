@@ -22,6 +22,7 @@ from app.modules.practice.schemas import (
     PathOut,
     PathStateOut,
     SelfAssessmentIn,
+    TranscriptionDecisionIn,
 )
 from app.modules.practice.service import Learner, PracticeService
 from app.modules.progress.service import ProgressService, Viewer
@@ -95,6 +96,16 @@ def self_assess(
 ) -> AttemptDetailOut:
     return AttemptDetailOut.model_validate(
         practice.self_assess(learner_from(ctx), attempt_id, body.scores)
+    )
+
+
+@router.post("/attempts/{attempt_id}/transcription", response_model=AttemptDetailOut)
+def decide_transcription(
+    attempt_id: uuid.UUID, body: TranscriptionDecisionIn, ctx: AuthDep, practice: PracticeDep
+) -> AttemptDetailOut:
+    """Confirmar la transcripción de una entrevista o decir "Eso no fue lo que dije"."""
+    return AttemptDetailOut.model_validate(
+        practice.decide_transcription(learner_from(ctx), attempt_id, confirmed=body.confirmed)
     )
 
 

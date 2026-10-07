@@ -119,6 +119,10 @@ class UsageService:
     def capabilities(self) -> dict[Capability, CapabilityState]:
         return {c: self.capability(c) for c in CAPABILITY_FLAGS}
 
+    def enabled_capabilities(self) -> dict[Capability, bool]:
+        """Para la interfaz del alumno: solo si cada capacidad está encendida."""
+        return {c: state.enabled for c, state in self.capabilities().items()}
+
     def require(self, capability: Capability) -> None:
         state = self.capability(capability)
         if not state.enabled:

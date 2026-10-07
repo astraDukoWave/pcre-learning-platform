@@ -11,8 +11,13 @@ export type RecorderState =
   | "failed";
 
 /** Grabación local con MediaRecorder: el audio queda en memoria del navegador como
- * `blob:` y nunca se sube (REQ-10). Se detiene sola al llegar a `maxSeconds`. */
-export function useRecorder(maxSeconds: number, prepSeconds: number) {
+ * `blob:` y no se sube salvo que la alumna pida la transcripción (MVP-02 REQ-04). Se
+ * detiene sola al llegar a `maxSeconds`. `onRecorded` recibe el audio y su duración. */
+export function useRecorder(
+  maxSeconds: number,
+  prepSeconds: number,
+  onRecorded?: (blob: Blob, durationMs: number) => void,
+) {
   const [state, setState] = useState<RecorderState>(() =>
     typeof window !== "undefined" &&
     "MediaRecorder" in window &&
@@ -25,6 +30,11 @@ export function useRecorder(maxSeconds: number, prepSeconds: number) {
   const recorder = useRef<MediaRecorder | null>(null);
   const stream = useRef<MediaStream | null>(null);
   const timer = useRef<number | null>(null);
+  const startedAt = useRef(0);
+  const recordedCallback = useRef(onRecorded);
+  useEffect(() => {
+    recordedCallback.current = onRecorded;
+  }, [onRecorded]);
 
   const clearTimer = useCallback(() => {
     if (timer.current !== null) window.clearInterval(timer.current);
@@ -78,6 +88,7 @@ export function useRecorder(maxSeconds: number, prepSeconds: number) {
       rec.onstop = () => {
         releaseStream();
         const blob = new Blob(chunks, { type: rec.mimeType || "audio/webm" });
+        recordedCallback.current?.(blob, Math.max(1, Math.round(performance.now() - startedAt.current)));
         setUrl((old) => {
           if (old) URL.revokeObjectURL(old);
           return URL.createObjectURL(blob);
@@ -85,6 +96,7 @@ export function useRecorder(maxSeconds: number, prepSeconds: number) {
         setState("recorded");
       };
       recorder.current = rec;
+      startedAt.current = performance.now();
       rec.start();
       setState("recording");
       countdown(maxSeconds, () => {

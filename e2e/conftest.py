@@ -204,6 +204,8 @@ def server() -> Iterator[Server]:
 FUNDED_ENV = {
     "AI_FEEDBACK_ENABLED": "true",
     "FEEDBACK_PROVIDER": "fake",
+    "STT_ENABLED": "true",
+    "STT_PROVIDER": "fake",
     "BUDGET_GLOBAL_MONTHLY_MICROUSD": "25000000",
     "BUDGET_USER_MONTHLY_MICROUSD": "8000000",
     "VOICE_MAX_MINUTES_PER_USER_MONTH": "60",

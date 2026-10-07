@@ -128,7 +128,9 @@ def test_speaking_records_locally_and_handles_a_denied_microphone(contexts: Cont
     uploads: list[str] = []
     page.on("request", lambda r: uploads.append(r.url) if r.method == "POST" else None)
     open_item(page, title)
-    expect(page.get_by_text("Tu grabación no sale de tu dispositivo.", exact=True)).to_be_visible()
+    expect(
+        page.get_by_text(re.compile(r"^Tu grabación se queda en tu dispositivo\."))
+    ).to_be_visible()
     press(page, "Grabar")
     press(page, "Grabar ya")  # salta la preparación
     expect(page.get_by_text(re.compile("Grabando"))).to_be_visible()
@@ -136,7 +138,12 @@ def test_speaking_records_locally_and_handles_a_denied_microphone(contexts: Cont
     expect(page.get_by_label("Tu grabación")).to_be_visible()
     press(page, "Enviar respuesta")
     expect(page.get_by_role("heading", name="Autoevalúa tu respuesta")).to_be_visible()
-    assert all("/api/v1/" in u for u in uploads), uploads  # el audio no se sube
+    # Sin pedir la transcripción, el audio no se sube (y aquí está apagada: AC-02).
+    assert not any("/speaking/transcriptions" in u for u in uploads), uploads
+    assert all("/api/v1/" in u for u in uploads), uploads
+    unavailable = re.compile("La transcripción automática no está disponible")
+    expect(page.get_by_text(unavailable)).to_be_visible()
+    expect(page.get_by_role("button", name="Transcribir mi grabación")).to_have_count(0)
 
     denied = new_student(contexts, "formatos.sinmicro@example.com")
     deny_microphone(denied)

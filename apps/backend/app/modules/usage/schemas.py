@@ -44,3 +44,11 @@ class UsageOverviewOut(BaseModel):
     voice_minutes_per_user: int | None
     calls_by_purpose: dict[str, int]
     users: list[UserUsageOut]
+
+
+class LearnerCapabilitiesOut(BaseModel):
+    """Qué capacidades con costo están encendidas, sin motivos ni montos (alumno)."""
+
+    ai_feedback: bool
+    stt: bool
+    voice: bool

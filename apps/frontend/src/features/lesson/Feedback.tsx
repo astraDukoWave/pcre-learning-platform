@@ -1,6 +1,8 @@
 import { Highlight } from "../../components/Highlight";
 import { AiFeedback } from "../feedback/AiFeedback";
 import type { AiFeedback as AiFeedbackData } from "../feedback/aiFeedback";
+import { Transcription } from "../feedback/Transcription";
+import type { StoredTranscription } from "../feedback/transcription";
 import { MarginNote } from "../../components/MarginNote";
 import styles from "./Feedback.module.css";
 import { SelfAssessment } from "./SelfAssessment";
@@ -148,6 +150,15 @@ function ProductionFeedback({
           attemptId={shown.id}
           text={String(shown.response.text ?? "")}
           stored={(shown.result.ai_feedback as AiFeedbackData | undefined) ?? null}
+          onSaved={onUpdate}
+        />
+      ) : null}
+      {!writing && !notEvaluable && shown.id ? (
+        <Transcription
+          attemptId={shown.id}
+          activityId={activity.id}
+          stored={(shown.result.transcription as StoredTranscription | undefined) ?? null}
+          aiFeedback={(shown.result.ai_feedback as AiFeedbackData | undefined) ?? null}
           onSaved={onUpdate}
         />
       ) : null}

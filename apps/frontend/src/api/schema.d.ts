@@ -414,6 +414,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/attempts/{attempt_id}/transcription": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Decide Transcription
+         * @description Confirmar la transcripción de una entrevista o decir "Eso no fue lo que dije".
+         */
+        post: operations["decide_transcription_api_v1_attempts__attempt_id__transcription_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/attempts/{attempt_id}": {
         parameters: {
             query?: never;
@@ -724,6 +744,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/capabilities": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Learner Capabilities
+         * @description La interfaz decide si ofrece feedback con IA, transcripción o voz; sin ellas muestra la
+         *     alternativa gratuita. El presupuesto del alumno se comprueba al llamar (503).
+         */
+        get: operations["learner_capabilities_api_v1_capabilities_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/attempts/{attempt_id}/feedback": {
         parameters: {
             query?: never;
@@ -735,6 +776,26 @@ export interface paths {
         put?: never;
         /** Request Feedback */
         post: operations["request_feedback_api_v1_attempts__attempt_id__feedback_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/speaking/transcriptions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Create Transcription
+         * @description Multipart con `attempt_id`, `activity_id`, `duration_ms` y `audio` (WebM u MP4).
+         */
+        post: operations["create_transcription_api_v1_speaking_transcriptions_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1577,6 +1638,18 @@ export interface components {
              */
             state: "not_started" | "in_progress" | "completed";
         };
+        /**
+         * LearnerCapabilitiesOut
+         * @description Qué capacidades con costo están encendidas, sin motivos ni montos (alumno).
+         */
+        LearnerCapabilitiesOut: {
+            /** Ai Feedback */
+            ai_feedback: boolean;
+            /** Stt */
+            stt: boolean;
+            /** Voice */
+            voice: boolean;
+        };
         /** LearnerProgressOut */
         LearnerProgressOut: {
             /** Period Days */
@@ -1963,6 +2036,17 @@ export interface components {
             /** Activity Key */
             activity_key: string;
         };
+        /** RepeatComparisonOut */
+        RepeatComparisonOut: {
+            /** Recognized */
+            recognized: number;
+            /** Total */
+            total: number;
+            /** Recognized Ratio */
+            recognized_ratio: number;
+            /** Missing */
+            missing: string[];
+        };
         /** ReportOut */
         ReportOut: {
             /**
@@ -2307,6 +2391,51 @@ export interface components {
         TokenIn: {
             /** Token */
             token: string;
+        };
+        /** TranscribedWordOut */
+        TranscribedWordOut: {
+            /** Word */
+            word: string;
+            /** Confidence */
+            confidence: number;
+        };
+        /** TranscriptionDecisionIn */
+        TranscriptionDecisionIn: {
+            /** Confirmed */
+            confirmed: boolean;
+        };
+        /** TranscriptionOut */
+        TranscriptionOut: {
+            /**
+             * Run Id
+             * Format: uuid
+             */
+            run_id: string;
+            /**
+             * Attempt Id
+             * Format: uuid
+             */
+            attempt_id: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "transcribed" | "failed" | "unknown";
+            /** Reason */
+            reason: string | null;
+            /** Kind */
+            kind: ("repeat" | "interview") | null;
+            /** Text */
+            text: string | null;
+            /** Words */
+            words: components["schemas"]["TranscribedWordOut"][];
+            repeat: components["schemas"]["RepeatComparisonOut"] | null;
+            /** Hint Es */
+            hint_es?: string | null;
+            /** Confirmed */
+            confirmed: boolean | null;
+            /** Disputed */
+            disputed: boolean | null;
         };
         /** UnitAdvanceOut */
         UnitAdvanceOut: {
@@ -3166,6 +3295,41 @@ export interface operations {
             };
         };
     };
+    decide_transcription_api_v1_attempts__attempt_id__transcription_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                attempt_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TranscriptionDecisionIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AttemptDetailOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     get_attempt_api_v1_attempts__attempt_id__get: {
         parameters: {
             query?: never;
@@ -3707,6 +3871,26 @@ export interface operations {
             };
         };
     };
+    learner_capabilities_api_v1_capabilities_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LearnerCapabilitiesOut"];
+                };
+            };
+        };
+    };
     request_feedback_api_v1_attempts__attempt_id__feedback_post: {
         parameters: {
             query?: never;
@@ -3727,6 +3911,52 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AiFeedbackOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_transcription_api_v1_speaking_transcriptions_post: {
+        parameters: {
+            query?: never;
+            header: {
+                "Idempotency-Key": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": {
+                    /** Format: uuid */
+                    attempt_id: string;
+                    /** Format: uuid */
+                    activity_id: string;
+                    duration_ms: number;
+                    /**
+                     * Format: binary
+                     * @description audio/webm (Opus) o audio/mp4; 2 MB y 60 s como máximo
+                     */
+                    audio: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TranscriptionOut"];
                 };
             };
             /** @description Validation Error */
