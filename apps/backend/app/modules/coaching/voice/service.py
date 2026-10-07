@@ -342,5 +342,6 @@ def _summary(session: VoiceSession) -> dict[str, Any]:
         "learner_speech_s": round((session.learner_speech_ms or 0) / 1000, 1),
         "aids": list(session.aids or []),
         "transcript": list(session.transcript) if session.transcript is not None else None,
-        "feedback": session.feedback,
+        # Sin las observaciones con evidencia en un turno disputado (AC-13).
+        "feedback": domain.feedback_view(session.feedback, session.transcript),
     }

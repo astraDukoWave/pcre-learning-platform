@@ -704,3 +704,42 @@ def test_no_key_reaches_the_browser_or_debug_logs(
     assert world.fake.connections[-1].headers.get("authorization") == f"Token {key}"
     assert all(key not in text for text in seen)
     assert key not in capsys.readouterr().out
+
+
+def test_log_lines_carry_scenario_and_user_ref_but_never_transcript_text(
+    world: World, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """REQ-07: `voice_session_started` (hash del id, escenario, `user_ref`),
+    `voice_session_ended` (motivo, duración, ayudas, turnos) y `ai_run_finished`; nunca texto
+    de la transcripción."""
+    from app.core.logging import configure_logging
+    from tests.fakes.deepgram_agent import LEARNER_LINES
+
+    configure_logging("INFO")  # el handler escribe en el stdout que captura `capsys`
+    client, csrf, _ = world.student("bitacora")
+    session_id = create(client, csrf, world.scenario_id).json()["id"]
+    capsys.readouterr()
+    with connect(client, session_id) as ws:
+        greeting, _ = receive_until(ws, "transcript")
+        receive_until(ws, "agent_done")
+        ws.send_bytes(b"\x00\x00" * (BYTES_PER_LEARNER_TURN // 2))
+        receive_until(ws, "user_started_speaking")
+        receive_until(ws, "transcript")
+        ws.send_json({"type": "aid", "kind": "hint"})
+        receive_until(ws, "hint")
+        ws.send_json({"type": "stop"})
+        receive_until(ws, "ended")
+    wait_closed(session_id, world.container)
+    out = capsys.readouterr().out
+    lines = [json.loads(line) for line in out.splitlines() if line.startswith("{")]
+    by_msg = {line["msg"]: line for line in lines}
+    started = by_msg["voice_session_started"]
+    assert started["scenario"] == "u1-escenario" and len(started["user_ref"]) == 12
+    assert session_id not in out and started["session_ref"] != session_id
+    ended = by_msg["voice_session_ended"]
+    assert ended["end_reason"] == "user_stop" and ended["aids"] == 1 and ended["turns"] >= 2
+    assert ended["duration_s"] is not None
+    finished = [line for line in lines if line["msg"] == "ai_run_finished"]
+    assert any(line["purpose"] == "voice_session" for line in finished)
+    for text in (greeting["turn"]["text"], *LEARNER_LINES, "Ask about the time first."):
+        assert text not in out

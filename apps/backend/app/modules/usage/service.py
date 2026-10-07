@@ -53,6 +53,7 @@ class RunView:
     attempt_id: uuid.UUID | None
     output: dict[str, Any] | None
     error_code: str | None
+    voice_session_id: uuid.UUID | None = None
 
 
 def _view(run: AiRun) -> RunView:
@@ -64,6 +65,7 @@ def _view(run: AiRun) -> RunView:
         attempt_id=run.attempt_id,
         output=run.output,
         error_code=run.error_code,
+        voice_session_id=run.voice_session_id,
     )
 
 
@@ -355,6 +357,13 @@ class UsageService:
     ) -> RunView | None:
         with self.uow() as s:
             run = repository.latest_run_for_attempt(s, user_id, attempt_id, purposes)
+            return _view(run) if run is not None else None
+
+    def latest_for_voice_session(
+        self, user_id: uuid.UUID, voice_session_id: uuid.UUID, purpose: str
+    ) -> RunView | None:
+        with self.uow() as s:
+            run = repository.latest_run_for_voice_session(s, user_id, voice_session_id, purpose)
             return _view(run) if run is not None else None
 
     # -- admin --------------------------------------------------------------------------

@@ -1,6 +1,7 @@
-"""Rutas del coach de voz: crear, consultar y detener una sesión, y el WebSocket del relay.
-Sin lógica: el WebSocket valida `Origin`, la sesión de la app y el dueño antes de
-`accept()` (un cierre antes de aceptar es un 403 en el handshake) y delega en el relay."""
+"""Rutas del coach de voz: crear, consultar y detener una sesión, el WebSocket del relay, el
+feedback final y "Eso no fue lo que dije" por turno. Sin lógica: el WebSocket valida `Origin`,
+la sesión de la app y el dueño antes de `accept()` (un cierre antes de aceptar es un 403 en el
+handshake) y delega en el relay."""
 
 from __future__ import annotations
 
@@ -8,16 +9,18 @@ import logging
 import uuid
 from typing import Annotated, Any
 
-from fastapi import APIRouter, Depends, Header, WebSocket
+from fastapi import APIRouter, Depends, Header, Path, WebSocket
 from starlette.concurrency import run_in_threadpool
 from starlette.websockets import WebSocketDisconnect
 
 from app.bootstrap import Container
+from app.core.logging import user_ref
 from app.http.cookies import SESSION_COOKIE
 from app.http.deps import AuthDep, ContainerDep, get_identity
 from app.modules.coaching.voice import relay as voice_relay
-from app.modules.coaching.voice.schemas import VoiceSessionIn, VoiceSessionOut
+from app.modules.coaching.voice.schemas import VoiceFeedbackOut, VoiceSessionIn, VoiceSessionOut
 from app.modules.coaching.voice.service import VoiceRejected, VoiceService
+from app.modules.coaching.voice.service_feedback import VoiceFeedbackService
 from app.modules.coaching.voice.settings_builder import AgentConfig, build_settings
 from app.modules.identity.service import IdentityService
 from app.modules.practice.service import check_idempotency_key
@@ -50,6 +53,19 @@ def get_voice(container: ContainerDep) -> VoiceService:
 
 
 VoiceDep = Annotated[VoiceService, Depends(get_voice)]
+
+
+def get_voice_feedback(container: ContainerDep) -> VoiceFeedbackService:
+    return VoiceFeedbackService(
+        container.uow,
+        container.clock,
+        container.settings,
+        UsageService(container.uow, container.clock, container.settings, container.provider_ready),
+        container.feedback_evaluator,
+    )
+
+
+VoiceFeedbackDep = Annotated[VoiceFeedbackService, Depends(get_voice_feedback)]
 
 
 @router.post("/api/v1/voice-sessions", response_model=VoiceSessionOut, status_code=201)
@@ -97,6 +113,30 @@ async def stop_voice_session(
             voice_relay.PENDING_STOP.discard(session_id)
             live.request_end("user_stop")
     return VoiceSessionOut.model_validate(stopped)
+
+
+@router.post("/api/v1/voice-sessions/{session_id}/feedback", response_model=VoiceFeedbackOut)
+def request_voice_feedback(
+    session_id: uuid.UUID,
+    ctx: AuthDep,
+    flow: VoiceFeedbackDep,
+    idempotency_key: Annotated[str, Header(alias="Idempotency-Key", max_length=80)],
+) -> VoiceFeedbackOut:
+    return VoiceFeedbackOut.model_validate(
+        flow.request(ctx.user_id, session_id, check_idempotency_key(idempotency_key))
+    )
+
+
+@router.post(
+    "/api/v1/voice-sessions/{session_id}/turns/{n}/dispute", response_model=VoiceSessionOut
+)
+def dispute_voice_turn(
+    session_id: uuid.UUID,
+    n: Annotated[int, Path(ge=1, le=10_000)],
+    ctx: AuthDep,
+    flow: VoiceFeedbackDep,
+) -> VoiceSessionOut:
+    return VoiceSessionOut.model_validate(flow.flag_turn(ctx.user_id, session_id, n))
 
 
 class _Channel:
@@ -157,6 +197,7 @@ async def voice_socket(websocket: WebSocket, session_id: uuid.UUID) -> None:
         hooks=voice,
         auth_session_id=ctx.session_id,
         timings=container.voice_timings,
+        user_ref=user_ref(ctx.user_id, settings.log_salt),
     )
     await relay.run(_Channel(websocket))
 

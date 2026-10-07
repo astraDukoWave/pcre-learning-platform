@@ -6,6 +6,8 @@
   (creación + máximo + gracia). El servidor corta; el reloj del navegador solo informa.
 - Costo: segundos facturables = fin − inicio, hacia arriba, por el precio por minuto.
 - Límites por segundo: 50 frames de audio y 5 mensajes de control.
+- Feedback final: solo los turnos del alumno sin ayudas; un turno disputado oculta las
+  observaciones con evidencia en él (AC-13).
 """
 
 from __future__ import annotations
@@ -14,7 +16,9 @@ import math
 from collections import deque
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
-from typing import Literal
+from typing import Any, Literal
+
+from app.modules.coaching.feedback import domain as feedback_domain
 
 MAX_LIVE_GLOBAL = 3
 CONNECT_GRACE_S = 30
@@ -138,3 +142,58 @@ class Transcript:
 
 def next_hint(hints: list[str], used: int) -> str | None:
     return hints[used] if used < len(hints) else None
+
+
+# -- feedback final (REQ-05, AC-13) ------------------------------------------------------------
+
+
+def learner_turns(transcript: list[dict[str, Any]] | None) -> list[dict[str, Any]]:
+    """Turnos del alumno que se evalúan: los suyos, sin las ayudas."""
+    return [t for t in transcript or [] if t.get("role") == "learner" and not t.get("aid")]
+
+
+def turn_for(evidence: str, turns: list[dict[str, Any]]) -> int | None:
+    """Número del primer turno del alumno donde la evidencia aparece completa."""
+    for t in turns:
+        if feedback_domain.evidence_in(evidence, str(t.get("text", ""))):
+            return int(t["n"])
+    return None
+
+
+def feedback_view(
+    feedback: dict[str, Any] | None, transcript: list[dict[str, Any]] | None
+) -> dict[str, Any] | None:
+    """Lo que ve el alumno del feedback guardado: sin las observaciones con evidencia en un
+    turno disputado (se cuentan en `hidden`)."""
+    if feedback is None:
+        return None
+    turns = learner_turns(transcript)
+    texts = [str(t.get("text", "")) for t in turns]
+    disputed = {i for i, t in enumerate(turns) if t.get("disputed")}
+    stored = list(feedback.get("observations", []))
+    shown = [
+        o
+        for o in stored
+        if feedback_domain.visible_after_disputes(
+            (
+                feedback_domain.Observation(
+                    o["criterion"], o["evidence"], o["observation_es"], o["suggestion_es"]
+                ),
+            ),
+            texts,
+            disputed,
+        )
+    ]
+    return {
+        "status": feedback.get("status"),
+        "reason": feedback.get("reason"),
+        "run_id": feedback.get("run_id"),
+        "label": feedback.get("label"),
+        "observations": shown,
+        "rubric_levels": feedback.get("rubric_levels", {}),
+        "hidden": len(stored) - len(shown),
+    }
+
+
+def disputed_turns(transcript: list[dict[str, Any]] | None) -> int:
+    return sum(1 for t in transcript or [] if t.get("disputed"))

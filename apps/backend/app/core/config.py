@@ -88,6 +88,8 @@ class Settings(BaseSettings):
     voice_provider: Literal["deepgram", "fake"] = "deepgram"
     voice_agent_url: str | None = None
     voice_max_session_s: int = Field(default=300, ge=1, le=300)
+    # Feedback final de voz solo con esta voz del alumno como mínimo (REQ-05: 30 s).
+    voice_min_learner_speech_s: int = Field(default=30, ge=1, le=300)
     voice_listen_model: str = "nova-3"
     voice_think_provider: str = "open_ai"
     voice_think_model: str = "gpt-4o-mini"

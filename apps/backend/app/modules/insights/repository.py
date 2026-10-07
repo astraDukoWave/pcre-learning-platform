@@ -245,6 +245,41 @@ def voice_seconds_since(s: Session, since: datetime) -> int:
     )
 
 
+def voice_session_owner(s: Session, session_id: uuid.UUID) -> uuid.UUID | None:
+    return s.scalar(select(VoiceSession.user_id).where(VoiceSession.id == session_id))
+
+
+def voice_ratings(s: Session, since: datetime) -> list[int]:
+    return [
+        int(r)
+        for r in s.scalars(
+            select(UserFeedback.rating).where(
+                UserFeedback.user_id.in_(_pilot_students()),
+                UserFeedback.context_type == "voice",
+                UserFeedback.rating.is_not(None),
+                UserFeedback.created_at >= since,
+            )
+        )
+        if r is not None
+    ]
+
+
+def voice_transcripts(s: Session, since: datetime) -> list[list[dict[str, Any]]]:
+    """Transcripciones guardadas (con consentimiento) para contar turnos disputados; el panel
+    nunca muestra su texto."""
+    return [
+        list(t)
+        for t in s.scalars(
+            select(VoiceSession.transcript).where(
+                VoiceSession.user_id.in_(_pilot_students()),
+                VoiceSession.created_at >= since,
+                VoiceSession.transcript.is_not(None),
+            )
+        )
+        if t is not None
+    ]
+
+
 def ai_calls_since(s: Session, since: datetime) -> dict[str, int]:
     rows = s.execute(
         select(AiRun.purpose, func.count())

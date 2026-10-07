@@ -181,3 +181,18 @@ def open_runs(s: Session, purpose: str, created_before: datetime) -> list[AiRun]
             )
         )
     )
+
+
+def latest_run_for_voice_session(
+    s: Session, user_id: uuid.UUID, voice_session_id: uuid.UUID, purpose: str
+) -> AiRun | None:
+    return s.scalars(
+        select(AiRun)
+        .where(
+            AiRun.user_id == user_id,
+            AiRun.voice_session_id == voice_session_id,
+            AiRun.purpose == purpose,
+        )
+        .order_by(AiRun.created_at.desc(), AiRun.id.desc())
+        .limit(1)
+    ).one_or_none()

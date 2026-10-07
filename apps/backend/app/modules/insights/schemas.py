@@ -9,12 +9,12 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 
 class FeedbackIn(BaseModel):
-    """Valoración de una lección o escenario (1–5, comentario opcional) o comentario
-    general con la página como contexto (REQ-15)."""
+    """Valoración de una lección o escenario (1–5, comentario opcional), de una sesión de voz
+    (MVP-02 REQ-06) o comentario general con la página como contexto (REQ-15)."""
 
     model_config = ConfigDict(extra="forbid")
 
-    context_type: Literal["lesson", "general", "ai_observation"]
+    context_type: Literal["lesson", "general", "ai_observation", "voice"]
     context_id: uuid.UUID | None = None
     rating: int | None = Field(default=None, ge=0, le=5)
     message: str = Field(default="", max_length=1000)
@@ -26,6 +26,8 @@ class FeedbackIn(BaseModel):
     def _check(self) -> FeedbackIn:
         if self.context_type == "lesson" and (self.context_id is None or not self.rating):
             raise ValueError("una valoración de lección lleva la lección y una nota de 1 a 5")
+        if self.context_type == "voice" and (self.context_id is None or not self.rating):
+            raise ValueError("una valoración de sesión de voz lleva la sesión y una nota de 1 a 5")
         if self.context_type == "ai_observation" and (
             self.context_id is None or self.rating not in (0, 1) or self.observation is None
         ):
@@ -74,6 +76,10 @@ class VoiceAiSummaryOut(BaseModel):
     month_spent_microusd: int
     month_reserved_microusd: int
     month_limit_microusd: int | None
+    # Turnos marcados con "Eso no fue lo que dije": problemas de reconocimiento.
+    disputed_turns: int
+    voice_rating_average: float | None
+    voice_ratings: int
 
 
 class PilotSummaryOut(BaseModel):
