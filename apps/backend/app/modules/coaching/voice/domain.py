@@ -118,20 +118,21 @@ class Turn:
 
 @dataclass
 class Transcript:
-    """Turnos en orden. Un mensaje de ayuda («repetir») se marca como ayuda."""
+    """Turnos en orden. El eco de cada «repetir» pedido (el texto inyectado) se marca como
+    ayuda; con dos pedidos seguidos, sus dos ecos."""
 
     turns: list[Turn] = field(default_factory=list)
-    pending_aid_text: str | None = None
+    pending_repeats: int = 0
 
     def add(self, role: str, text: str, at_s: float) -> Turn:
         who: Literal["coach", "learner"] = "learner" if role == "user" else "coach"
-        aid = (
-            who == "learner"
-            and self.pending_aid_text is not None
-            and text.strip() == (self.pending_aid_text)
-        )
+        aid = who == "learner" and self.pending_repeats > 0 and text.strip() == REPEAT_REQUEST
         if aid:
-            self.pending_aid_text = None
+            self.pending_repeats -= 1
+        elif who == "learner":
+            # El eco no llegó (o se rechazó): un «Could you repeat that?» dicho después por el
+            # alumno es suyo.
+            self.pending_repeats = 0
         turn = Turn(n=len(self.turns) + 1, role=who, text=text, at_s=round(at_s, 1), aid=aid)
         self.turns.append(turn)
         return turn

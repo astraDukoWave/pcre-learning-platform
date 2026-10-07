@@ -1,10 +1,12 @@
 import { useCallback, useMemo, useRef } from "react";
 import { PLAYBACK_RATE, fromPcm16 } from "./audio";
 
-/** Cola de reproducción del audio del coach (PCM16 a 24 kHz). `flush` corta lo que suena y
- * vacía la cola cuando el alumno empieza a hablar (puede interrumpir al coach). */
+/** Cola de reproducción del audio del coach (PCM16; 24 kHz salvo que `ready` diga otra
+ * frecuencia). `flush` corta lo que suena y vacía la cola cuando el alumno empieza a hablar
+ * (puede interrumpir al coach). */
 export function usePcmPlayback(rate: number = PLAYBACK_RATE) {
   const ctx = useRef<AudioContext | null>(null);
+  const sampleRate = useRef(rate);
   const nextAt = useRef(0);
   const playing = useRef(new Set<AudioBufferSourceNode>());
 
@@ -20,7 +22,7 @@ export function usePcmPlayback(rate: number = PLAYBACK_RATE) {
       const audio = ctx.current;
       if (!audio || chunk.byteLength < 2) return;
       const samples = fromPcm16(chunk);
-      const buffer = audio.createBuffer(1, samples.length, rate);
+      const buffer = audio.createBuffer(1, samples.length, sampleRate.current);
       buffer.copyToChannel(samples as Float32Array<ArrayBuffer>, 0);
       const source = audio.createBufferSource();
       source.buffer = buffer;
@@ -30,6 +32,14 @@ export function usePcmPlayback(rate: number = PLAYBACK_RATE) {
       nextAt.current = at + buffer.duration;
       playing.current.add(source);
       source.onended = () => playing.current.delete(source);
+    },
+    [],
+  );
+
+  /** La frecuencia que anuncia el servidor en `ready` (`VOICE_OUTPUT_SAMPLE_RATE`). */
+  const setRate = useCallback(
+    (next: number | null | undefined) => {
+      sampleRate.current = next && next > 0 ? next : rate;
     },
     [rate],
   );
@@ -52,5 +62,8 @@ export function usePcmPlayback(rate: number = PLAYBACK_RATE) {
     ctx.current = null;
   }, [flush]);
 
-  return useMemo(() => ({ prime, enqueue, flush, close }), [prime, enqueue, flush, close]);
+  return useMemo(
+    () => ({ prime, enqueue, flush, close, setRate }),
+    [prime, enqueue, flush, close, setRate],
+  );
 }

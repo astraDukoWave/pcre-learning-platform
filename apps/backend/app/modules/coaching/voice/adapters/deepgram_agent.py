@@ -52,6 +52,9 @@ class _Link:
     async def close(self) -> None:
         await self._ws.close()
 
+    def abort(self) -> None:
+        self._ws.transport.abort()
+
 
 class DeepgramVoiceAgent:
     provider = "deepgram"

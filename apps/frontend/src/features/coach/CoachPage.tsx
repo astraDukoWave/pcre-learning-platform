@@ -25,7 +25,7 @@ const UNAVAILABLE_TEXT = {
 } as const;
 
 type ServerEvent =
-  | { type: "ready"; seconds: number }
+  | { type: "ready"; seconds: number; sample_rate?: number | null }
   | { type: "transcript"; turn: Turn }
   | { type: "user_started_speaking" }
   | { type: "agent_speaking" }
@@ -92,6 +92,7 @@ export function CoachPage() {
     (event: ServerEvent) => {
       switch (event.type) {
         case "ready":
+          playback.setRate(event.sample_rate);
           dispatch({ type: "ready", seconds: event.seconds });
           break;
         case "transcript":
@@ -320,6 +321,9 @@ export function CoachPage() {
             </Notice>
           ) : null}
           {state.lastError === "rate_limited" ? <p>Espera un momento antes de pedir otra ayuda.</p> : null}
+          {state.lastError === "aid_refused" ? (
+            <p>El coach no pudo repetir en este momento. Intenta de nuevo cuando termine de hablar.</p>
+          ) : null}
           <label className={styles.consent}>
             <input type="checkbox" checked={captions} onChange={(e) => setCaptions(e.target.checked)} />
             Subtítulos en vivo
