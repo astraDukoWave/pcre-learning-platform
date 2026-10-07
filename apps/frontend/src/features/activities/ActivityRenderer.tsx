@@ -100,6 +100,7 @@ export function ActivityRenderer({ activity, response, onChange, disabled, plays
     case "recorded_speaking":
       return (
         <RecordedSpeakingRenderer
+          activityId={activity.id}
           data={activity.data as unknown as RecordedSpeakingData}
           response={response}
           onChange={onChange}

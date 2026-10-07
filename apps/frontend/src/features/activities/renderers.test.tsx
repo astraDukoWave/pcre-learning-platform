@@ -115,10 +115,11 @@ describe("activity renderers", () => {
     expect(screen.getByText(/Pregunta directa\./)).toBeInTheDocument();
   });
 
-  it("recorded speaking says nothing leaves the device and offers a path without a microphone", () => {
+  it("recorded speaking says the audio stays on the device and offers a path without a microphone", () => {
     let response: Record<string, unknown> = {};
     render(
       <RecordedSpeakingRenderer
+        activityId="act-1"
         data={{
           subtype: "interview",
           question_en: "What do you do on weekends?",
@@ -131,7 +132,7 @@ describe("activity renderers", () => {
         onPlay={() => undefined}
       />,
     );
-    expect(screen.getByText("Tu grabación no sale de tu dispositivo.")).toBeInTheDocument();
+    expect(screen.getByText(/Tu grabación se queda en tu dispositivo\./)).toBeInTheDocument();
     // jsdom no tiene MediaRecorder: es el camino "este navegador no permite grabar".
     expect(screen.getByText("No pude grabar")).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Continuar sin grabar" }));

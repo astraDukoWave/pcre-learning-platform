@@ -1,12 +1,14 @@
-import { useEffect } from "react";
+import { useCallback, useEffect } from "react";
 import { Button } from "../../../components/Button";
 import { Notice } from "../../../components/Notice";
 import type { RecordedSpeakingData } from "../../lesson/types";
 import { AudioPlayer } from "../audio-player/AudioPlayer";
+import { keepRecording } from "./recordings";
 import styles from "./RecordedSpeakingRenderer.module.css";
 import { useRecorder } from "./useRecorder";
 
 export interface RecordedSpeakingRendererProps {
+  activityId: string;
   data: RecordedSpeakingData;
   response: Record<string, unknown>;
   onChange: (response: Record<string, unknown>) => void;
@@ -15,9 +17,11 @@ export interface RecordedSpeakingRendererProps {
   onPlay: () => void;
 }
 
-/** Entrevista o repetición: graba hasta `response_seconds`, reproduce localmente y no sube
- * nada. Si el micrófono no está disponible, se puede continuar sin grabar (no evaluable). */
+/** Entrevista o repetición: graba hasta `response_seconds` y reproduce localmente. La
+ * grabación solo sale del equipo si, después de enviar, la alumna pide la transcripción.
+ * Si el micrófono no está disponible, se puede continuar sin grabar (no evaluable). */
 export function RecordedSpeakingRenderer({
+  activityId,
   data,
   response,
   onChange,
@@ -25,7 +29,11 @@ export function RecordedSpeakingRenderer({
   plays,
   onPlay,
 }: RecordedSpeakingRendererProps) {
-  const rec = useRecorder(data.response_seconds, data.prep_seconds ?? 0);
+  const remember = useCallback(
+    (blob: Blob, durationMs: number) => keepRecording(activityId, { blob, durationMs }),
+    [activityId],
+  );
+  const rec = useRecorder(data.response_seconds, data.prep_seconds ?? 0, remember);
   const recorded = rec.state === "recorded";
 
   useEffect(() => {
@@ -47,7 +55,10 @@ export function RecordedSpeakingRenderer({
           {data.question_en}
         </blockquote>
       )}
-      <p className={styles.privacy}>Tu grabación no sale de tu dispositivo.</p>
+      <p className={styles.privacy}>
+        Tu grabación se queda en tu dispositivo. Solo si después pides la transcripción, se envía a un servicio de
+        reconocimiento de voz y no se guarda.
+      </p>
       <p className={styles.limits}>
         {data.prep_seconds ? `${data.prep_seconds} s para preparar · ` : ""}
         hasta {data.response_seconds} s para responder

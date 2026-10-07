@@ -172,6 +172,10 @@ class AidContentOut(BaseModel):
     remaining: int
 
 
+class TranscriptionDecisionIn(Strict):
+    confirmed: bool
+
+
 class AttemptIn(Strict):
     activity_id: uuid.UUID
     response: dict[str, Any]

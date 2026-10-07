@@ -80,6 +80,9 @@ class Settings(BaseSettings):
     feedback_provider: Literal["gemini", "fake"] = "gemini"
     gemini_api_key: SecretStr | None = None
     gemini_model: str | None = None
+    # Transcripción (REQ-04): Deepgram Nova-3; `fake` (doble determinista) solo fuera de prod.
+    stt_provider: Literal["deepgram", "fake"] = "deepgram"
+    deepgram_api_key: SecretStr | None = None
 
     @field_validator("database_url")
     @classmethod
@@ -108,6 +111,8 @@ class Settings(BaseSettings):
                 raise ValueError("TEST_CLOCK_ENABLED no se permite con APP_ENV=prod")
             if self.feedback_provider == "fake":
                 raise ValueError("FEEDBACK_PROVIDER=fake no se permite con APP_ENV=prod")
+            if self.stt_provider == "fake":
+                raise ValueError("STT_PROVIDER=fake no se permite con APP_ENV=prod")
         return self
 
     @property

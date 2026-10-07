@@ -16,6 +16,9 @@ from app.db.uow import UnitOfWorkFactory
 from app.modules.coaching.feedback.adapters.fake import FakeFeedbackEvaluator
 from app.modules.coaching.feedback.adapters.gemini import GeminiFeedbackEvaluator
 from app.modules.coaching.feedback.ports import FeedbackEvaluator
+from app.modules.coaching.stt.adapters.deepgram import DeepgramSpeechToText
+from app.modules.coaching.stt.adapters.fake import FakeSpeechToText
+from app.modules.coaching.stt.ports import SpeechToText
 from app.modules.identity.domain import SlidingWindowLimiter
 
 # Login: 5 intentos por minuto y 20 por hora, por email y por IP (§7).
@@ -36,6 +39,7 @@ class Container:
     # Capacidades con costo (MVP-02) cuyo proveedor, real o doble, está configurado.
     ready_providers: frozenset[str] = frozenset()
     feedback_evaluator: FeedbackEvaluator | None = None
+    speech_to_text: SpeechToText | None = None
 
     def provider_ready(self, capability: str) -> bool:
         return capability in self.ready_providers
@@ -52,15 +56,29 @@ def build_feedback_evaluator(settings: Settings) -> FeedbackEvaluator | None:
     return None
 
 
+def build_speech_to_text(settings: Settings) -> SpeechToText | None:
+    """Deepgram con llave configurada (G5); el doble solo fuera de producción."""
+    if settings.stt_provider == "fake":
+        return FakeSpeechToText() if settings.app_env != "prod" else None
+    if settings.deepgram_api_key is not None:
+        return DeepgramSpeechToText(settings.deepgram_api_key.get_secret_value())
+    return None
+
+
 def build_container(settings: Settings) -> Container:
     engine = create_db_engine(settings)
     clock: Clock = OffsetClock() if settings.test_clock_active else SystemClock()
     evaluator = build_feedback_evaluator(settings)
+    stt = build_speech_to_text(settings)
+    ready = {"ai_feedback"} if evaluator is not None else set()
+    if stt is not None:
+        ready.add("stt")
     return Container(
         settings=settings,
         uow=UnitOfWorkFactory(make_sessionmaker(engine)),
         clock=clock,
         engine=engine,
         feedback_evaluator=evaluator,
-        ready_providers=frozenset({"ai_feedback"} if evaluator is not None else ()),
+        speech_to_text=stt,
+        ready_providers=frozenset(ready),
     )

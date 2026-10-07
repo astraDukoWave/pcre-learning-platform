@@ -45,6 +45,13 @@ class FeedbackTarget:
 
 
 @dataclass(frozen=True)
+class TranscriptionTarget:
+    attempt_id: uuid.UUID
+    subtype: str  # listen_and_repeat · interview
+    target_sentence: str | None
+
+
+@dataclass(frozen=True)
 class Learner:
     user_id: uuid.UUID
     timezone: str
@@ -560,6 +567,82 @@ class PracticeService:
                 attempt_id=str(attempt.id),
                 source="ai",
             )
+            return _attempt_detail(attempt, found[0])
+
+    # -- transcripción de grabaciones (MVP-02 REQ-04) -------------------------------------
+
+    def transcription_target(
+        self, learner: Learner, attempt_id: uuid.UUID, activity_id: uuid.UUID
+    ) -> TranscriptionTarget:
+        """Una grabación propia, enviada con audio, de `recorded_speaking` en práctica o
+        repaso (nunca en una comprobación). Ajeno → 404."""
+        with self.uow() as s:
+            attempt = repository.attempt_for_user(s, learner.user_id, attempt_id)
+            if attempt is None or attempt.activity_id != activity_id:
+                raise NotFound()
+            found = repository.activity_with_context(s, attempt.activity_id)
+            if found is None:
+                raise NotFound()
+            act = found[0]
+            if (
+                act.format != "recorded_speaking"
+                or attempt.mode not in ("practice", "review")
+                or attempt.response.get("recorded") is not True
+            ):
+                raise ValidationFailed(
+                    "Esta respuesta no admite transcripción.", code="transcription_not_supported"
+                )
+            subtype = str((act.options or {}).get("subtype") or "")
+            return TranscriptionTarget(
+                attempt_id=attempt.id,
+                subtype=subtype,
+                target_sentence=(act.solution or {}).get("target_sentence"),
+            )
+
+    def store_transcription(
+        self, learner: Learner, attempt_id: uuid.UUID, transcription: dict[str, Any]
+    ) -> dict[str, Any]:
+        """Guarda la transcripción en el intento. En la repetición guarda `recognized_ratio`
+        y no toca la evaluación ni el acierto inicial (REQ-04)."""
+        with self.uow() as s:
+            attempt = repository.attempt_for_user(s, learner.user_id, attempt_id, lock=True)
+            if attempt is None:
+                raise NotFound()
+            found = repository.activity_with_context(s, attempt.activity_id)
+            if found is None:
+                raise NotFound()
+            attempt.result = {**attempt.result, "transcription": transcription}
+            s.flush()
+            return _attempt_detail(attempt, found[0])
+
+    def decide_transcription(
+        self, learner: Learner, attempt_id: uuid.UUID, *, confirmed: bool
+    ) -> dict[str, Any]:
+        """El alumno confirma la transcripción de su entrevista o dice "Eso no fue lo que
+        dije". Una disputada no recibe feedback salvo que la confirme después; una vez pedido
+        el feedback, la decisión ya no cambia."""
+        with self.uow() as s:
+            attempt = repository.attempt_for_user(s, learner.user_id, attempt_id, lock=True)
+            if attempt is None:
+                raise NotFound()
+            found = repository.activity_with_context(s, attempt.activity_id)
+            if found is None:
+                raise NotFound()
+            current = attempt.result.get("transcription")
+            if not isinstance(current, dict) or current.get("kind") != "interview":
+                raise ValidationFailed(
+                    "No hay una transcripción de entrevista que revisar.",
+                    code="transcription_not_found",
+                )
+            if "ai_feedback" in attempt.result:
+                raise Conflict(
+                    "Ya pediste feedback sobre esta transcripción.", code="transcription_locked"
+                )
+            attempt.result = {
+                **attempt.result,
+                "transcription": {**current, "confirmed": confirmed, "disputed": not confirmed},
+            }
+            s.flush()
             return _attempt_detail(attempt, found[0])
 
     def get_attempt(self, learner: Learner, attempt_id: uuid.UUID) -> dict[str, Any]:

@@ -938,6 +938,60 @@
         }
       }
     },
+    "/api/v1/attempts/{attempt_id}/transcription": {
+      "post": {
+        "tags": [
+          "practice"
+        ],
+        "summary": "Decide Transcription",
+        "description": "Confirmar la transcripción de una entrevista o decir \"Eso no fue lo que dije\".",
+        "operationId": "decide_transcription_api_v1_attempts__attempt_id__transcription_post",
+        "parameters": [
+          {
+            "name": "attempt_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Attempt Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TranscriptionDecisionIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AttemptDetailOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/attempts/{attempt_id}": {
       "get": {
         "tags": [
@@ -1751,6 +1805,28 @@
         }
       }
     },
+    "/api/v1/capabilities": {
+      "get": {
+        "tags": [
+          "usage"
+        ],
+        "summary": "Learner Capabilities",
+        "description": "La interfaz decide si ofrece feedback con IA, transcripción o voz; sin ellas muestra la\nalternativa gratuita. El presupuesto del alumno se comprueba al llamar (503).",
+        "operationId": "learner_capabilities_api_v1_capabilities_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LearnerCapabilitiesOut"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/attempts/{attempt_id}/feedback": {
       "post": {
         "tags": [
@@ -1797,6 +1873,86 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/speaking/transcriptions": {
+      "post": {
+        "tags": [
+          "coaching"
+        ],
+        "summary": "Create Transcription",
+        "description": "Multipart con `attempt_id`, `activity_id`, `duration_ms` y `audio` (WebM u MP4).",
+        "operationId": "create_transcription_api_v1_speaking_transcriptions_post",
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 80,
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TranscriptionOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "attempt_id",
+                  "activity_id",
+                  "duration_ms",
+                  "audio"
+                ],
+                "properties": {
+                  "attempt_id": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "activity_id": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "duration_ms": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 60000
+                  },
+                  "audio": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "audio/webm (Opus) o audio/mp4; 2 MB y 60 s como máximo"
+                  }
                 }
               }
             }
@@ -4144,6 +4300,30 @@
         ],
         "title": "ItemStateRefOut"
       },
+      "LearnerCapabilitiesOut": {
+        "properties": {
+          "ai_feedback": {
+            "type": "boolean",
+            "title": "Ai Feedback"
+          },
+          "stt": {
+            "type": "boolean",
+            "title": "Stt"
+          },
+          "voice": {
+            "type": "boolean",
+            "title": "Voice"
+          }
+        },
+        "type": "object",
+        "required": [
+          "ai_feedback",
+          "stt",
+          "voice"
+        ],
+        "title": "LearnerCapabilitiesOut",
+        "description": "Qué capacidades con costo están encendidas, sin motivos ni montos (alumno)."
+      },
       "LearnerProgressOut": {
         "properties": {
           "period_days": {
@@ -5410,6 +5590,37 @@
         ],
         "title": "ReinforceOut"
       },
+      "RepeatComparisonOut": {
+        "properties": {
+          "recognized": {
+            "type": "integer",
+            "title": "Recognized"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          },
+          "recognized_ratio": {
+            "type": "number",
+            "title": "Recognized Ratio"
+          },
+          "missing": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Missing"
+          }
+        },
+        "type": "object",
+        "required": [
+          "recognized",
+          "total",
+          "recognized_ratio",
+          "missing"
+        ],
+        "title": "RepeatComparisonOut"
+      },
       "ReportOut": {
         "properties": {
           "id": {
@@ -6358,6 +6569,162 @@
           "token"
         ],
         "title": "TokenIn"
+      },
+      "TranscribedWordOut": {
+        "properties": {
+          "word": {
+            "type": "string",
+            "title": "Word"
+          },
+          "confidence": {
+            "type": "number",
+            "title": "Confidence"
+          }
+        },
+        "type": "object",
+        "required": [
+          "word",
+          "confidence"
+        ],
+        "title": "TranscribedWordOut"
+      },
+      "TranscriptionDecisionIn": {
+        "properties": {
+          "confirmed": {
+            "type": "boolean",
+            "title": "Confirmed"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "confirmed"
+        ],
+        "title": "TranscriptionDecisionIn"
+      },
+      "TranscriptionOut": {
+        "properties": {
+          "run_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Run Id"
+          },
+          "attempt_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Attempt Id"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "transcribed",
+              "failed",
+              "unknown"
+            ],
+            "title": "Status"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          },
+          "kind": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "repeat",
+                  "interview"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Kind"
+          },
+          "text": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Text"
+          },
+          "words": {
+            "items": {
+              "$ref": "#/components/schemas/TranscribedWordOut"
+            },
+            "type": "array",
+            "title": "Words"
+          },
+          "repeat": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RepeatComparisonOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "hint_es": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Hint Es"
+          },
+          "confirmed": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Confirmed"
+          },
+          "disputed": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Disputed"
+          }
+        },
+        "type": "object",
+        "required": [
+          "run_id",
+          "attempt_id",
+          "status",
+          "reason",
+          "kind",
+          "text",
+          "words",
+          "repeat",
+          "confirmed",
+          "disputed"
+        ],
+        "title": "TranscriptionOut"
       },
       "UnitAdvanceOut": {
         "properties": {
