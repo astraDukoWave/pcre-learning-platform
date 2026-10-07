@@ -802,6 +802,61 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/voice-sessions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create Voice Session */
+        post: operations["create_voice_session_api_v1_voice_sessions_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/voice-sessions/{session_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Voice Session */
+        get: operations["get_voice_session_api_v1_voice_sessions__session_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/voice-sessions/{session_id}/stop": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Stop Voice Session
+         * @description Detener sin el WebSocket (p. ej., la pestaña perdió la conexión). Corre en el event
+         *     loop para avisar al relay vivo sin cruzar hilos.
+         */
+        post: operations["stop_voice_session_api_v1_voice_sessions__session_id__stop_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/content/revisions": {
         parameters: {
             query?: never;
@@ -2537,6 +2592,102 @@ export interface components {
             /** Context */
             ctx?: Record<string, never>;
         };
+        /** VoiceAidOut */
+        VoiceAidOut: {
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "repeat" | "slower" | "hint";
+            /** At S */
+            at_s: number;
+            /** Text */
+            text?: string | null;
+        };
+        /** VoiceSessionIn */
+        VoiceSessionIn: {
+            /**
+             * Scenario Id
+             * Format: uuid
+             */
+            scenario_id: string;
+            /**
+             * Accept Voice Notice
+             * @default false
+             */
+            accept_voice_notice: boolean;
+            /**
+             * Save Transcript
+             * @default false
+             */
+            save_transcript: boolean;
+        };
+        /** VoiceSessionOut */
+        VoiceSessionOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Scenario Id
+             * Format: uuid
+             */
+            scenario_id: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "reserved" | "active" | "ended" | "failed" | "expired";
+            /** Ws Path */
+            ws_path: string;
+            /** Max Seconds */
+            max_seconds: number;
+            /** Save Transcript */
+            save_transcript: boolean;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Deadline At
+             * Format: date-time
+             */
+            deadline_at: string;
+            /** Started At */
+            started_at: string | null;
+            /** Ended At */
+            ended_at: string | null;
+            /** End Reason */
+            end_reason: string | null;
+            /** Duration S */
+            duration_s: number | null;
+            /** Aids */
+            aids: components["schemas"]["VoiceAidOut"][];
+            /** Transcript */
+            transcript: components["schemas"]["VoiceTurnOut"][] | null;
+            /** Feedback */
+            feedback: {
+                [key: string]: unknown;
+            } | null;
+        };
+        /** VoiceTurnOut */
+        VoiceTurnOut: {
+            /** N */
+            n: number;
+            /**
+             * Role
+             * @enum {string}
+             */
+            role: "coach" | "learner";
+            /** Text */
+            text: string;
+            /** At S */
+            at_s: number;
+            /** Aid */
+            aid: boolean;
+        };
         /** WithdrawIn */
         WithdrawIn: {
             /** Reason */
@@ -3957,6 +4108,103 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["TranscriptionOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_voice_session_api_v1_voice_sessions_post: {
+        parameters: {
+            query?: never;
+            header: {
+                "Idempotency-Key": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["VoiceSessionIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VoiceSessionOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_voice_session_api_v1_voice_sessions__session_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                session_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VoiceSessionOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    stop_voice_session_api_v1_voice_sessions__session_id__stop_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                session_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VoiceSessionOut"];
                 };
             };
             /** @description Validation Error */

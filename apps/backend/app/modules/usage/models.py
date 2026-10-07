@@ -82,7 +82,9 @@ class AiRun(Base):
     attempt_id: Mapped[uuid.UUID | None] = mapped_column(
         ForeignKey("attempts.id", ondelete="SET NULL")
     )
-    voice_session_id: Mapped[uuid.UUID | None] = mapped_column()
+    voice_session_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("voice_sessions.id", ondelete="SET NULL", name="fk_ai_runs_voice_session")
+    )
     status: Mapped[str] = mapped_column(String(10))
     reserved_microusd: Mapped[int] = mapped_column(BigInteger)
     observed_units: Mapped[int | None] = mapped_column(Integer)

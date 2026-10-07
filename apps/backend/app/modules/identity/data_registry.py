@@ -134,6 +134,14 @@ register(
 )
 register(
     UserDataTable(
+        "voice_sessions",
+        ("user_id",),
+        export=True,
+        note="sesiones de voz: duración, ayudas y, con consentimiento, transcripción y feedback",
+    )
+)
+register(
+    UserDataTable(
         "ai_runs",
         ("user_id",),
         export=True,

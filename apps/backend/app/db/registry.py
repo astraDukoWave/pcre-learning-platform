@@ -16,6 +16,7 @@ MODEL_MODULES = (
     "app.modules.progress.models",
     "app.modules.insights.models",
     "app.modules.usage.models",
+    "app.modules.coaching.voice.models",
 )
 
 

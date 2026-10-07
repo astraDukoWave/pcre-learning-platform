@@ -233,6 +233,17 @@ class IdentityService:
                 now,
             )
 
+    def voice_notice(self, user_id: uuid.UUID, *, accept: bool) -> datetime | None:
+        """Aviso de procesamiento de voz (MVP-02 REQ-05): lo registra si `accept` y devuelve
+        cuándo se aceptó (`None` si nunca)."""
+        with self.uow() as s:
+            user = repository.user_by_id(s, user_id)
+            if user is None:
+                return None
+            if accept and user.voice_notice_accepted_at is None:
+                user.voice_notice_accepted_at = self.clock.now()
+            return user.voice_notice_accepted_at
+
     @staticmethod
     def csrf_matches(ctx: AuthContext, header_token: str | None) -> bool:
         if not header_token:

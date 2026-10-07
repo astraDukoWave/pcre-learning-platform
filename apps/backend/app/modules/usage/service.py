@@ -255,6 +255,13 @@ class UsageService:
             run.finished_at = now
         logger.warning("ai_run_unknown", extra={"purpose": run.purpose, "error_code": error_code})
 
+    def attach_voice_session(self, run_id: uuid.UUID, voice_session_id: uuid.UUID) -> None:
+        """La reserva de voz se hace antes de crear la sesión; aquí se enlazan."""
+        with self.uow() as s:
+            run = repository.run_for_update(s, run_id)
+            if run is not None:
+                run.voice_session_id = voice_session_id
+
     def expire_as_spent(self, run_id: uuid.UUID, *, error_code: str) -> None:
         """Una ejecución abandonada (sesión huérfana): la reserva completa pasa a gastado."""
         with self.uow() as s:

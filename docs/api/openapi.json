@@ -1960,6 +1960,146 @@
         }
       }
     },
+    "/api/v1/voice-sessions": {
+      "post": {
+        "tags": [
+          "voice"
+        ],
+        "summary": "Create Voice Session",
+        "operationId": "create_voice_session_api_v1_voice_sessions_post",
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 80,
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VoiceSessionIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VoiceSessionOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/voice-sessions/{session_id}": {
+      "get": {
+        "tags": [
+          "voice"
+        ],
+        "summary": "Get Voice Session",
+        "operationId": "get_voice_session_api_v1_voice_sessions__session_id__get",
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Session Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VoiceSessionOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/voice-sessions/{session_id}/stop": {
+      "post": {
+        "tags": [
+          "voice"
+        ],
+        "summary": "Stop Voice Session",
+        "description": "Detener sin el WebSocket (p. ej., la pestaña perdió la conexión). Corre en el event\nloop para avisar al relay vivo sin cruzar hilos.",
+        "operationId": "stop_voice_session_api_v1_voice_sessions__session_id__stop_post",
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Session Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VoiceSessionOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/admin/content/revisions": {
       "get": {
         "tags": [
@@ -6995,6 +7135,247 @@
           "type"
         ],
         "title": "ValidationError"
+      },
+      "VoiceAidOut": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "repeat",
+              "slower",
+              "hint"
+            ],
+            "title": "Kind"
+          },
+          "at_s": {
+            "type": "number",
+            "title": "At S"
+          },
+          "text": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Text"
+          }
+        },
+        "type": "object",
+        "required": [
+          "kind",
+          "at_s"
+        ],
+        "title": "VoiceAidOut"
+      },
+      "VoiceSessionIn": {
+        "properties": {
+          "scenario_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Scenario Id"
+          },
+          "accept_voice_notice": {
+            "type": "boolean",
+            "title": "Accept Voice Notice",
+            "default": false
+          },
+          "save_transcript": {
+            "type": "boolean",
+            "title": "Save Transcript",
+            "default": false
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "scenario_id"
+        ],
+        "title": "VoiceSessionIn"
+      },
+      "VoiceSessionOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "scenario_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Scenario Id"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "reserved",
+              "active",
+              "ended",
+              "failed",
+              "expired"
+            ],
+            "title": "Status"
+          },
+          "ws_path": {
+            "type": "string",
+            "title": "Ws Path"
+          },
+          "max_seconds": {
+            "type": "integer",
+            "title": "Max Seconds"
+          },
+          "save_transcript": {
+            "type": "boolean",
+            "title": "Save Transcript"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "deadline_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Deadline At"
+          },
+          "started_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Started At"
+          },
+          "ended_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ended At"
+          },
+          "end_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "End Reason"
+          },
+          "duration_s": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Duration S"
+          },
+          "aids": {
+            "items": {
+              "$ref": "#/components/schemas/VoiceAidOut"
+            },
+            "type": "array",
+            "title": "Aids"
+          },
+          "transcript": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/VoiceTurnOut"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Transcript"
+          },
+          "feedback": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Feedback"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "scenario_id",
+          "status",
+          "ws_path",
+          "max_seconds",
+          "save_transcript",
+          "created_at",
+          "deadline_at",
+          "started_at",
+          "ended_at",
+          "end_reason",
+          "duration_s",
+          "aids",
+          "transcript",
+          "feedback"
+        ],
+        "title": "VoiceSessionOut"
+      },
+      "VoiceTurnOut": {
+        "properties": {
+          "n": {
+            "type": "integer",
+            "title": "N"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "coach",
+              "learner"
+            ],
+            "title": "Role"
+          },
+          "text": {
+            "type": "string",
+            "title": "Text"
+          },
+          "at_s": {
+            "type": "number",
+            "title": "At S"
+          },
+          "aid": {
+            "type": "boolean",
+            "title": "Aid"
+          }
+        },
+        "type": "object",
+        "required": [
+          "n",
+          "role",
+          "text",
+          "at_s",
+          "aid"
+        ],
+        "title": "VoiceTurnOut"
       },
       "WithdrawIn": {
         "properties": {
