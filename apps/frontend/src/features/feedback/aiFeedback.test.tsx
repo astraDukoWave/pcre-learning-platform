@@ -38,6 +38,24 @@ describe("AI feedback", () => {
     expect(reasonText("other_language")).toBe("tu respuesta no está en inglés");
   });
 
+  it("marks evidence the way the server validates it: edges, dashes and whole words", () => {
+    const marked = (text: string, evidence: string) =>
+      segments(text, [evidence])
+        .filter((p) => p.note !== null)
+        .map((p) => p.text);
+    const turn = "How much does the course cost?";
+    expect(marked(turn, "the course cost?")).toEqual(["the course cost"]);
+    expect(marked(turn, '"How much does the course"')).toEqual(["How much does the course"]);
+    expect(marked(turn, "How much does the course.")).toEqual(["How much does the course"]);
+    expect(marked("Well — I think so.", "Well - I think")).toEqual(["Well — I think"]);
+    const parts = segments("a classroom and a class", ["a class"]);
+    expect(parts.map((p) => [p.text, p.note])).toEqual([
+      ["a classroom and ", null],
+      ["a class", 0],
+    ]);
+    expect(marked(turn, "...")).toEqual([]);
+  });
+
   it("shows notes with highlighted evidence and the AI label", async () => {
     const fetchFn = renderAi((req) => {
       if (req.url.endsWith("/feedback")) {

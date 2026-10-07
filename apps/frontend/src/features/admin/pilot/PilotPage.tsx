@@ -4,8 +4,19 @@ import { api, unwrap } from "../../../api/client";
 import { ErrorNotice } from "../../../components/ErrorNotice";
 import { Page } from "../../../components/Page";
 import styles from "../admin.module.css";
+import { usd } from "../usage/money";
 
 /** Panel del piloto (REQ-15): 7 o 28 días, sin cuentas internas en las métricas. */
+const END_REASONS: Record<string, string> = {
+  deadline: "tiempo",
+  user_stop: "detenida",
+  disconnect: "desconexión",
+  provider_error: "falla del proveedor",
+  logout: "cierre de sesión",
+  silence: "silencio",
+  expired: "expirada",
+};
+
 export function PilotPage() {
   const [days, setDays] = useState<7 | 28>(7);
   const summary = useQuery({
@@ -45,6 +56,40 @@ export function PilotPage() {
               </div>
             ))}
           </div>
+          <h2>Voz e IA</h2>
+          <div className={styles.grid}>
+            {[
+              ["Minutos de voz", s.voice_ai.voice_minutes],
+              ["Sesiones de voz", s.voice_ai.voice_sessions],
+              ["Llamadas de IA", Object.values(s.voice_ai.ai_calls).reduce((a, b) => a + b, 0)],
+              [
+                `Costo de ${s.voice_ai.month}`,
+                s.voice_ai.month_limit_microusd === null
+                  ? "sin presupuesto"
+                  : `${usd(s.voice_ai.month_spent_microusd)} de ${usd(s.voice_ai.month_limit_microusd)}`,
+              ],
+              ["Turnos «Eso no fue lo que dije»", s.voice_ai.disputed_turns],
+              [
+                "Valoración de las prácticas de voz",
+                s.voice_ai.voice_rating_average === null
+                  ? "sin valoraciones"
+                  : `${s.voice_ai.voice_rating_average} (${s.voice_ai.voice_ratings})`,
+              ],
+            ].map(([label, value]) => (
+              <div key={String(label)} className={styles.stat}>
+                <strong>{value}</strong>
+                {label}
+              </div>
+            ))}
+          </div>
+          {Object.keys(s.voice_ai.end_reasons).length ? (
+            <p>
+              Cierres:{" "}
+              {Object.entries(s.voice_ai.end_reasons)
+                .map(([reason, n]) => `${END_REASONS[reason] ?? reason} ${n}`)
+                .join(" · ")}
+            </p>
+          ) : null}
           <h2>Alumnos activos por día</h2>
           <table className={styles.table}>
             <thead>

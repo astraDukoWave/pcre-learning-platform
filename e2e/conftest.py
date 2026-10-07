@@ -211,6 +211,8 @@ FUNDED_ENV = {
     "VOICE_MAX_MINUTES_PER_USER_MONTH": "60",
     "GEMINI_PRICE_INPUT_PER_MTOK_MICROUSD": "100000",
     "GEMINI_PRICE_OUTPUT_PER_MTOK_MICROUSD": "400000",
+    # El Deepgram falso cuenta ~1 s de voz por turno: el mínimo de 30 s (REQ-05) se baja aquí.
+    "VOICE_MIN_LEARNER_SPEECH_S": "1",
 }
 
 
@@ -254,11 +256,16 @@ def playwright() -> Iterator[Playwright]:
 def browser(playwright: Playwright) -> Iterator[Browser]:
     executable = os.environ.get("PW_CHROMIUM_EXECUTABLE") or None
     # Micrófono falso con el permiso concedido (en Chrome Headless Shell, el de la CI, sin
-    # `fake-ui` getUserMedia no funciona) y audio sin gesto previo. La denegación se simula
-    # por página (`deny_microphone`).
+    # `fake-ui` getUserMedia no funciona), un WAV como voz del alumno (MVP-02 AC-14; se genera
+    # aquí, sin binarios en el repo) y audio sin gesto previo. La denegación se simula por
+    # página (`deny_microphone`).
+    RESULTS.mkdir(parents=True, exist_ok=True)
+    voice = RESULTS / "fake-microphone.wav"
+    voice.write_bytes(_tone(seconds=3.0, hz=220, rate=16_000))
     args = [
         "--use-fake-device-for-media-stream",
         "--use-fake-ui-for-media-stream",
+        f"--use-file-for-fake-audio-capture={voice}",
         "--autoplay-policy=no-user-gesture-required",
     ]
     browser = playwright.chromium.launch(executable_path=executable, args=args)

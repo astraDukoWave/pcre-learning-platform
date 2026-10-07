@@ -5,7 +5,8 @@ Comportamiento:
 - Menos de 8 palabras → `not_evaluable/too_short`; mayoría de palabras en español →
   `not_evaluable/other_language`.
 - Si no, una observación por criterio (hasta el máximo) citando literalmente el inicio de
-  una oración distinta del texto.
+  una oración distinta del texto (los turnos de voz, separados por ` | `, cuentan como
+  oraciones).
 - Marcadores para pruebas en el texto del alumno: `[[fake:failed]]` (error del proveedor),
   `[[fake:unknown]]` (timeout tras enviar), `[[fake:invented]]` (evidencia inventada) y
   `[[fake:url]]` (una sugerencia con enlace).
@@ -49,7 +50,7 @@ SPANISH = frozenset(
         "muy",
     ]
 )
-SENTENCE = re.compile(r"[^.!?\n]+[.!?]?")
+SENTENCE = re.compile(r"[^.!?\n|]+[.!?]?")
 
 
 class FakeFeedbackEvaluator:

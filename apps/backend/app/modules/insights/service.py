@@ -17,6 +17,7 @@ from sqlalchemy.orm import Session
 from app.core.clock import Clock
 from app.core.errors import NotFound
 from app.db.uow import UnitOfWorkFactory
+from app.modules.coaching.voice import domain as voice_domain
 from app.modules.insights import domain, repository
 from app.modules.insights.models import ErrorEvent, ProductEvent, UserFeedback
 
@@ -38,9 +39,13 @@ def emit(s: Session, user_id: uuid.UUID, name: str, now: datetime, **props: Any)
 
 
 class InsightsService:
-    def __init__(self, uow: UnitOfWorkFactory, clock: Clock) -> None:
+    def __init__(
+        self, uow: UnitOfWorkFactory, clock: Clock, budget_limit_microusd: int | None = None
+    ) -> None:
         self.uow = uow
         self.clock = clock
+        # Tope global configurado: el panel lo muestra aunque el mes no tenga reservas aún.
+        self.budget_limit_microusd = budget_limit_microusd
 
     # -- alumno -------------------------------------------------------------------------
 
@@ -63,6 +68,10 @@ class InsightsService:
                 if context_id is None or repository.ai_run_owner(s, context_id) != user_id:
                     raise NotFound()
                 page = f"observation:{observation}"
+            if context_type == "voice" and (
+                context_id is None or repository.voice_session_owner(s, context_id) != user_id
+            ):
+                raise NotFound()  # sesión de voz ajena o inexistente
             repository.add(
                 s,
                 UserFeedback(
@@ -105,7 +114,33 @@ class InsightsService:
                 "open_reports": repository.open_reports(s),
                 "server_errors": errors_total,
                 "latest_errors": [_error_row(e) for e in errors],
+                "voice_ai": self._voice_ai(s, since, now),
             }
+
+    def _voice_ai(self, s: Any, since: datetime, now: datetime) -> dict[str, Any]:
+        """MVP-02 REQ-07: minutos de voz, sesiones, motivos de cierre, llamadas de IA y costo
+        del mes frente al presupuesto global."""
+        reasons = repository.voice_end_reasons(s, since)
+        ratings = repository.voice_ratings(s, since)
+        budget = repository.global_budget(s, now.strftime("%Y-%m"))
+        limit, reserved, spent = (
+            budget if budget is not None else (self.budget_limit_microusd, 0, 0)
+        )
+        return {
+            "voice_minutes": round(repository.voice_seconds_since(s, since) / 60, 1),
+            "voice_sessions": sum(reasons.values()),
+            "end_reasons": reasons,
+            "ai_calls": repository.ai_calls_since(s, since),
+            "month": now.strftime("%Y-%m"),
+            "month_spent_microusd": spent,
+            "month_reserved_microusd": reserved,
+            "month_limit_microusd": limit,
+            "disputed_turns": sum(
+                voice_domain.disputed_turns(t) for t in repository.voice_transcripts(s, since)
+            ),
+            "voice_rating_average": domain.average(ratings),
+            "voice_ratings": len(ratings),
+        }
 
     def feedback_overview(self) -> dict[str, Any]:
         with self.uow() as s:

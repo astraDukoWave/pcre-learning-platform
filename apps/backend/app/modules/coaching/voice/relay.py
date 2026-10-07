@@ -96,8 +96,11 @@ class VoiceRelay:
         auth_session_id: uuid.UUID,
         timings: domain.Timings | None = None,
         monotonic: Callable[[], float] = time.monotonic,
+        user_ref: str | None = None,
     ) -> None:
         self.ticket = ticket
+        # REQ-07: `voice_session_started` lleva el escenario y el `user_ref` (hash salado).
+        self.user_ref = user_ref
         self.agent = agent
         self.agent_settings = agent_settings
         self.hooks = hooks
@@ -198,7 +201,12 @@ class VoiceRelay:
         deadline = asyncio.get_running_loop().call_later(seconds, self.request_end, "deadline")
         logger.info(
             "voice_session_started",
-            extra={"session_ref": session_ref(self.ticket.id), "seconds": math.ceil(seconds)},
+            extra={
+                "session_ref": session_ref(self.ticket.id),
+                "scenario": self.ticket.scenario.get("slug"),
+                "user_ref": self.user_ref,
+                "seconds": math.ceil(seconds),
+            },
         )
         output = self.agent_settings.get("audio", {}).get("output", {})
         await self._safe_send(

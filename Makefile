@@ -59,8 +59,9 @@ openapi: ## Exporta docs/api/openapi.json y regenera los tipos del frontend
 	$(UV_RUN) python ../../scripts/openapi/export.py
 	cd $(FRONTEND) && npm run gen:api
 
-frontend-check: ## Frontend: typecheck, ESLint, Vitest y build
+frontend-check: ## Frontend: typecheck, ESLint, Vitest, build y grep de llaves en el bundle
 	cd $(FRONTEND) && npm run typecheck && npm run lint && npm test && npm run build
+	scripts/ci/bundle-grep.sh $(FRONTEND)/dist
 
 contract-check: ## OpenAPI y tipos sin diferencias con el código
 	scripts/ci/contract-check.sh
