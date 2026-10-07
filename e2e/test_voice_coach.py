@@ -103,3 +103,57 @@ def test_without_voice_the_scenario_is_practiced_by_text(contexts: Contexts) -> 
     expect(page.get_by_role("button", name="Empezar")).to_have_count(0)
     page.get_by_role("link", name="Practicar este escenario por texto").click()
     expect(page.get_by_text("Práctica en modo texto.", exact=False)).to_be_visible()
+
+
+def test_coach_by_keyboard_with_axe_and_reduced_motion(funded_contexts: Contexts) -> None:
+    """NFR-08: el coach se opera solo con teclado, sin violaciones graves ni críticas de axe
+    antes, durante y al terminar, y sin animación con movimiento reducido."""
+    from test_accessibility import axe, with_axe
+
+    page = with_axe(new_student(funded_contexts, "coach.teclado@example.com"))
+    page.emulate_media(reduced_motion="reduce")
+    open_scenario(page)
+    page.get_by_role("link", name="Practicar este escenario por voz con el coach").click()
+    expect(page.get_by_text("Aviso de procesamiento de voz")).to_be_visible()
+    axe(page, "coach: antes de empezar")
+
+    consent = page.get_by_label("Guardar la transcripción y el feedback en mi progreso")
+    consent.focus()
+    page.keyboard.press("Space")
+    expect(consent).to_be_checked()
+    page.keyboard.press("Tab")
+    expect(page.get_by_role("button", name="Empezar")).to_be_focused()
+    page.keyboard.press("Enter")
+    expect(page.get_by_text(re.compile("^Hi, I'd like some information"))).to_be_visible(
+        timeout=10_000
+    )
+    expect(page.get_by_text(re.compile("^How much does the course cost"))).to_be_visible(
+        timeout=15_000
+    )
+    status = page.get_by_role("status").filter(
+        has_text=re.compile("Te escucho|El coach está hablando")
+    )
+    animation = status.locator("span").first.evaluate("el => getComputedStyle(el).animationName")
+    assert animation == "none", f"el indicador se anima con movimiento reducido: {animation}"
+    axe(page, "coach: conversación")
+
+    stop = page.get_by_role("button", name="Detener")
+    for _ in range(30):
+        if stop.evaluate("el => el === document.activeElement"):
+            break
+        page.keyboard.press("Tab")
+    expect(stop).to_be_focused()
+    page.keyboard.press("Enter")
+    expect(page.get_by_text("Terminó la práctica")).to_be_visible(timeout=10_000)
+    feedback = page.get_by_role("region", name="Feedback de la práctica")
+    expect(feedback.get_by_text("Feedback automático orientativo (IA)")).to_be_visible(
+        timeout=15_000
+    )
+    summary = feedback.get_by_text(re.compile(r"Transcripción \(\d+ turnos\)"))
+    summary.focus()
+    page.keyboard.press("Enter")
+    dispute = page.get_by_role("button", name=re.compile(r"Eso no fue lo que dije \(turno 2\)"))
+    dispute.focus()
+    page.keyboard.press("Enter")
+    expect(feedback.get_by_text(re.compile("Ocultamos 1 observación"))).to_be_visible()
+    axe(page, "coach: al terminar")
