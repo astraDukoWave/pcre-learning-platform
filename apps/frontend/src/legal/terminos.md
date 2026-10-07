@@ -24,7 +24,7 @@ TOEFL y TOEFL iBT son marcas registradas de ETS. Este producto no está avalado 
 
 ## Lo que escribes y grabas
 
-Tus respuestas y comentarios son tuyos. Nos permites guardarlos y usarlos solo para darte el servicio y mejorar el contenido, como explica el aviso de privacidad. Tus grabaciones de voz se quedan en tu dispositivo.
+Tus respuestas y comentarios son tuyos. Nos permites guardarlos y usarlos solo para darte el servicio y mejorar el contenido, como explica el aviso de privacidad. Tus grabaciones de voz se quedan en tu dispositivo, salvo que pidas su transcripción o practiques con el coach de voz, como explica el aviso de privacidad. El feedback automático con IA es orientativo: no es una calificación oficial.
 
 ## Sin garantías
 

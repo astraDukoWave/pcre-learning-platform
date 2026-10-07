@@ -332,6 +332,8 @@ la CI falla si alguno de los dos diverge del código (ADR-07).
 | `POST /attempts/{id}/feedback` | alumno | Feedback abierto con IA, validado o "no evaluable" | 02 |
 | `POST /speaking/transcriptions` | alumno | Audio ≤ 60 s en memoria → transcripción; el audio no se guarda | 02 |
 | `POST /voice-sessions` · `WS /ws/voice/{id}` · `POST /voice-sessions/{id}/stop` · `GET /voice-sessions/{id}` · `POST /voice-sessions/{id}/turns/{n}/flag` | alumno | Coach de voz con límites del servidor | 02 |
+| `POST /voice-sessions/{id}/feedback` | alumno | Feedback final de la sesión de voz (consentimiento y ≥ 30 s de voz; NI-10) | 02 |
+| `GET /capabilities` | alumno | Qué capacidades con costo están encendidas, para mostrar la alternativa | 02 |
 | `GET /admin/usage` | admin | Consumo y costo por periodo y alumno | 02 |
 
 Estáticos: `/assets/*` (build con hash, caché inmutable), `/media/*`

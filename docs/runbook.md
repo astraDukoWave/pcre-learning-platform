@@ -11,7 +11,8 @@ Convenciones:
 - Los comandos de GitHub usan `gh` autenticado con la cuenta dueña del repo
   (`astraDukoWave/pcre-learning-platform`); cada paso indica también dónde está en la web.
 - Orden de los gates: G1 (deploy) → G2 (audio) → G3 (publicación) → G4 (alumnos reales).
-  La IA y la voz (G5) tienen su propio runbook en MVP-02.
+  La IA y la voz (G5a benchmark y G5 activación) están en las secciones 14 y 15; el dictamen
+  es `docs/reviews/mvp-02-activacion-cto-review.md`.
 
 ## 1. Preparación de Heroku (G1)
 
@@ -330,3 +331,165 @@ uv run python ../../scripts/perf/smoke.py --base-url http://localhost:8000 \
 
 Imprime p50, p95 y máximo por endpoint y sale con 0 si todo p95 < 800 ms. El baseline está
 en `docs/reviews/mvp-01-perf-smoke.md`.
+
+## 14. IA y voz: benchmark (G5a) y activación (G5)
+
+Tres capacidades con costo, todas apagadas por omisión y *fail-closed*: si falta la bandera,
+el presupuesto, el precio o el proveedor, responden 503 `capability_disabled` y la interfaz
+ofrece la alternativa sin costo (autoevaluación o práctica por texto).
+
+| Capacidad | Bandera | Además necesita |
+|---|---|---|
+| Feedback con IA (escritura, entrevista y voz) | `AI_FEEDBACK_ENABLED` | `GEMINI_API_KEY`, `GEMINI_MODEL`, `GEMINI_PRICE_INPUT_PER_MTOK_MICROUSD`, `GEMINI_PRICE_OUTPUT_PER_MTOK_MICROUSD` |
+| Transcripción de grabaciones | `STT_ENABLED` | `DEEPGRAM_API_KEY` (precio por omisión: `STT_PRICE_PER_MIN_MICROUSD=4300`) |
+| Coach de voz | `VOICE_ENABLED` | `DEEPGRAM_API_KEY`, `VOICE_MAX_MINUTES_PER_USER_MONTH` (precio por omisión: `VOICE_PRICE_PER_MIN_MICROUSD=75000`) |
+| Las tres | — | `BUDGET_GLOBAL_MONTHLY_MICROUSD`, `BUDGET_USER_MONTHLY_MICROUSD` |
+
+### 14.1 Benchmark del feedback (G5a, antes de G5)
+
+1. Proyecto de Google **solo para PCRE** (no el de CareerAI), con facturación y una alerta de
+   presupuesto: https://console.cloud.google.com/billing → Presupuestos y alertas → Crear,
+   USD 25 al mes, alertas al 50, 80 y 100 %. La alerta avisa; el tope real lo pone la app.
+   La facturación activa es obligatoria: en el nivel gratuito de la Gemini API, Google puede
+   usar los datos para mejorar sus productos, y el aviso de privacidad dice que no.
+2. Llave de la Gemini API de ese proyecto: https://aistudio.google.com/apikey → Crear llave en
+   el proyecto de PCRE. No la pegues en ningún chat.
+3. Environment `evals` con revisor obligatorio y su secret (repo → Settings → Environments →
+   New environment `evals` → Required reviewers: tu usuario → Add environment secret
+   `GEMINI_API_KEY`). Con `gh`:
+
+   ```bash
+   gh api -X PUT repos/astraDukoWave/pcre-learning-platform/environments/evals \
+     -F "reviewers[][type]=User" -F "reviewers[][id]=$(gh api user --jq .id)"
+   gh secret set GEMINI_API_KEY --env evals --repo astraDukoWave/pcre-learning-platform
+   ```
+
+4. Precio vigente de los modelos candidatos en https://ai.google.dev/gemini-api/docs/pricing
+   (USD por millón de tokens de entrada y de salida).
+5. Run (Actions → «Evaluación del feedback (modelos reales)» → Run workflow), por ejemplo:
+
+   ```bash
+   gh workflow run feedback-eval.yml --repo astraDukoWave/pcre-learning-platform \
+     -f models="gemini-3.1-flash-lite=<entrada>/<salida>" -f max_cost_usd=2
+   gh run watch --repo astraDukoWave/pcre-learning-platform
+   ```
+
+   Aprueba el despliegue al environment `evals` cuando GitHub lo pida. El run sube el
+   reporte como artefacto y lo muestra en el resumen: debe decir qué modelo cumple la regla
+   de selección (`evals/README.md`). Pásale al agente la URL del run para que commitee el
+   reporte en `docs/reviews/mvp-02-feedback-eval.md`.
+
+### 14.2 Deepgram (antes de G5)
+
+1. Proyecto **propio de PCRE** en https://console.deepgram.com (no el de CareerAI).
+2. Billing → saldo prepagado (sugerido: USD 10) y **Auto-reload apagado**. El saldo es el
+   tope duro del proveedor: si se acaba, la voz y la transcripción fallan cerradas (503 o
+   `provider_error`) y la app ofrece la alternativa.
+3. Confirma en la configuración del proyecto o de la cuenta que **no** participa en el
+   programa de mejora de modelos de Deepgram (Model Improvement Program o equivalente): el
+   aviso de privacidad dice que el proveedor no usa los datos para entrenar.
+4. API Keys → Create a New API Key, rol `Member`, sin vencimiento corto; cópiala directo al
+   paso 14.3.
+5. Confirma en https://developers.deepgram.com/docs/voice-agent-llm-models que el modelo de
+   `VOICE_THINK_MODEL` (por omisión `gpt-4o-mini` de `open_ai`) sigue en el nivel estándar,
+   y en https://deepgram.com/pricing que el Voice Agent estándar sigue en USD 0.075/min y
+   Nova-3 pregrabado en USD 0.0043/min. Si cambió, ajusta `VOICE_PRICE_PER_MIN_MICROUSD` o
+   `STT_PRICE_PER_MIN_MICROUSD` (micro-USD por minuto) en el paso siguiente.
+
+### 14.3 Activación (G5)
+
+Requisitos: G1 hecho, G5a con un modelo que cumple la regla, el aviso de privacidad vigente
+menciona a Deepgram y Google (`apps/frontend/src/legal/privacidad.md`) y el dictamen
+`docs/reviews/mvp-02-activacion-cto-review.md` firmado.
+
+1. Presupuestos (valores firmados en G0) y llaves, sin encender nada todavía:
+
+   ```bash
+   heroku config:set --app <app> \
+     BUDGET_GLOBAL_MONTHLY_MICROUSD=25000000 \
+     BUDGET_USER_MONTHLY_MICROUSD=8000000 \
+     VOICE_MAX_MINUTES_PER_USER_MONTH=60 \
+     GEMINI_MODEL=<modelo elegido en G5a> \
+     GEMINI_PRICE_INPUT_PER_MTOK_MICROUSD=<USD por millón de entrada × 1 000 000> \
+     GEMINI_PRICE_OUTPUT_PER_MTOK_MICROUSD=<USD por millón de salida × 1 000 000>
+   heroku config:set --app <app> GEMINI_API_KEY   # pide el valor sin dejarlo en el historial
+   heroku config:set --app <app> DEEPGRAM_API_KEY
+   ```
+
+   Si tu versión de la CLI no pide el valor, usa el dashboard: Settings → Config Vars →
+   Reveal → Add. Comprueba con `heroku config --app <app>` que las llaves aparecen (Heroku
+   las muestra) y que no hay `FEEDBACK_PROVIDER`, `STT_PROVIDER`, `VOICE_PROVIDER` ni
+   `VOICE_AGENT_URL` (los dobles no se permiten en producción: la app no arranca).
+2. Enciende una capacidad a la vez, en este orden, y prueba con tu cuenta interna de alumno
+   entre cada una:
+
+   ```bash
+   heroku config:set --app <app> AI_FEEDBACK_ENABLED=true
+   heroku config:set --app <app> STT_ENABLED=true
+   heroku config:set --app <app> VOICE_ENABLED=true
+   ```
+
+   Cada `config:set` reinicia la app (segundos). Después de cada una:
+   `curl -s https://<host>/api/v1/capabilities` (con sesión, desde el navegador:
+   `/api/v1/capabilities`) muestra la capacidad en `true`.
+3. Pruebas mínimas: un correo de L3 con «Pedir feedback (IA)»; una grabación de L4 con
+   «Transcribir»; una práctica de voz del escenario de U1 con la casilla de guardar marcada,
+   de más de 30 s, hasta ver el feedback final. Luego H-9 (sección 15).
+4. En `/admin/consumo` debe verse el gasto del mes por capacidad; en `/admin/piloto` →
+   «Voz e IA», minutos, sesiones, motivos de cierre, llamadas y costo frente al tope.
+
+### 14.4 Rollback (segundos, sin deploy)
+
+- Apagar una capacidad: `heroku config:set --app <app> VOICE_ENABLED=false` (o
+  `STT_ENABLED`, `AI_FEEDBACK_ENABLED`). La app se reinicia; una práctica de voz abierta se
+  corta y su reserva se concilia con el barrido al arrancar. Las nuevas responden 503 y la
+  interfaz ofrece la alternativa.
+- Apagar todo el gasto de golpe: `heroku config:unset --app <app> BUDGET_GLOBAL_MONTHLY_MICROUSD`
+  (sin presupuesto, las tres capacidades quedan apagadas).
+- Llave filtrada: revócala en el proveedor (Deepgram → API Keys → Delete; Google → AI Studio
+  → borrar la llave), crea otra y reemplázala con `heroku config:set`. Revisa el gasto del
+  proveedor y `/admin/consumo`.
+
+### 14.5 Señales
+
+- Logs (`heroku logs --tail --app <app> | grep -E 'voice_|ai_run_finished|capability_disabled'`):
+  `voice_session_started` (hash de la sesión, escenario, `user_ref`), `voice_session_ended`
+  (motivo, duración, ayudas, turnos), `voice_provider_error` (código), `ai_run_finished`
+  (propósito, modelo, estado, latencia, costo), `voice_turn_disputed`. Nunca llevan texto de
+  la transcripción ni del feedback.
+- `/admin/consumo`: reservado y gastado del mes, global y por alumno; aviso al 80 %. Una
+  ejecución `unknown` cuenta como gastada (no se asume consumo cero).
+- `/admin/piloto` → «Voz e IA»: minutos, sesiones, motivos de cierre (muchos
+  `provider_error` = problema del proveedor; muchos `silence` = UX), turnos «Eso no fue lo
+  que dije» (calidad del reconocimiento) y valoración de las prácticas.
+- Saldo de Deepgram (Billing) y alertas de Google: si una alerta llega antes que el aviso
+  del 80 % de la app, apaga la capacidad y avisa al agente (desviación en `STATE.md`).
+
+## 15. Prueba manual de voz (H-9, después de G5)
+
+En un iPhone (Safari) y un Android (Chrome) actuales, con la URL de Heroku y una cuenta
+interna de alumno; cada caso con audífonos y sin ellos. Marca cada casilla; si algo falla,
+captura, el `request_id` del mensaje (si lo hay) y la hora.
+
+- [ ] Abrir el escenario de U1 → «Practicar este escenario por voz con el coach»: se ven la
+  situación, la duración, el aviso de Deepgram y la casilla de guardar.
+- [ ] «Empezar»: el navegador pide el micrófono; el coach saluda en voz alta en menos de 5 s.
+- [ ] Conversación completa de más de 1 minuto: el coach responde en ≤ 2.5 s después de que
+  callas (anota la latencia percibida: rápida, aceptable o lenta) y respeta el escenario.
+- [ ] Interrumpir al coach hablando: se calla y te escucha.
+- [ ] «Repetir», «Más despacio» y «Pista»: cada una hace lo que dice.
+- [ ] Subtítulos en vivo encendidos y apagados.
+- [ ] «Detener»: ves duración, ayudas, el feedback (con la casilla marcada) y la
+  transcripción; «Eso no fue lo que dije» en un turno oculta su observación.
+- [ ] Micrófono denegado: aparece la explicación y «Practicar este escenario por texto».
+- [ ] Red cortada (modo avión) a mitad: la práctica termina con aviso y el panel muestra el
+  cierre `disconnect`.
+- [ ] Pasar a otra app o bloquear el teléfono: la práctica termina con aviso.
+- [ ] Deadline: deja correr una práctica 5 minutos; a los 4:30 llega el aviso y a los 5:00
+  termina sola.
+- [ ] Sin la casilla de guardar: al terminar no hay transcripción ni feedback, solo duración
+  y ayudas.
+
+Al terminar, en `/admin/piloto` → «Voz e IA» deben aparecer los motivos de cierre de tus
+pruebas (`user_stop`, `disconnect`, `deadline`, `logout` o `silence`). Anota el resultado
+(modelo, sistema, navegador, latencia percibida y motivos de cierre) en `STATE.md`.

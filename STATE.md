@@ -1,10 +1,10 @@
 # STATE.md — ciclo activo
 
 **Fase:** MVP-01 cerrado el 6 oct 2026 (`docs/reviews/mvp-01-verify.md` ✅ y dictamen de
-activación G1–G4); MVP-02 en ejecución en la misma sesión cloud con `/goal`.
+activación G1–G4). MVP-02 cerrado el 7 oct 2026 (`docs/reviews/mvp-02-verify.md` ✅ y dictamen
+de activación G5a/G5). Todo lo pendiente depende de Jonathan (bloque final "Loop humano").
 G0 aprobado por Jonathan el 5 oct 2026 (PR #2).
-**Change set en curso:** ver la última línea del registro
-(`docs/plans/mvp-02-coach-ia-voz-plan.md` desde MVP-02 CS-01).
+**Change set en curso:** ninguno. El último es MVP-02 CS-08; MVP-03 espera a G6.
 **Encadenamiento** (decisión 2 = A): un `/goal` para MVP-01 y después
 MVP-02; MVP-03 espera a G6.
 
@@ -17,7 +17,7 @@ MVP-02; MVP-03 espera a G6.
 | G2 | Audio TTS por unidad | no iniciado |
 | G3 | Publicación de contenido por unidad | no iniciado |
 | G4 | Alumnos reales | no iniciado |
-| G5 / G5a | IA y voz / benchmark del feedback | no iniciado |
+| G5 / G5a | IA y voz / benchmark del feedback | no iniciado; dictamen listo (`docs/reviews/mvp-02-activacion-cto-review.md`) |
 | G6 | Arranque de MVP-03 | no iniciado |
 
 ## Decisiones de G0 (firmadas por Jonathan el 5 oct 2026)
@@ -45,6 +45,10 @@ anotan en el registro; cualquier otra desviación queda `pending-human`.
   `pull_request` con 0 aprobaciones `[verified-this-session: API REST, 5 oct
   2026]`. Pendiente **H-1b**: `ci-gate` como check requerido, después del
   primer run de CI de CS-01.
+- Comprobado al cerrar MVP-02 (7 oct 2026): `origin/main` @ `180a40b` (merge de CS-07), sin
+  otros PRs abiertos que el de CS-08, ruleset 24546040 `active` con `deletion`,
+  `non_fast_forward` y `pull_request`; **sin** `required_status_checks` (H-1b sigue pendiente)
+  `[verified-this-session: API REST]`.
 - Comprobado al cerrar MVP-01 (6 oct 2026): ruleset 24546040 `active` con `deletion`,
   `non_fast_forward` y `pull_request`; **sin** `required_status_checks` (H-1b sigue
   pendiente) `[verified-this-session: API REST]`.
@@ -79,7 +83,8 @@ anotan en el registro; cualquier otra desviación queda `pending-human`.
 | MVP-02 | CS-04 · transcripción de grabaciones | `feat/mvp02-cs04-transcription` | [#18](https://github.com/astraDukoWave/pcre-learning-platform/pull/18) | `8dc7ef7` (head `c9a819b`) | [37551177973](https://github.com/astraDukoWave/pcre-learning-platform/actions/runs/37551177973) ✅ 8 jobs + ci-gate | `make verify` exit 0 (357 pruebas backend, 37 Vitest); AC-06: el audio nunca toca disco (prueba con escritura a disco y temporales bloqueados, 1.5 MB), 413 y 422 por tamaño, tipo y duración, comparación de la repetición con fixtures; entrevista confirmada o disputada antes del feedback; idempotencia, `unknown` sin reintento y `failed` reintentable; AC-02 (transcripción): 503 esperado y sin botón con la capacidad apagada; E2E grabar → transcribir (falso) → comparar y entrevista → feedback; NI-08 | 7 oct 2026 |
 | MVP-02 | CS-05 · sesiones de voz: backend y Deepgram falso | `feat/mvp02-cs05-voice` | [#19](https://github.com/astraDukoWave/pcre-learning-platform/pull/19) | `3425803` (head `9c3bb62`) | [37579375341](https://github.com/astraDukoWave/pcre-learning-platform/actions/runs/37579375341) ✅ 8 jobs + ci-gate | `make verify` exit 0 (399 pruebas backend, 7 migraciones nuevas probadas); migración `voice_v1`; AC-07 (Origin ajeno, sesión ajena y segunda conexión rechazadas antes de `accept()`; 409 y 503 de cupo), AC-08 (con `VOICE_MAX_SESSION_S=3` el falso registra el cierre a 3 ± 0.5 s; `ended(deadline)` y conciliación), AC-09 (desconexión → proveedor cerrado en ≤ 2 s; logout), AC-10 (barrido de huérfanas), AC-11 (ayudas con hora; `InjectUserMessage` y `UpdatePrompt`), sin consentimiento solo duración y ayudas, `KeepAlive`, silencio y límites por segundo; un WebSocket ya no se registra como 500 en `error_events`; con el Deepgram falso (`tests/fakes/deepgram_agent.py`); verificador independiente: ronda 1 con 2 bloqueantes (stop durante el arranque del relay; una tarea que muere deja sin deadline) y 6 menores corregidos con pruebas; ronda 2 (4 lentes, sobre `bbbdad7`) sin bloqueantes, con los 8 arreglos confirmados y menores corregidos: stop y `claim()` bajo el mismo lock, `PENDING_STOP` limpio, rollback con `VOICE_ENABLED` apagado también en el WebSocket, tiempo conectado al proveedor conciliado, duración con tope, aborto de un proveedor que no contesta el cierre, ecos de «repetir» contados, `ended` aunque falle el cierre en la base, `sample_rate` en `ready`, y 14 pruebas nuevas (stop con relay vivo, timeout de conexión, logout por mensaje de control, cupo concurrente, gracia, margen del barrido, frames grandes, guardas de producción); NI-09 | 7 oct 2026 |
 | MVP-02 | CS-06 · pantalla del coach | `feat/mvp02-cs06-coach-screen` | [#20](https://github.com/astraDukoWave/pcre-learning-platform/pull/20) | `33a556f` (head `fca4a85`) | [37613132336](https://github.com/astraDukoWave/pcre-learning-platform/actions/runs/37613132336) ✅ 8 jobs + ci-gate | `make verify` exit 0; Vitest del remuestreo a 16 kHz, PCM16 en frames de 40 ms y la máquina de estados; E2E `test_voice_coach.py` con el micrófono falso de Chromium y el Deepgram falso (aviso de Deepgram, consentimiento, Conectando/Te escucho/El coach está hablando, subtítulos `aria-live`, «Repetir», «Detener», resumen) y modo texto con la voz apagada; la cola de 24 kHz se vacía con `UserStartedSpeaking` y usa la frecuencia que anuncia `ready`; el worklet y las fuentes salen como archivos (la CSP no permite `data:`); fin al pasar a segundo plano; capturas `coach-*.png` revisadas | 7 oct 2026 |
-| MVP-02 | CS-07 · feedback final de voz, repasos, observabilidad y E2E | `feat/mvp02-cs07-voice-feedback` | se completa al abrir | se completa al mergear | se completa al terminar | `make verify` exit 0; feedback final con la rúbrica del escenario (≥ 30 s de voz y consentimiento; hasta 2 observaciones con evidencia dentro de un turno; misma reserva, idempotencia y política de `unknown` que REQ-02) y repaso por dificultad confirmada; «Eso no fue lo que dije» oculta las observaciones del turno (AC-13); exportación y borrado con transcripciones (AC-12); valoración de la sesión; log `voice_session_started` con escenario y `user_ref` sin texto de la transcripción (REQ-07); panel del piloto con minutos, sesiones, cierres, llamadas, costo del mes, turnos disputados y valoración; E2E de AC-14 con un WAV como micrófono falso y el Deepgram falso (audio del coach, transcripción, «Repetir», «Detener», evidencia resaltada, disputa y valoración) y modo texto con la voz apagada; grep de llaves en el bundle (`make frontend-check`) y en los mensajes (AC-15); memoria con 3 sesiones y frames de 1 MiB: 110.5 MB en reposo, pico 124.6 MB < 300 MB (AC-16, `scripts/perf/voice_memory.py`); accesibilidad del coach con teclado, axe y movimiento reducido (NFR-08); el coach acaba su frase en ≤ 2 s al terminar (EDGE-13); verificador independiente (4 lentes: spec, dinero, privacidad e interfaz): 1 bloqueante (dos peticiones de feedback con claves distintas pagaban dos llamadas; ahora una sola ejecución por sesión dentro de la reserva) y los menores corregidos con pruebas (marcas concurrentes con lock, disputa durante la evaluación, repaso deshecho si una disputa deja sin observaciones, resultado pagado reconstruido, clave revisada primero, huérfanas a `unknown`, 👍/👎 en voz, tope del mes en el panel, llave de 40 hex en el grep del bundle, resaltado como el validador, reintentos sin callejones, región viva y foco); NI-10 | 7 oct 2026 |
+| MVP-02 | CS-07 · feedback final de voz, repasos, observabilidad y E2E | `feat/mvp02-cs07-voice-feedback` | [#21](https://github.com/astraDukoWave/pcre-learning-platform/pull/21) | `180a40b` (head `163146c`) | [37651230600](https://github.com/astraDukoWave/pcre-learning-platform/actions/runs/37651230600) ✅ 8 jobs + ci-gate | `make verify` exit 0; feedback final con la rúbrica del escenario (≥ 30 s de voz y consentimiento; hasta 2 observaciones con evidencia dentro de un turno; misma reserva, idempotencia y política de `unknown` que REQ-02) y repaso por dificultad confirmada; «Eso no fue lo que dije» oculta las observaciones del turno (AC-13); exportación y borrado con transcripciones (AC-12); valoración de la sesión; log `voice_session_started` con escenario y `user_ref` sin texto de la transcripción (REQ-07); panel del piloto con minutos, sesiones, cierres, llamadas, costo del mes, turnos disputados y valoración; E2E de AC-14 con un WAV como micrófono falso y el Deepgram falso (audio del coach, transcripción, «Repetir», «Detener», evidencia resaltada, disputa y valoración) y modo texto con la voz apagada; grep de llaves en el bundle (`make frontend-check`) y en los mensajes (AC-15); memoria con 3 sesiones y frames de 1 MiB: 110.5 MB en reposo, pico 124.6 MB < 300 MB (AC-16, `scripts/perf/voice_memory.py`); accesibilidad del coach con teclado, axe y movimiento reducido (NFR-08); el coach acaba su frase en ≤ 2 s al terminar (EDGE-13); verificador independiente (4 lentes: spec, dinero, privacidad e interfaz): 1 bloqueante (dos peticiones de feedback con claves distintas pagaban dos llamadas; ahora una sola ejecución por sesión dentro de la reserva) y los menores corregidos con pruebas (marcas concurrentes con lock, disputa durante la evaluación, repaso deshecho si una disputa deja sin observaciones, resultado pagado reconstruido, clave revisada primero, huérfanas a `unknown`, 👍/👎 en voz, tope del mes en el panel, llave de 40 hex en el grep del bundle, resaltado como el validador, reintentos sin callejones, región viva y foco); NI-10 | 7 oct 2026 |
+| MVP-02 | CS-08 · cierre (verify + activación G5a/G5) | `feat/mvp02-cs08-close` | [#22](https://github.com/astraDukoWave/pcre-learning-platform/pull/22) | merge: el commit de `main` que mergea este PR (se anota en el reporte final y al arrancar MVP-03) | `ci-gate` del head, en el PR | `make verify` exit 0; `docs/reviews/mvp-02-verify.md` (AC-01 a AC-16 y AC-18 ✅, AC-17 ⏸ humano, NFR-01 a NFR-08), `docs/reviews/mvp-02-activacion-cto-review.md` (aprobar con cambios; peor costo ≈ USD 25.6 al mes con los topes de G0), runbook §14 y §15, aviso de privacidad con Deepgram y Google, tabla de rutas de `docs/arquitectura.md`, `HANDOFF.md` | 7 oct 2026 |
 
 ## Desviaciones
 
@@ -188,15 +193,58 @@ Ninguna.
   `voice` de `user_feedback`, que ya permitía la tabla, con 404 si la sesión es ajena. El panel
   cuenta los turnos disputados como problemas de reconocimiento, nunca su texto.
 
-## Loop humano vigente
+## Loop humano vigente (final de MVP-01 y MVP-02)
 
-No bloquea MVP-02: el agente sigue con su plan mientras tanto.
+Todo lo que sigue es tuyo; el agente no puede hacerlo. Orden recomendado: H-1b → G1 → G2 →
+G3 → G5a → G5 → H-9 → G4. G5 antes de G4 es tu decisión 1 de
+`docs/reviews/mvp-02-activacion-cto-review.md`; si eliges G4 antes, invierte los dos últimos
+bloques. Los mensajes de aprobación, listos para pegar, están al final de cada dictamen.
 
-1. **H-1b** — https://github.com/astraDukoWave/pcre-learning-platform/settings/rules →
-   ruleset `main` → **Require status checks to pass** → **Add checks** → `ci-gate` →
+1. **H-1b · `ci-gate` como check requerido** (5 min) — https://github.com/astraDukoWave/pcre-learning-platform/settings/rules
+   → ruleset `main` → **Require status checks to pass** → **Add checks** → `ci-gate` →
    **Save changes**. Devuélveme: "ci-gate requerido".
-2. **G1–G4** — en orden, con `docs/reviews/mvp-01-activacion-cto-review.md` (mensajes de
-   aprobación listos para pegar) y `docs/runbook.md`. Devuélveme: las URLs y salidas que pide
-   cada mensaje.
+2. **G1 · Deploy a Heroku** (≈ 45 min) — `docs/runbook.md` §1 (app, Postgres Essential-0,
+   backups y config vars sin MVP-02), §2 (environment `production` con tu revisión, secret
+   `HEROKU_API_KEY`, variables `HEROKU_APP_NAME` y, al final, `DEPLOY_ENABLED=true`; antes,
+   el run "deploy no configurado"), §3 (aprobar el deploy del `main` vigente y
+   verificar `/health` y `/api/v1/ready`; dyno Basic) y §4 (tu admin). Devuélveme el mensaje
+   **G1** del dictamen de MVP-01 con las URLs de los runs y la salida de `/api/v1/ready`.
+3. **G2 · Audio de U1 y del diagnóstico** (≈ 30 min) — runbook §8: environment
+   `content-audio` con tu revisión y su secret `DEEPGRAM_API_KEY`; un run de
+   `content-audio.yml` por prefijo (`u1`, `inicial`) con `max_chars=20000`; escuchar cada MP3
+   y mergear los PRs con `reviewed_by`. Devuélveme el mensaje **G2**.
+4. **G3 · Publicación de U1 y del diagnóstico** (≈ 2 h) — runbook §9 con
+   `docs/contenido/revision/u1.md` e `inicial.md`; confirma las fuentes `pending` (Cambridge y
+   Consejo de Europa). Devuélveme el mensaje **G3** con el tiempo de revisión.
+5. **G5a · Benchmark del feedback** (≈ 30 min, ≤ USD 2) — runbook §14.1:
+   - proyecto de Google de PCRE con facturación activa y alerta de USD 25;
+   - llave de la Gemini API;
+   - environment `evals` con tu revisión y su secret `GEMINI_API_KEY`;
+   - precios vigentes;
+   - `gh workflow run feedback-eval.yml -f models="<modelo>=<entrada>/<salida>" -f max_cost_usd=2`
+     y aprobar el despliegue.
 
-*Última actualización: 6 oct 2026 (cierre de MVP-01).*
+   Devuélveme el mensaje **G5a** con la URL del run.
+6. **G5 · Activación de IA y voz** (≈ 45 min):
+   - runbook §14.2: proyecto de Deepgram de PCRE, saldo prepagado, Auto-reload apagado, sin
+     programa de mejora de modelos, llave y precios reconfirmados;
+   - runbook §14.3: config vars de presupuesto de G0, precios, `GEMINI_MODEL` y las dos
+     llaves, y después `AI_FEEDBACK_ENABLED`, `STT_ENABLED` y `VOICE_ENABLED`, una a la vez,
+     con la prueba mínima entre cada una.
+
+   Devuélveme el mensaje **G5** con `/api/v1/capabilities` y tus decisiones 1–3.
+7. **H-9 · Voz en iPhone y Android** (≈ 40 min) — runbook §15, con audífonos y sin ellos.
+   Devuélveme el checklist, la latencia percibida y los motivos de cierre que muestra
+   `/admin/piloto`.
+8. **G4 · Alumnos reales** (≈ 1 h) — en este orden:
+   - aprobar los textos legales: un PR que cambia el encabezado y quita "Borrador"; ya
+     mencionan a Deepgram y Google;
+   - `CONSENT_VERSION` igual en Heroku;
+   - ensayo de restauración (runbook §5);
+   - H-6 (runbook §12);
+   - invitar desde `/admin/usuarios` (runbook §10).
+
+   Devuélveme el mensaje **G4**.
+9. **G6 · MVP-03**, cuando U1 esté revisada y el examen de tus primeros clientes confirmado.
+
+*Última actualización: 7 oct 2026 (cierre de MVP-02).*

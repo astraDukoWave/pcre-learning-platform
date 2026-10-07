@@ -29,6 +29,6 @@ Son **comprobaciones formativas: no son exámenes oficiales** y no predicen tu p
 
 ## Qué se guarda
 
-Tus respuestas, resultados, ayudas, repasos y comprobaciones, para que veas tu progreso. Tus grabaciones de voz no salen de tu dispositivo. Los detalles están en el aviso de privacidad.
+Tus respuestas, resultados, ayudas, repasos y comprobaciones, para que veas tu progreso. Tus grabaciones de voz no salen de tu dispositivo, salvo que pidas su transcripción o practiques con el coach de voz (Deepgram); la transcripción y el feedback de una práctica de voz se guardan solo si lo eliges. Los detalles están en el aviso de privacidad.
 
 TOEFL y TOEFL iBT son marcas registradas de ETS. Este producto no está avalado ni aprobado por ETS.
