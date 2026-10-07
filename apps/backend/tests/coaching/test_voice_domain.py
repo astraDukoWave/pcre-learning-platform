@@ -76,3 +76,29 @@ def test_settings_message_from_the_scenario() -> None:
     ):
         assert expected in prompt
     assert "key" not in str(message).lower()  # ninguna llave en el mensaje
+
+
+def test_rate_window_slides_instead_of_resetting() -> None:
+    """A lo sumo `limit` eventos en cualquier segundo, también en el borde de la ventana."""
+    window = domain.RateWindow(limit=50)
+    allowed = sum(window.allow(1000.0 + i * 0.0001) for i in range(100))
+    allowed += sum(window.allow(1000.999 + i * 0.00001) for i in range(100))
+    assert allowed == 50
+    assert window.allow(1001.0001)  # el primero ya salió de la ventana
+
+
+def test_fake_agent_url_must_be_plain_localhost() -> None:
+    from app.bootstrap import local_agent_url
+
+    assert local_agent_url("ws://127.0.0.1:8765/v1/agent/converse")
+    assert local_agent_url("ws://localhost:9/x")
+    for bad in (
+        None,
+        "",
+        "wss://agent.deepgram.com/v1/agent/converse",
+        "ws://localhost:@evil.example:443/v1",
+        "ws://user:pw@127.0.0.1:1/x",
+        "ws://127.0.0.1.evil.example/x",
+        "http://127.0.0.1:1/x",
+    ):
+        assert not local_agent_url(bad), bad

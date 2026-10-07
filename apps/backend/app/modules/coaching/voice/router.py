@@ -4,6 +4,7 @@ Sin lógica: el WebSocket valida `Origin`, la sesión de la app y el dueño ante
 
 from __future__ import annotations
 
+import logging
 import uuid
 from typing import Annotated, Any
 
@@ -24,6 +25,7 @@ from app.modules.usage.service import UsageService
 
 router = APIRouter(tags=["voice"])
 POLICY_VIOLATION = 1008
+logger = logging.getLogger("app.coaching.voice")
 
 
 def voice_service(container: Container) -> VoiceService:
@@ -84,7 +86,16 @@ async def stop_voice_session(
     if live is not None:
         live.request_end("user_stop")
         return VoiceSessionOut.model_validate(current)
-    stopped = await run_in_threadpool(voice.stop_unconnected, ctx.user_id, session_id)
+    stopped, starting = await run_in_threadpool(voice.stop_unconnected, ctx.user_id, session_id)
+    if starting:
+        # El WebSocket ya reclamó la sesión y el relay está arrancando: lo detiene al
+        # registrarse (o ahora, si se registró mientras tanto). Sin `await` entre estas
+        # líneas, el event loop no deja que se crucen.
+        voice_relay.PENDING_STOP.add(session_id)
+        live = voice_relay.LIVE.get(session_id)
+        if live is not None:
+            voice_relay.PENDING_STOP.discard(session_id)
+            live.request_end("user_stop")
     return VoiceSessionOut.model_validate(stopped)
 
 
@@ -119,21 +130,18 @@ async def voice_socket(websocket: WebSocket, session_id: uuid.UUID) -> None:
     settings = container.settings
     origin = (websocket.headers.get("origin") or "").rstrip("/")
     if origin not in settings.allowed_origins:
-        await websocket.close(POLICY_VIOLATION)  # antes de accept(): 403
-        return
+        return await _reject(websocket, "origin")  # antes de accept(): 403
     token = websocket.cookies.get(SESSION_COOKIE)
     identity = get_identity(container)
     ctx = await run_in_threadpool(identity.authenticate, token) if token else None
     agent = container.voice_agent
     if ctx is None or agent is None:
-        await websocket.close(POLICY_VIOLATION)
-        return
+        return await _reject(websocket, "no_session" if agent else "voice_off")
     voice = voice_service(container)
     try:
         ticket = await run_in_threadpool(voice.claim, session_id, ctx.user_id)
-    except VoiceRejected:
-        await websocket.close(POLICY_VIOLATION)
-        return
+    except VoiceRejected as exc:
+        return await _reject(websocket, exc.reason)
     await websocket.accept()
     config = AgentConfig(
         listen_model=settings.voice_listen_model,
@@ -151,3 +159,8 @@ async def voice_socket(websocket: WebSocket, session_id: uuid.UUID) -> None:
         timings=container.voice_timings,
     )
     await relay.run(_Channel(websocket))
+
+
+async def _reject(websocket: WebSocket, reason: str) -> None:
+    logger.info("voice_ws_rejected", extra={"reason": reason})
+    await websocket.close(POLICY_VIOLATION)

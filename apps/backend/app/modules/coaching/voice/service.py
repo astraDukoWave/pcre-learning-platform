@@ -25,6 +25,8 @@ logger = logging.getLogger("app.coaching.voice")
 
 PURPOSE: Final = "voice_session"
 CLOSED = ("ended", "failed", "expired")
+# Una reserva de voz abierta más vieja que esto ya no tiene una sesión posible (máx. 330 s).
+ORPHAN_RUN_MINUTES = 10
 
 
 class VoiceBusy(AppError):
@@ -188,13 +190,16 @@ class VoiceService:
                 save_transcript=session.save_transcript,
             )
 
-    def mark_active(self, session_id: uuid.UUID) -> datetime:
+    def mark_active(self, session_id: uuid.UUID) -> datetime | None:
+        """`reserved` → `active`. `None` si ya no está `reserved` (un stop o el barrido la
+        cerraron mientras se conectaba): el relay no debe conversar."""
         now = self.clock.now()
         with self.uow() as s:
             session = repository.get(s, session_id, lock=True)
-            if session is not None and session.status == "reserved":
-                session.status = "active"
-                session.started_at = now
+            if session is None or session.status != "reserved":
+                return None
+            session.status = "active"
+            session.started_at = now
         return now
 
     def finish(
@@ -204,6 +209,7 @@ class VoiceService:
         reason: str,
         transcript: list[dict[str, Any]] | None = None,
         aids: list[dict[str, Any]] | None = None,
+        learner_speech_ms: int = 0,
     ) -> dict[str, Any]:
         """Cierra la sesión (idempotente) y concilia: segundos facturables = fin − inicio,
         hasta el máximo. Una sesión que nunca empezó libera la reserva."""
@@ -219,6 +225,7 @@ class VoiceService:
             session.ended_at = now
             session.end_reason = reason
             session.aids = list(aids or [])
+            session.learner_speech_ms = max(0, learner_speech_ms)
             if session.save_transcript and transcript is not None:
                 session.transcript = list(transcript)
             run_id = session.ai_run_id
@@ -263,6 +270,20 @@ class VoiceService:
                 session.end_reason = "expired"
                 if session.ai_run_id is not None:
                     (spent if was_active else released).append(session.ai_run_id)
+        # Reservas de voz abiertas sin sesión viva (un fallo entre dos commits): se liberan
+        # si la sesión nunca empezó y se cobran completas si empezó.
+        for run_id, session_id in self.usage.stale_open_runs(
+            PURPOSE, created_before=now - timedelta(minutes=ORPHAN_RUN_MINUTES)
+        ):
+            if run_id in released or run_id in spent:
+                continue  # ya se concilia arriba con su sesión
+            with self.uow() as s:
+                found = repository.get(s, session_id) if session_id is not None else None
+                live = found is not None and found.status in repository.LIVE
+                started = found is not None and found.started_at is not None
+            if live:
+                continue
+            (spent if started else released).append(run_id)
         for run_id in released:
             self.usage.release(run_id, error_code="expired")
         for run_id in spent:
@@ -279,12 +300,21 @@ class VoiceService:
                 raise NotFound()
             return _summary(session)
 
-    def stop_unconnected(self, user_id: uuid.UUID, session_id: uuid.UUID) -> dict[str, Any]:
-        """`POST /stop` sin relay vivo: una sesión que nunca conectó se cierra y se libera."""
-        view = self.view(user_id, session_id)
-        if view["status"] in CLOSED:
-            return view
-        return self.finish(session_id, reason="user_stop")
+    def stop_unconnected(
+        self, user_id: uuid.UUID, session_id: uuid.UUID
+    ) -> tuple[dict[str, Any], bool]:
+        """`POST /stop` sin relay vivo. Una sesión que nunca conectó se cierra y se libera.
+        Una ya reclamada por un WebSocket (el relay está arrancando) no se toca aquí:
+        devuelve `True` para que el relay la detenga al registrarse."""
+        with self.uow() as s:
+            session = repository.for_user(s, user_id, session_id)
+            if session is None:
+                raise NotFound()
+            if session.status in CLOSED:
+                return _summary(session), False
+            if session.connected_at is not None:
+                return _summary(session), True
+        return self.finish(session_id, reason="user_stop"), False
 
     def session_alive(self, auth_session_id: uuid.UUID) -> bool:
         return self.identity.session_is_active(auth_session_id)
@@ -309,6 +339,7 @@ def _summary(session: VoiceSession) -> dict[str, Any]:
         "ended_at": session.ended_at,
         "end_reason": session.end_reason,
         "duration_s": duration,
+        "learner_speech_s": round((session.learner_speech_ms or 0) / 1000, 1),
         "aids": list(session.aids or []),
         "transcript": list(session.transcript) if session.transcript is not None else None,
         "feedback": session.feedback,

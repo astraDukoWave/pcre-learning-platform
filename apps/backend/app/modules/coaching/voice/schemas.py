@@ -46,6 +46,7 @@ class VoiceSessionOut(BaseModel):
     ended_at: datetime | None
     end_reason: str | None
     duration_s: int | None
+    learner_speech_s: float
     aids: list[VoiceAidOut]
     transcript: list[VoiceTurnOut] | None
     feedback: dict[str, Any] | None

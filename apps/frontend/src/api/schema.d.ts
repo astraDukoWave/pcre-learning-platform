@@ -2663,6 +2663,8 @@ export interface components {
             end_reason: string | null;
             /** Duration S */
             duration_s: number | null;
+            /** Learner Speech S */
+            learner_speech_s: number;
             /** Aids */
             aids: components["schemas"]["VoiceAidOut"][];
             /** Transcript */
