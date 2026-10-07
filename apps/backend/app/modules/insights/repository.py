@@ -10,12 +10,13 @@ from typing import Any
 from sqlalchemy import Select, delete, func, select
 from sqlalchemy.orm import Session
 
+from app.modules.coaching.voice.models import VoiceSession
 from app.modules.content.models import ContentItem, ContentReport, ContentRevision
 from app.modules.identity.models import User, UserRole
 from app.modules.insights.models import ErrorEvent, ProductEvent, UserFeedback
 from app.modules.practice.models import AssessmentRun, Attempt, LessonProgress
 from app.modules.progress.models import ReviewSchedule
-from app.modules.usage.models import AiRun
+from app.modules.usage.models import AiRun, BudgetPeriod
 
 
 def add(s: Session, row: ProductEvent | UserFeedback | ErrorEvent) -> None:
@@ -211,3 +212,53 @@ def ai_run_owner(s: Session, run_id: uuid.UUID) -> uuid.UUID | None:
             AiRun.id == run_id, AiRun.purpose.in_(("writing_feedback", "speaking_feedback"))
         )
     )
+
+
+# -- MVP-02: voz e IA (REQ-07) -------------------------------------------------------------
+
+
+def voice_end_reasons(s: Session, since: datetime) -> dict[str, int]:
+    rows = s.execute(
+        select(VoiceSession.end_reason, func.count())
+        .where(
+            VoiceSession.user_id.in_(_pilot_students()),
+            VoiceSession.created_at >= since,
+            VoiceSession.ended_at.is_not(None),
+        )
+        .group_by(VoiceSession.end_reason)
+    )
+    return {str(reason): int(n) for reason, n in rows}
+
+
+def voice_seconds_since(s: Session, since: datetime) -> int:
+    """Segundos facturables conciliados (las reservas de las sesiones cerradas)."""
+    return int(
+        s.scalar(
+            select(func.coalesce(func.sum(AiRun.observed_units), 0)).where(
+                AiRun.user_id.in_(_pilot_students()),
+                AiRun.purpose == "voice_session",
+                AiRun.status.in_(("succeeded", "unknown")),
+                AiRun.created_at >= since,
+            )
+        )
+        or 0
+    )
+
+
+def ai_calls_since(s: Session, since: datetime) -> dict[str, int]:
+    rows = s.execute(
+        select(AiRun.purpose, func.count())
+        .where(AiRun.user_id.in_(_pilot_students()), AiRun.created_at >= since)
+        .group_by(AiRun.purpose)
+    )
+    return {str(purpose): int(n) for purpose, n in rows}
+
+
+def global_budget(s: Session, period: str) -> tuple[int, int, int] | None:
+    """Tope, reservado y gastado del presupuesto global del mes (todas las cuentas)."""
+    row = s.scalars(
+        select(BudgetPeriod).where(BudgetPeriod.scope == "global", BudgetPeriod.period == period)
+    ).one_or_none()
+    if row is None:
+        return None
+    return row.limit_microusd, row.reserved_microusd, row.spent_microusd

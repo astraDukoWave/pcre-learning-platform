@@ -105,7 +105,25 @@ class InsightsService:
                 "open_reports": repository.open_reports(s),
                 "server_errors": errors_total,
                 "latest_errors": [_error_row(e) for e in errors],
+                "voice_ai": self._voice_ai(s, since, now),
             }
+
+    def _voice_ai(self, s: Any, since: datetime, now: datetime) -> dict[str, Any]:
+        """MVP-02 REQ-07: minutos de voz, sesiones, motivos de cierre, llamadas de IA y costo
+        del mes frente al presupuesto global."""
+        reasons = repository.voice_end_reasons(s, since)
+        budget = repository.global_budget(s, now.strftime("%Y-%m"))
+        limit, reserved, spent = budget if budget is not None else (None, 0, 0)
+        return {
+            "voice_minutes": round(repository.voice_seconds_since(s, since) / 60, 1),
+            "voice_sessions": sum(reasons.values()),
+            "end_reasons": reasons,
+            "ai_calls": repository.ai_calls_since(s, since),
+            "month": now.strftime("%Y-%m"),
+            "month_spent_microusd": spent,
+            "month_reserved_microusd": reserved,
+            "month_limit_microusd": limit,
+        }
 
     def feedback_overview(self) -> dict[str, Any]:
         with self.uow() as s:

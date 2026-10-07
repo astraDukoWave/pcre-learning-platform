@@ -2013,6 +2013,7 @@ export interface components {
             server_errors: number;
             /** Latest Errors */
             latest_errors: components["schemas"]["ErrorRowOut"][];
+            voice_ai: components["schemas"]["VoiceAiSummaryOut"];
         };
         /** ProductionOut */
         ProductionOut: {
@@ -2591,6 +2592,29 @@ export interface components {
             input?: unknown;
             /** Context */
             ctx?: Record<string, never>;
+        };
+        /** VoiceAiSummaryOut */
+        VoiceAiSummaryOut: {
+            /** Voice Minutes */
+            voice_minutes: number;
+            /** Voice Sessions */
+            voice_sessions: number;
+            /** End Reasons */
+            end_reasons: {
+                [key: string]: number;
+            };
+            /** Ai Calls */
+            ai_calls: {
+                [key: string]: number;
+            };
+            /** Month */
+            month: string;
+            /** Month Spent Microusd */
+            month_spent_microusd: number;
+            /** Month Reserved Microusd */
+            month_reserved_microusd: number;
+            /** Month Limit Microusd */
+            month_limit_microusd: number | null;
         };
         /** VoiceAidOut */
         VoiceAidOut: {

@@ -65,6 +65,17 @@ class ErrorRowOut(BaseModel):
     occurred_at: str
 
 
+class VoiceAiSummaryOut(BaseModel):
+    voice_minutes: float
+    voice_sessions: int
+    end_reasons: dict[str, int]
+    ai_calls: dict[str, int]
+    month: str
+    month_spent_microusd: int
+    month_reserved_microusd: int
+    month_limit_microusd: int | None
+
+
 class PilotSummaryOut(BaseModel):
     days: int
     internal_excluded: bool
@@ -81,6 +92,7 @@ class PilotSummaryOut(BaseModel):
     open_reports: int
     server_errors: int
     latest_errors: list[ErrorRowOut]
+    voice_ai: VoiceAiSummaryOut
 
 
 class LessonRatingOut(BaseModel):

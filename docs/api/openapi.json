@@ -5514,6 +5514,9 @@
             },
             "type": "array",
             "title": "Latest Errors"
+          },
+          "voice_ai": {
+            "$ref": "#/components/schemas/VoiceAiSummaryOut"
           }
         },
         "type": "object",
@@ -5532,7 +5535,8 @@
           "latest_comments",
           "open_reports",
           "server_errors",
-          "latest_errors"
+          "latest_errors",
+          "voice_ai"
         ],
         "title": "PilotSummaryOut"
       },
@@ -7135,6 +7139,67 @@
           "type"
         ],
         "title": "ValidationError"
+      },
+      "VoiceAiSummaryOut": {
+        "properties": {
+          "voice_minutes": {
+            "type": "number",
+            "title": "Voice Minutes"
+          },
+          "voice_sessions": {
+            "type": "integer",
+            "title": "Voice Sessions"
+          },
+          "end_reasons": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "type": "object",
+            "title": "End Reasons"
+          },
+          "ai_calls": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "type": "object",
+            "title": "Ai Calls"
+          },
+          "month": {
+            "type": "string",
+            "title": "Month"
+          },
+          "month_spent_microusd": {
+            "type": "integer",
+            "title": "Month Spent Microusd"
+          },
+          "month_reserved_microusd": {
+            "type": "integer",
+            "title": "Month Reserved Microusd"
+          },
+          "month_limit_microusd": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Month Limit Microusd"
+          }
+        },
+        "type": "object",
+        "required": [
+          "voice_minutes",
+          "voice_sessions",
+          "end_reasons",
+          "ai_calls",
+          "month",
+          "month_spent_microusd",
+          "month_reserved_microusd",
+          "month_limit_microusd"
+        ],
+        "title": "VoiceAiSummaryOut"
       },
       "VoiceAidOut": {
         "properties": {
