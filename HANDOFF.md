@@ -13,15 +13,17 @@
   preparación independiente y formativa.
 - **Repo:** https://github.com/astraDukoWave/pcre-learning-platform —
   **PÚBLICO** (portafolio).
-- **Producción:** aún no existe. Destino: Heroku, una app Cedar con stack
-  `container`, un dyno web Basic y Heroku Postgres Essential-0. `deploy.yml` está en
-  `main`, apagado hasta que Jonathan firme G1 (pasos en `docs/runbook.md`).
+- **Producción:** desde el 8 oct 2026 (G1), en Heroku: una app Cedar con stack
+  `container`, un dyno web Basic y Heroku Postgres Essential-0. Corre `main` @ `9b07712`
+  (release v5), con MVP-02 apagado. Cada deploy sale de `deploy.yml` con la aprobación de
+  Jonathan en el environment `production` (runbook §3). Sin alumnos ni contenido publicado
+  hasta G3 y G4.
 - **Nombre:** "PCRE" (Pattern, Concept, Rules, Examples) es el nombre del
   método de explicación y el nombre de trabajo; el nombre comercial está
   abierto (LB-05). `APP_NAME` lo deja configurable.
 - **Fase actual:** MVP-01 **cerrado** el 6 oct 2026 y MVP-02 **cerrado** el 7 oct 2026
   (verify ✅ y dictámenes de activación G1–G4 y G5a/G5 en `docs/reviews/`). Todo lo de
-  MVP-02 está en `main` y apagado. Gates G1–G5 sin iniciar: dependen de Jonathan. MVP-03
+  MVP-02 está en `main` y apagado. G1 y H-1b hechos el 8 oct 2026; G2–G5 dependen de Jonathan. MVP-03
   espera a G6.
 
 ## 2. Estado real
@@ -48,8 +50,7 @@
 
 | Qué | Dónde |
 |---|---|
-| H-1b: `ci-gate` como check requerido del ruleset | Plan de MVP-01, "Tareas [HUMANO]" |
-| G1 deploy · G2 audio · G3 publicación · G4 alumnos reales | `docs/reviews/mvp-01-activacion-cto-review.md` y `docs/runbook.md` |
+| G2 audio · G3 publicación · G4 alumnos reales (G1 hecho el 8 oct 2026) | `docs/reviews/mvp-01-activacion-cto-review.md` y `docs/runbook.md` |
 | H-6 prueba en iPhone y Android | `docs/runbook.md` §12 |
 | Fuentes de Cambridge y del Consejo de Europa sin consultar (la sesión no llega a esos hosts) | `content/toefl-ibt-2026-b1-b2/sources.yaml`; se confirman en G3 |
 | G5a benchmark del feedback · G5 activación de IA y voz | `docs/reviews/mvp-02-activacion-cto-review.md` y `docs/runbook.md` §14 |
@@ -224,8 +225,8 @@ VOICE_THINK_MODEL=gpt-4o-mini
 
 ## 10. Próxima sesión — cola
 
-1. Jonathan: H-1b y después G1 → G2 → G3 → G4 con `docs/reviews/mvp-01-activacion-cto-review.md`
-   y el runbook (§1–§12).
+1. Jonathan: G2 → G3 → G4 con `docs/reviews/mvp-01-activacion-cto-review.md` y el runbook
+   (§5–§12); H-6 antes de G4 (decisión 3 de G1). H-1b y G1 hechos el 8 oct 2026.
 2. Jonathan: G5a → G5 → H-9 con `docs/reviews/mvp-02-activacion-cto-review.md` y el runbook
    (§14–§15). Su decisión 1 dice si G5 va antes o después de G4.
 3. Agente (sesión nueva, al recibir la URL del run de G5a): commitear
@@ -236,4 +237,4 @@ VOICE_THINK_MODEL=gpt-4o-mini
 
 ---
 
-*Última actualización: 7 oct 2026 (cierre de MVP-02).*
+*Última actualización: 8 oct 2026 (G1).*

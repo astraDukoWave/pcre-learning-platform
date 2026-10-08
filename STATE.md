@@ -13,7 +13,7 @@ MVP-02; MVP-03 espera a G6.
 | Gate | Qué autoriza | Estado |
 |---|---|---|
 | G0 | Paquete MVP-01/02/03; arranque autónomo; delegación de merges | **aprobado** el 5 oct 2026 |
-| G1 | Deploy a Heroku | no iniciado |
+| G1 | Deploy a Heroku | **aprobado** el 8 oct 2026: `main` @ `9b07712` desplegado (release v5) |
 | G2 | Audio TTS por unidad | no iniciado |
 | G3 | Publicación de contenido por unidad | no iniciado |
 | G4 | Alumnos reales | no iniciado |
@@ -35,6 +35,27 @@ MVP-02; MVP-03 espera a G6.
      `VOICE_MAX_MINUTES_PER_USER_MONTH=60`.
    - Dyno **Basic** en G1.
 
+## Registro de G1 (firmado por Jonathan el 8 oct 2026)
+
+- **Firma:** "Apruebo G1 para MVP-01 @ 9b07712", con H-1b hecho.
+- **Run "deploy no configurado":** [37699335257](https://github.com/astraDukoWave/pcre-learning-platform/actions/runs/37699335257),
+  `failure` con `::error::deploy no configurado: falta el secret HEROKU_API_KEY …` (AC-21)
+  `[verified-this-session]`.
+- **Primer deploy:** [37706123046](https://github.com/astraDukoWave/pcre-learning-platform/actions/runs/37706123046)
+  ✅, de `9b07712`, aprobado por `astraDukoWave` en el environment `production`. "Release
+  v5 lista"; smoke `/health → 200`, `/api/v1/ready → 200` con la migración `voice_v1`
+  (head), `/ → 200` `[verified-this-session: logs del job]`. La aprobación registrada
+  confirma que el environment exige revisión.
+- **Lo que reporta Jonathan y la sesión no puede leer** (el proxy bloquea los environments,
+  las variables y Heroku): Cedar con stack `container`, Postgres Essential-0 con backups
+  diarios, revisor obligatorio, secret `HEROKU_API_KEY` y `DEPLOY_ENABLED=true`
+  `[inherited-unverified]`.
+- **Decisiones del dictamen de MVP-01:**
+  1. El contenido y las claves siguen en el repo público durante el piloto (trigger de
+     LB-09 sin cambios).
+  2. `APP_NAME=PCRE`.
+  3. H-6 (teléfonos) **antes** de invitar alumnos (G4).
+
 Ratificados en G0: ADR-08 (tablas nuevas para el currículo) y la división
 en tres ciclos. Los ajustes del plan que no cambien alcance ni contrato se
 anotan en el registro; cualquier otra desviación queda `pending-human`.
@@ -45,6 +66,9 @@ anotan en el registro; cualquier otra desviación queda `pending-human`.
   `pull_request` con 0 aprobaciones `[verified-this-session: API REST, 5 oct
   2026]`. Pendiente **H-1b**: `ci-gate` como check requerido, después del
   primer run de CI de CS-01.
+- **H-1b hecho** (8 oct 2026): el ruleset de `main` tiene `required_status_checks` con
+  `ci-gate`, además de `deletion`, `non_fast_forward` y `pull_request`
+  `[verified-this-session: API REST]`.
 - Comprobado al cerrar MVP-02 (7 oct 2026): `origin/main` @ `180a40b` (merge de CS-07), sin
   otros PRs abiertos que el de CS-08, ruleset 24546040 `active` con `deletion`,
   `non_fast_forward` y `pull_request`; **sin** `required_status_checks` (H-1b sigue pendiente)
@@ -195,28 +219,20 @@ Ninguna.
 
 ## Loop humano vigente (final de MVP-01 y MVP-02)
 
-Todo lo que sigue es tuyo; el agente no puede hacerlo. Orden recomendado: H-1b → G1 → G2 →
-G3 → G5a → G5 → H-9 → G4. G5 antes de G4 es tu decisión 1 de
-`docs/reviews/mvp-02-activacion-cto-review.md`; si eliges G4 antes, invierte los dos últimos
-bloques. Los mensajes de aprobación, listos para pegar, están al final de cada dictamen.
+Todo lo que sigue es tuyo; el agente no puede hacerlo. H-1b y G1 quedaron hechos el 8 oct 2026.
+Orden recomendado: G2 → G3 → G5a → G5 → H-9 → H-6 → G4. G5 antes de G4 es tu decisión 1 de
+`docs/reviews/mvp-02-activacion-cto-review.md`; si eliges G4 antes, invierte los bloques. Por
+tu decisión 3 de G1, H-6 va antes de G4. Los mensajes de aprobación, listos para pegar, están
+al final de cada dictamen.
 
-1. **H-1b · `ci-gate` como check requerido** (5 min) — https://github.com/astraDukoWave/pcre-learning-platform/settings/rules
-   → ruleset `main` → **Require status checks to pass** → **Add checks** → `ci-gate` →
-   **Save changes**. Devuélveme: "ci-gate requerido".
-2. **G1 · Deploy a Heroku** (≈ 45 min) — `docs/runbook.md` §1 (app, Postgres Essential-0,
-   backups y config vars sin MVP-02), §2 (environment `production` con tu revisión, secret
-   `HEROKU_API_KEY`, variables `HEROKU_APP_NAME` y, al final, `DEPLOY_ENABLED=true`; antes,
-   el run "deploy no configurado"), §3 (aprobar el deploy del `main` vigente y
-   verificar `/health` y `/api/v1/ready`; dyno Basic) y §4 (tu admin). Devuélveme el mensaje
-   **G1** del dictamen de MVP-01 con las URLs de los runs y la salida de `/api/v1/ready`.
-3. **G2 · Audio de U1 y del diagnóstico** (≈ 30 min) — runbook §8: environment
+1. **G2 · Audio de U1 y del diagnóstico** (≈ 30 min) — runbook §8: environment
    `content-audio` con tu revisión y su secret `DEEPGRAM_API_KEY`; un run de
    `content-audio.yml` por prefijo (`u1`, `inicial`) con `max_chars=20000`; escuchar cada MP3
    y mergear los PRs con `reviewed_by`. Devuélveme el mensaje **G2**.
-4. **G3 · Publicación de U1 y del diagnóstico** (≈ 2 h) — runbook §9 con
+2. **G3 · Publicación de U1 y del diagnóstico** (≈ 2 h) — runbook §9 con
    `docs/contenido/revision/u1.md` e `inicial.md`; confirma las fuentes `pending` (Cambridge y
    Consejo de Europa). Devuélveme el mensaje **G3** con el tiempo de revisión.
-5. **G5a · Benchmark del feedback** (≈ 30 min, ≤ USD 2) — runbook §14.1:
+3. **G5a · Benchmark del feedback** (≈ 30 min, ≤ USD 2) — runbook §14.1:
    - proyecto de Google de PCRE con facturación activa y alerta de USD 25;
    - llave de la Gemini API;
    - environment `evals` con tu revisión y su secret `GEMINI_API_KEY`;
@@ -225,7 +241,7 @@ bloques. Los mensajes de aprobación, listos para pegar, están al final de cada
      y aprobar el despliegue.
 
    Devuélveme el mensaje **G5a** con la URL del run.
-6. **G5 · Activación de IA y voz** (≈ 45 min):
+4. **G5 · Activación de IA y voz** (≈ 45 min):
    - runbook §14.2: proyecto de Deepgram de PCRE, saldo prepagado, Auto-reload apagado, sin
      programa de mejora de modelos, llave y precios reconfirmados;
    - runbook §14.3: config vars de presupuesto de G0, precios, `GEMINI_MODEL` y las dos
@@ -233,10 +249,10 @@ bloques. Los mensajes de aprobación, listos para pegar, están al final de cada
      con la prueba mínima entre cada una.
 
    Devuélveme el mensaje **G5** con `/api/v1/capabilities` y tus decisiones 1–3.
-7. **H-9 · Voz en iPhone y Android** (≈ 40 min) — runbook §15, con audífonos y sin ellos.
+5. **H-9 · Voz en iPhone y Android** (≈ 40 min) — runbook §15, con audífonos y sin ellos.
    Devuélveme el checklist, la latencia percibida y los motivos de cierre que muestra
    `/admin/piloto`.
-8. **G4 · Alumnos reales** (≈ 1 h) — en este orden:
+6. **G4 · Alumnos reales** (≈ 1 h) — en este orden:
    - aprobar los textos legales: un PR que cambia el encabezado y quita "Borrador"; ya
      mencionan a Deepgram y Google;
    - `CONSENT_VERSION` igual en Heroku;
@@ -245,6 +261,6 @@ bloques. Los mensajes de aprobación, listos para pegar, están al final de cada
    - invitar desde `/admin/usuarios` (runbook §10).
 
    Devuélveme el mensaje **G4**.
-9. **G6 · MVP-03**, cuando U1 esté revisada y el examen de tus primeros clientes confirmado.
+7. **G6 · MVP-03**, cuando U1 esté revisada y el examen de tus primeros clientes confirmado.
 
-*Última actualización: 7 oct 2026 (cierre de MVP-02).*
+*Última actualización: 8 oct 2026 (G1 y H-1b).*
